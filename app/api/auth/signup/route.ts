@@ -1,0 +1,2 @@
+import {createUser,newSession,sessionCookie} from '../../../../lib/auth';
+export async function POST(req:Request){try{const{email,password}=await req.json() as {email:string;password:string};const user=await createUser(email,password),session=await newSession(user.id);return Response.json({user},{headers:{'Set-Cookie':sessionCookie(session.token,2592000,new URL(req.url).protocol==='https:')}})}catch(e){return Response.json({error:e instanceof Error?e.message:'Не вдалося створити акаунт'},{status:400})}}
