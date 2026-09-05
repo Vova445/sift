@@ -1,0 +1,2 @@
+import {currentUser} from '../../../../lib/auth';import {activateTestPlan} from '../../../../lib/db';
+export async function POST(req:Request){const user=await currentUser(req);if(!user)return Response.json({error:'Спочатку увійдіть'},{status:401});const{plan}=await req.json() as {plan?:string};if(plan!=='one'&&plan!=='pro')return Response.json({error:'Невідомий тариф'},{status:400});return Response.json({ok:true,access:await activateTestPlan(user.id,plan)})}
