@@ -3,6 +3,7 @@
 import {useEffect,useMemo,useState} from 'react';
 import {ArrowLeft,ArrowRight,BadgeCheck,CalendarClock,Check,CircleDollarSign,ExternalLink,FileSearch,LockKeyhole,LogOut,ScanSearch,ShieldCheck,Sparkles,X} from 'lucide-react';
 import './dashboard.css';
+import './dashboard-header.css';
 
 type Finding={title:string;summary:string;evidence:string;severity:'good'|'medium'|'high'};
 type Report={id:string;url:string;host:string;title:string;score:number;prices:string[];findings:Finding[];wordCount:number;verdict:string;lockedCount?:number};
@@ -21,7 +22,7 @@ export default function DashboardPage(){
  const a=data.access,total=data.history.length,avg=total?Math.round(data.history.reduce((n,x)=>n+x.result.score,0)/total):0,risks=data.history.reduce((n,x)=>n+x.result.findings.length,0);
  return <main className="dashPage">
   <aside className="dashSide"><a className="dashLogo" href="/"><span><ScanSearch/></span>SIFT</a><nav><a className="active" href="/dashboard"><FileSearch/>Огляд</a><a href="/#top"><ScanSearch/>Нова перевірка</a><a href="/#pricing"><Sparkles/>Тарифи</a></nav><div className="dashSidePlan"><small>ПОТОЧНИЙ ПЛАН</small><b>{planName(a.plan)}</b><span>{a.plan==='pro'?'Необмежені перевірки':a.plan==='one'?`${a.credits} повний звіт доступний`:`${Math.max(0,3-a.used)} безкоштовні перевірки`}</span>{a.plan!=='pro'&&<a href="/#pricing">Покращити план <ArrowRight/></a>}</div><button onClick={logout}><LogOut/>Вийти</button></aside>
-  <div className="dashContent"><header className="dashHeader"><div><small>MY SIFT</small><h1>Покупки без неприємних сюрпризів.</h1><p>{data.user.email}</p></div><a href="/#top"><ScanSearch/>Нова перевірка</a></header>
+  <div className="dashContent"><div className="dashTopbar"><a href="/"><ArrowLeft/>Повернутися на головну</a><div><span className={`topPlan ${a.plan}`}>{planName(a.plan)}</span><button onClick={logout}><LogOut/>Вийти</button></div></div><header className="dashHeader"><div><small>MY SIFT</small><h1>Покупки без неприємних сюрпризів.</h1><p>{data.user.email}</p></div><a href="/#top"><ScanSearch/>Нова перевірка</a></header>
    <section className="dashStats"><article><span><FileSearch/></span><div><small>ЗВІТІВ</small><b>{total}</b><p>Збережено в акаунті</p></div></article><article><span><ShieldCheck/></span><div><small>СЕРЕДНЯ ЯСНІСТЬ</small><b>{avg}<em>/100</em></b><p>За всіма перевірками</p></div></article><article><span><BadgeCheck/></span><div><small>УМОВ ЗНАЙДЕНО</small><b>{risks}</b><p>Ціни, renewal і refund</p></div></article></section>
    {a.plan==='free'&&<section className="dashUpgrade"><div><LockKeyhole/><span><small>FREE PLAN</small><b>Повні докази та переклад зараз заблоковані</b><p>One Sift відкриває один важливий звіт, Pro — усю історію та необмежені перевірки.</p></span></div><a href="/#pricing">Порівняти плани <ArrowRight/></a></section>}
    <section className="dashHistory"><header><div><small>SCAN LIBRARY</small><h2>Історія перевірок</h2></div><input aria-label="Пошук в історії" value={filter} onChange={e=>setFilter(e.target.value)} placeholder="Пошук за сайтом…"/></header>

@@ -1,0 +1,13 @@
+.dashPage{display:block}
+.dashSide{display:none}
+.dashContent{padding-top:26px}
+.dashTopbar{min-height:54px;border-bottom:1px solid var(--line);display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:42px}
+.dashTopbar>a{display:flex;align-items:center;gap:8px;color:#4e554d;text-decoration:none;font-size:9px;font-weight:800}
+.dashTopbar svg{width:14px}
+.dashTopbar>div{display:flex;align-items:center;gap:10px}
+.dashTopbar button{border:1px solid var(--line);background:white;border-radius:8px;padding:8px 11px;display:flex;align-items:center;gap:7px;font-size:8px;font-weight:800}
+.topPlan{border-radius:99px;padding:8px 11px;font-size:7px;font-weight:900;letter-spacing:.1em;background:#e8f9c9;color:#426c18;border:1px solid #cce9a0}
+.topPlan.pro{background:var(--ink);color:var(--green);border-color:var(--ink)}
+.topPlan.one{background:#eeeaff;color:#594acb;border-color:#d8d1ff}
+.dashGate{grid-column:1/-1;width:100%}
+@media(max-width:600px){.dashTopbar{margin-bottom:30px}.dashTopbar>a{max-width:112px;line-height:1.35}.dashTopbar>div{gap:6px}.dashTopbar button{padding:8px}.dashTopbar button svg{display:none}.topPlan{padding:8px}}
