@@ -1,7 +1,7 @@
 'use client';
 import {useEffect,useState} from 'react';
 import {motion,AnimatePresence} from 'framer-motion';
-import {ArrowRight,BadgeCheck,BellRing,Check,ChevronRight,CircleDollarSign,Clock3,FileSearch,Link2,LockKeyhole,ScanSearch,ShieldCheck,Sparkles,Upload,X,Zap} from 'lucide-react';
+import {ArrowRight,BadgeCheck,BellRing,Check,ChevronRight,CircleDollarSign,Clock3,FileSearch,Link2,LockKeyhole,ScanSearch,ShieldCheck,Sparkles,X,Zap} from 'lucide-react';
 
 type Finding={kind:string;title:string;summary:string;evidence:string;severity:'good'|'medium'|'high'};
 type Access={plan:'free'|'one'|'pro';credits:number;used:number;limit:number;testMode?:boolean;expiresAt?:string};
@@ -14,6 +14,8 @@ export default function Home(){
  const deviceId=()=>{let id=localStorage.getItem('sift-device-id');if(!id){id=crypto.randomUUID();localStorage.setItem('sift-device-id',id)}return id};
  const loadHistory=()=>fetch(`/api/history?deviceId=${encodeURIComponent(deviceId())}`).then(r=>r.json()).then(x=>setHistory((x.items||[]).map((i:{result:Report})=>i.result))).catch(()=>{});
  const loadAccount=()=>fetch(`/api/account?deviceId=${encodeURIComponent(deviceId())}`).then(r=>r.json()).then(x=>{if(x.user)setUser(x.user);if(x.access)setAccess(x.access);if(x.history)setHistory(x.history.map((i:{result:Report})=>i.result))}).catch(()=>{});
+ // Account bootstrap intentionally runs once; helpers use the stable device id stored in the browser.
+ // eslint-disable-next-line react-hooks/exhaustive-deps
  useEffect(()=>{fetch('/api/auth/me').then(r=>r.json()).then(x=>{setUser(x.user);if(x.user)loadAccount()}).catch(()=>{});loadHistory()},[]);
  useEffect(()=>{if(dashboard)location.assign('/dashboard')},[dashboard]);
  async function analyze(){setLoading(true);setReport(null);setTranslations({});setError('');try{const r=await fetch('/api/analyze',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({url,deviceId:deviceId()})});const data=await r.json();if(!r.ok)throw new Error(data.error||'Помилка перевірки');setReport(data);if(data.access)setAccess(data.access);setHistory(h=>[data,...h].slice(0,20));setTimeout(()=>document.querySelector('#report')?.scrollIntoView({behavior:'smooth',block:'center'}),100)}catch(e){setError(e instanceof Error?e.message:'Не вдалося перевірити URL')}finally{setLoading(false)}}
