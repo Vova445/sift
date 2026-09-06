@@ -7,6 +7,7 @@ import './dashboard.css';
 import './dashboard-header.css';
 import './premium.css';
 import './auth-gate.css';
+import './responsive-fix.css';
 
 type Finding={title:string;summary:string;evidence:string;severity:'good'|'medium'|'high'};
 type Report={id:string;url:string;host:string;title:string;score:number;prices:string[];findings:Finding[];wordCount:number;verdict:string;lockedCount?:number};
