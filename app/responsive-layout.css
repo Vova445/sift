@@ -1,5 +1,5 @@
 /* Decorative hero light must never widen the document. */
 .hero{overflow-x:clip}
-.overlay{place-items:start center!important;padding-top:clamp(18px,5dvh,52px)!important;padding-bottom:18px!important}
+.overlay{place-items:center!important;padding:18px!important}
 @media(max-width:600px){.hero h1{font-size:clamp(40px,14vw,52px)}.hero h1 span{display:inline-block;max-width:100%}.heroGlow{max-width:none}}
 @media(max-width:340px){.hero h1{font-size:40px}}
