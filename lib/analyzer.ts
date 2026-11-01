@@ -1,4 +1,23 @@
 export type Finding={kind:'renewal'|'refund'|'cancellation'|'trial'|'price'|'warning';title:string;summary:string;evidence:string;severity:'good'|'medium'|'high'};
+export type PurchaseDecision='buy'|'wait'|'close';
+
+export function evaluateClarity(findings:Finding[],prices:string[]){
+ const kinds=new Set(findings.map(f=>f.kind));
+ const has=(kind:Finding['kind'])=>kinds.has(kind);
+ const score=Math.min(100,20+(prices.length?15:0)+(has('renewal')?15:0)+(has('cancellation')?15:0)+(has('refund')?15:0)+(has('trial')?10:0)+(has('warning')?10:0));
+ const decision:PurchaseDecision=has('warning')&&!has('refund')&&!has('cancellation')?'close':prices.length>0&&has('renewal')&&has('cancellation')&&has('refund')&&!has('warning')?'buy':'wait';
+ const missing:string[]=[];
+ if(!prices.length)missing.push('ціну');
+ if(!has('renewal'))missing.push('умову автопродовження');
+ if(!has('cancellation'))missing.push('умови скасування');
+ if(!has('refund'))missing.push('умови повернення');
+ const verdict=decision==='buy'
+  ?'Купувати можна після перевірки доказів: на сторінці знайдені ціна, автопродовження, скасування й повернення.'
+  :decision==='close'
+   ?'Закрити вкладку: знайдено неповоротну оплату, а зрозумілих умов скасування чи повернення не виявлено.'
+   :`Почекати: на доступній сторінці не вдалося підтвердити ${missing.join(', ')}. Перевірте першоджерело перед оплатою.`;
+ return{score,decision,verdict};
+}
 
 export class AnalyzerError extends Error{readonly status:number;constructor(message:string,status=422){super(message);this.status=status}}
 const privateHost=(host:string)=>{const h=host.toLowerCase().replace(/^\[|\]$/g,'');return h==='localhost'||h.endsWith('.localhost')||h==='::1'||h==='::'||h.endsWith('.local')||/^127\./.test(h)||/^10\./.test(h)||/^192\.168\./.test(h)||/^169\.254\./.test(h)||/^172\.(1[6-9]|2\d|3[01])\./.test(h)||/^f[cd][0-9a-f]{2}:/i.test(h)||/^fe[89ab][0-9a-f]:/i.test(h)||/^::ffff:(?:127\.|10\.|192\.168\.|169\.254\.|172\.(?:1[6-9]|2\d|3[01])\.)/i.test(h)};
@@ -16,4 +35,4 @@ export async function analyzeUrl(raw:string){let current=safeUrl(raw);let respon
  ['warning','Неповоротна оплата',/non[- ]?refundable|no refunds?|не підлягає поверненню|кошти не повертаються/i,'high']];
  for(const[kind,label,re,severity]of rules){const ev=evidence(text,re);if(ev)findings.push({kind,title:label,summary:severity==='high'?'Потребує уваги до оплати':severity==='good'?'Умову повернення згадано — перевірте винятки':'Перевірте деталі на сторінці',evidence:ev,severity})}
  const money=/(?:[$€£₴]\s?\d{1,6}(?:[.,]\d{1,2})?|\d{1,6}(?:[.,]\d{1,2})?\s?(?:USD|EUR|UAH|грн))/gi,priceContext=/(?:price|pricing|cost|subscription|plan|monthly|annually|per\s+(?:month|year)|вартіст|ціна|підписк|тариф|на\s+(?:місяць|рік)|щомісячн|щорічн)/i,legalAmountContext=/(?:liabilit|damages|aggregate\s+liability|claim|lawsuit|court)/i;const prices:string[]=[];for(const m of text.matchAll(money)){const around=text.slice(Math.max(0,m.index!-90),Math.min(text.length,m.index!+m[0].length+90));if(priceContext.test(around)&&!legalAmountContext.test(around)){const value=m[0].replace(/\s+/g,' ').trim();if(!prices.includes(value)){prices.push(value);findings.push({kind:'price',title:'Знайдена сума',summary:'Звірте ціну та період оплати в першоджерелі',evidence:`…${around.trim()}…`,severity:'medium'})}if(prices.length===8)break}}
- const high=findings.filter(x=>x.severity==='high').length,score=Math.max(20,Math.min(90,60+(findings.some(x=>x.kind==='refund')?5:0)-(high*12)-(findings.some(x=>x.kind==='cancellation')?3:0)));return{url:current.toString(),host:current.hostname,title:title.slice(0,140),checkedAt:new Date().toISOString(),score,prices,findings,wordCount,verdict:score>=75?'За доступним текстом явних критичних умов не знайдено; перевірте докази нижче.':score>=50?'У тексті знайдено умови або суми, які варто звірити з першоджерелом.':'Знайдено потенційно важливі умови. Перевірте наведені фрагменти першоджерела.'}}
+ const evaluation=evaluateClarity(findings,prices);return{url:current.toString(),host:current.hostname,title:title.slice(0,140),checkedAt:new Date().toISOString(),...evaluation,prices,findings,wordCount}}
