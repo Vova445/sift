@@ -40,6 +40,7 @@ export async function deleteAccountData(user:{id:string;email:string}){
     env.DB.prepare(`DELETE FROM auth_login_limit_email_keys WHERE email_hash=?`).bind(await digest(user.email.trim().toLowerCase())),
     env.DB.prepare(`DELETE FROM sessions WHERE user_id=?`).bind(user.id),
     env.DB.prepare(`DELETE FROM subscription_payments WHERE user_id=?`).bind(user.id),
+    env.DB.prepare(`DELETE FROM legal_acceptances WHERE user_id=?`).bind(user.id),
     env.DB.prepare(`DELETE FROM payment_orders WHERE user_id=?`).bind(user.id),
     env.DB.prepare(`DELETE FROM subscriptions WHERE user_id=?`).bind(user.id),
     env.DB.prepare(`DELETE FROM signups WHERE email=?`).bind(user.email.trim().toLowerCase()),

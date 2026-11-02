@@ -1,5 +1,7 @@
 import {env} from 'cloudflare:workers';
 import {ensureEmailVerificationDb} from './email-verification';
+import {signupAcceptanceStatement} from './legal-acceptance';
+import {signupLegalConsent,type SignupLegalConsent} from './legal-consent-policy.js';
 
 const enc=new TextEncoder();
 const hex=(b:ArrayBuffer)=>[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');
@@ -11,16 +13,21 @@ async function passwordHash(password:string,salt:string,iterations=PASSWORD_ITER
 export type AuthUser={id:string;email:string;emailVerified:boolean;emailVerifiedAt:string|null};
 export async function newPasswordCredentials(password:string){if(typeof password!=='string'||password.length<8||password.length>1024)throw new Error('Пароль має містити від 8 до 1024 символів');const salt=random(18);return{salt,passwordHash:await passwordHash(password,salt),passwordIterations:PASSWORD_ITERATIONS}}
 
-export async function createUser(email:string,password:string){
+export async function createUser(email:string,password:string,consent:SignupLegalConsent){
   await ensureEmailVerificationDb();
   if(typeof email!=='string'||typeof password!=='string')throw new Error('Вкажіть email і пароль');
+  if(!signupLegalConsent(consent))throw new Error('Потрібно прийняти Умови користування та підтвердити ознайомлення з Політикою приватності.');
   const normalized=email.trim().toLowerCase();
   if(normalized.length>254||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized))throw new Error('Введіть коректний email');
   const exists=await env.DB.prepare('SELECT id FROM users WHERE email=?').bind(normalized).first();
   if(exists)throw new Error('Акаунт із таким email уже існує');
   const credentials=await newPasswordCredentials(password);
   const id=crypto.randomUUID();
-  try{await env.DB.prepare('INSERT INTO users (id,email,password_hash,salt,created_at,password_iterations) VALUES (?,?,?,?,?,?)').bind(id,normalized,credentials.passwordHash,credentials.salt,new Date().toISOString(),credentials.passwordIterations).run()}
+  const createdAt=new Date().toISOString();
+  try{await env.DB.batch([
+    env.DB.prepare('INSERT INTO users (id,email,password_hash,salt,created_at,password_iterations) VALUES (?,?,?,?,?,?)').bind(id,normalized,credentials.passwordHash,credentials.salt,createdAt,credentials.passwordIterations),
+    signupAcceptanceStatement(id,consent,createdAt)
+  ])}
   catch{throw new Error('Не вдалося створити акаунт. Перевірте, чи цей email ще не зареєстрований.')}
   return{id,email:normalized,emailVerified:false,emailVerifiedAt:null} satisfies AuthUser;
 }

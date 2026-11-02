@@ -18,6 +18,7 @@
     "test:ssrf": "node --test tests/ssrf-protection.test.mjs",
     "test:rate-limit": "node --test tests/request-rate-limit-policy.test.mjs",
     "test:turnstile": "node --test tests/turnstile-policy.test.mjs",
+    "test:legal": "node --test tests/legal-consent-policy.test.mjs",
     "verify:rate-limit:local": "node scripts/verify-rate-limit-local.mjs",
     "verify:analyze-rate-limit:local": "node scripts/verify-analyze-rate-limit-local.mjs",
     "verify:turnstile:local": "node scripts/verify-turnstile-routes-local.mjs",

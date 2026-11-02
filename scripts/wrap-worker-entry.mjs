@@ -63,9 +63,16 @@ export default {
   async scheduled(controller, env, ctx) {
     const secret = env.DUNNING_CRON_SECRET;
     if (!secret) throw new Error('DUNNING_CRON_SECRET is not configured');
+    const internalHeaders = { authorization: 'Bearer ' + secret, 'x-scheduled-cron': controller.cron };
+    const retentionRequest = new Request('https://sift.internal/api/internal/privacy-retention', {
+      method: 'POST',
+      headers: internalHeaders,
+    });
+    const retentionResponse = await app.fetch(retentionRequest, env, ctx);
+    if (!retentionResponse.ok) throw new Error('Guest report retention returned HTTP ' + retentionResponse.status);
     const request = new Request('https://sift.internal/api/internal/billing-dunning', {
       method: 'POST',
-      headers: { authorization: 'Bearer ' + secret, 'x-scheduled-cron': controller.cron },
+      headers: internalHeaders,
     });
     const response = await app.fetch(request, env, ctx);
     if (!response.ok) throw new Error('Billing dunning returned HTTP ' + response.status);

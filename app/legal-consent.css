@@ -1,0 +1,9 @@
+/* Legal consent controls and policy navigation */
+.legalCheckbox{display:grid;grid-template-columns:18px minmax(0,1fr);align-items:start;gap:10px;color:#4f574d;font-size:11px;line-height:1.55;cursor:pointer;text-align:left}
+.legalCheckbox input{width:18px;height:18px;margin:0;accent-color:#a9ef52;cursor:pointer;flex:0 0 auto}
+.legalCheckbox a{color:#5547d4;text-underline-offset:2px;font-weight:700}
+.signupLegalCheckbox{margin:3px 0 2px;padding:12px;border:1px solid #dce2d8;border-radius:10px;background:#f8faf6}
+.checkoutLegalChecks{display:grid;gap:9px;margin:20px 0 14px}
+.checkoutLegalChecks .legalCheckbox{padding:12px;border:1px solid #dce2d8;border-radius:11px;background:#f8faf6}
+@media(max-width:900px){.footerBottom>div{display:flex!important;flex-wrap:wrap;gap:10px 16px}.footerBottom>div a{font-size:10px}}
+@media(max-width:600px){.footerBottom{grid-template-columns:1fr;gap:12px;padding-top:16px;padding-bottom:20px}.footerBottom>div{display:flex!important;order:3;flex-wrap:wrap;gap:10px 16px}.footerBottom span{max-width:none;font-size:9px}.footerBottom>a:last-child{justify-self:start}}

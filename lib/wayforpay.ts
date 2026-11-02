@@ -1,5 +1,7 @@
 import {createHmac, timingSafeEqual} from 'node:crypto';
 import {env} from 'cloudflare:workers';
+import {checkoutAcceptanceStatement} from './legal-acceptance';
+import type {CheckoutLegalConsent} from './legal-consent-policy.js';
 import {ensureDb} from './db';
 import {addCalendarMonth,type SubscriptionStatus} from './subscription-lifecycle';
 import {planDetails,type PaidPlan} from './plan-catalog';
@@ -17,7 +19,10 @@ export function sign(value:string,secret=wayForPayConfig().secret){return create
 export function signatureMatches(value:string,signature:unknown){if(typeof signature!=='string'||!/^[a-f\d]{32}$/i.test(signature))return false;const expected=Buffer.from(sign(value),'hex'),actual=Buffer.from(signature,'hex');return expected.length===actual.length&&timingSafeEqual(expected,actual);}
 export function providerAmountMatches(order:PaymentOrder,amount:unknown,currency:unknown){const value=Number(amount);if(!Number.isFinite(value))return false;if(currency==='UAH')return value===order.amount_uah;if(currency==='USD')return value===Number(planDetails(order.plan).usd);return false;}
 export async function getPaymentOrder(reference:string,userId?:string){await ensureDb();const q=userId?env.DB.prepare('SELECT * FROM payment_orders WHERE order_reference=? AND user_id=?').bind(reference,userId):env.DB.prepare('SELECT * FROM payment_orders WHERE order_reference=?').bind(reference);return q.first<PaymentOrder>();}
-export async function createPaymentOrder(order:{reference:string;userId:string;plan:PaidPlan;amount:number;testMode:boolean}){await ensureDb();const now=new Date(),expires=new Date(now.getTime()+60*60*1000);await env.DB.prepare(`INSERT INTO payment_orders(order_reference,user_id,plan,amount_uah,currency,status,test_mode,created_at,updated_at,expires_at) VALUES(?,?,?,?,?,'pending',?,?,?,?)`).bind(order.reference,order.userId,order.plan,order.amount,'UAH',order.testMode?1:0,now.toISOString(),now.toISOString(),expires.toISOString()).run();}
+export async function createPaymentOrder(order:{reference:string;userId:string;plan:PaidPlan;amount:number;testMode:boolean;legalConsent:CheckoutLegalConsent}){await ensureDb();const now=new Date(),expires=new Date(now.getTime()+60*60*1000);await env.DB.batch([
+  env.DB.prepare(`INSERT INTO payment_orders(order_reference,user_id,plan,amount_uah,currency,status,test_mode,created_at,updated_at,expires_at) VALUES(?,?,?,?,?,'pending',?,?,?,?)`).bind(order.reference,order.userId,order.plan,order.amount,'UAH',order.testMode?1:0,now.toISOString(),now.toISOString(),expires.toISOString()),
+  checkoutAcceptanceStatement({userId:order.userId,plan:order.plan,orderReference:order.reference,consent:order.legalConsent,acceptedAt:now.toISOString()})
+]);}
 export async function setPaymentStatus(order:PaymentOrder,status:'paid'|'declined'|'expired'){
   await ensureDb();
   // Only a pending order may transition to a final state. A repeated callback is idempotent.
