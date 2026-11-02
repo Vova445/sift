@@ -1,0 +1,6 @@
+# Copy to .dev.vars for local sandbox testing. These are WayForPay's published test merchant details.
+WAYFORPAY_MODE=sandbox
+WAYFORPAY_MERCHANT_ACCOUNT=test_merch_n1
+WAYFORPAY_MERCHANT_SECRET=flk3409refn54t54t*FNJRET
+WAYFORPAY_MERCHANT_DOMAIN=127.0.0.1
+WAYFORPAY_SANDBOX_ALLOWLIST=replace-with-your-test-account-email
