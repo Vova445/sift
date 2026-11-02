@@ -7,3 +7,14 @@
 .decisionTag{display:inline-flex;width:max-content;margin-top:5px;padding:5px 8px;border-radius:999px;background:#eaf7db;color:#416b11;font-size:8px;letter-spacing:.08em}
 .decisionTag.wait{background:#fff2dc;color:#8a5a0b}
 .decisionTag.close{background:#ffebe8;color:#a9342b}
+.historyPrompt{grid-column:1/-1;display:grid!important;grid-template-columns:1fr auto;align-items:center;gap:8px 24px;padding:24px 0}
+.historyPrompt>span{grid-column:1/-1;font-size:8px;font-weight:900;letter-spacing:.13em;color:#858c83}
+.historyPrompt>b{font-size:20px}
+.historyPrompt>small{font-size:10px;line-height:1.5;color:#747b72}
+.historyPrompt>button{grid-column:2;grid-row:2/4;display:flex;align-items:center;gap:12px;border:0;border-radius:9px;background:var(--ink);color:white;padding:13px 16px;font-size:10px;font-weight:800}
+.savedEmpty b{font-size:19px!important;line-height:1.25;max-width:240px}
+.savedEmpty small{position:static!important;display:block;margin-top:12px;color:var(--green);font-size:8px}
+.purchases>.purchaseRow{width:100%;display:grid;grid-template-columns:12px 1fr 60px 15px;align-items:center;padding:14px 0;border:0;border-bottom:1px solid #edf0eb;background:white;text-align:left}
+.purchases>.purchaseRow:last-of-type{border-bottom:0}
+.purchases>.purchaseRow:hover{background:#fafbf9}
+@media(max-width:600px){.historyPrompt{grid-template-columns:1fr;gap:8px}.historyPrompt>button{grid-column:1;grid-row:auto;width:max-content;margin-top:6px}.purchases>.purchaseRow{grid-template-columns:12px minmax(0,1fr) 48px 15px;gap:6px}.purchases span b{overflow-wrap:anywhere}}
