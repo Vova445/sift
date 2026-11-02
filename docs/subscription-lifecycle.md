@@ -1,21 +1,34 @@
-# Sift Pro subscription lifecycle
+# Sift Pro billing lifecycle
 
-Sift Pro is billed at ₴279 per calendar month (displayed as $6.90). WayForPay checkout requests a preset monthly recurring payment and the first payment activates a 1-month period. The app does not store the card token.
+Sift Pro is billed at ₴279 per calendar month. WayForPay processes card details; Sift stores provider references and payment status, never card data.
 
-## Server states and access
+## Failed renewals and grace period
 
-- `trialing` and `active` grant Pro until `expires_at`.
-- `canceled` disables future charges but keeps Pro through `expires_at`.
-- `past_due` and `expired` do not grant Pro.
-- Expired rows are moved to `expired` on the next authenticated access check.
-- Confirmed recurring payments are recorded once in `subscription_payments`; repeated syncs cannot add the same payment period twice.
+- A confirmed declined recurring payment moves the subscription to `past_due` once and records `past_due_at` plus `grace_until`.
+- The grace deadline is seven days after the later of the failed attempt time and the paid-through date. Pro stays available until that deadline.
+- Dashboard shows an update-payment banner and links to the WayForPay payer cabinet.
+- A Cloudflare Cron Trigger runs hourly. It reconciles recurring status with WayForPay, sends one idempotent recovery email via Resend, retries delivery failures, and expires `past_due` subscriptions once grace ends.
+- If the schedule misses a run, authenticated access checks also expire subscriptions after the deadline.
+- Expiration changes only the subscription status and entitlements. Reports and account data are retained.
+- Successful payment restores `active`, extends the period, and clears the dunning state.
 
-## WayForPay configuration
+## Provider configuration
 
-Configure `WAYFORPAY_MERCHANT_ACCOUNT`, `WAYFORPAY_MERCHANT_SECRET`, and `WAYFORPAY_MERCHANT_DOMAIN` as Worker secrets. Cancellation and provider renewal-status reconciliation also require `WAYFORPAY_MERCHANT_PASSWORD`. WayForPay enables its regular-payment service per merchant account; request this from WayForPay and verify the sandbox store before production checkout. If the password or service is unavailable, the app does not mark a cancellation as successful.
+Set the following Worker secrets/variables:
 
-The browser only receives the public checkout fields. The provider callback signature is verified server-side. The callback accepts a payment once, the D1 ledger uses a unique provider reference, and an account access check reconciles the provider's latest recurring payment status no more frequently than every ten minutes.
+- Existing WayForPay merchant account, password, and signing secrets, so the cron can reconcile recurring status.
+- `DUNNING_CRON_SECRET`: a long random secret used to protect the internal scheduled handler route.
+- `RESEND_API_KEY`: API key for the transactional email provider.
+- `DUNNING_FROM_EMAIL`: sender address verified in Resend.
+
+Local development values can be placed in ignored `.dev.vars`. The `.dev.vars.example` file lists the names. Configure the same Worker values in Cloudflare before relying on dunning emails. Without Resend credentials the app still keeps the grace banner and downgrades after seven days, while email delivery is reported as not configured in the scheduled run.
+
+## Scheduled execution
+
+`npm run build` wraps vinext's Worker entrypoint with a Cloudflare `scheduled()` handler. `wrangler.jsonc` runs it hourly. The scheduled handler calls a server-only route guarded by `DUNNING_CRON_SECRET`.
 
 ## Verification
 
-Run `npm run test:billing` for the complete state-transition matrix, paid-through entitlement rules, and calendar-month boundaries. `npm run lint` and `npm run build` validate the application. A successful local signed callback verifies initial activation and duplicate-callback idempotency; a genuine card renewal or cancellation must still be run with the merchant's enabled WayForPay sandbox credentials.
+Run `npm run test:billing` for lifecycle, grace-access, and idempotency coverage. `npm run lint` and `npm run build` validate source and generated Worker output. A real declined-card test requires the merchant's active WayForPay recurring sandbox setup, plus the Worker secret and Resend sender configuration.
+
+For local scheduled-handler validation, run the built Worker with Wrangler and invoke `/cdn-cgi/local/scheduled?format=json`; use an isolated local D1 database and a temporary `DUNNING_CRON_SECRET`.

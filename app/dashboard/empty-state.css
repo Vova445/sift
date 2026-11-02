@@ -1,0 +1,8 @@
+.dashEmpty{min-height:230px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:42px 20px;text-align:center}
+.dashEmpty>.emptyStateIcon{width:52px;height:52px;display:grid;place-items:center;margin:0 auto 13px;border:1px solid #e4e0ff;border-radius:16px;background:linear-gradient(145deg,#f8f7ff 0%,#efedff 100%);box-shadow:0 8px 22px #5944c00d,inset 0 1px 0 #fff;color:#6859f5}
+.dashEmpty>.emptyStateIcon svg{width:23px;height:23px;stroke-width:1.9}
+.dashEmpty>b{display:block;margin:0;color:#20241e;font-size:14px;font-weight:800;letter-spacing:-.015em}
+.dashEmpty>p{max-width:360px;margin:8px 0 5px;color:#737b71;font-size:11px;line-height:1.55}
+.dashEmpty>a{display:inline-flex;align-items:center;justify-content:center;min-height:36px;margin-top:1px;padding:0 11px;border-radius:8px;color:#5d50e7;font-size:10px;font-weight:850;text-decoration:none;transition:background .16s,color .16s}
+.dashEmpty>a:hover{background:#f2f0ff;color:#4637d0}
+@media(max-width:600px){.dashEmpty{min-height:205px;padding:30px 12px}.dashEmpty>.emptyStateIcon{width:48px;height:48px;border-radius:14px}.dashEmpty>b{font-size:14px}.dashEmpty>p{font-size:11px}}

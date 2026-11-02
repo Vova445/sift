@@ -1,6 +1,6 @@
 import {billingEventKey,wayForPayEventKey} from '../../../../../lib/billing-event-key';
 import {claimBillingEvent,finishBillingEvent,logInvalidBillingEvent} from '../../../../../lib/billing-events';
-import {ackSignature,callbackSignatureFields,getPaymentOrder,providerAmountMatches,setPaymentStatus,wayForPayConfig,signatureMatches,type WayForPayPayload} from '../../../../../lib/wayforpay';
+import {ackSignature,callbackSignatureFields,getPaymentOrder,providerAmountMatches,setPaymentStatus,wayForPayConfig,signatureMatches,wasBillingReferenceDeleted,type WayForPayPayload} from '../../../../../lib/wayforpay';
 
 const safeString=(value:unknown,max=100)=>typeof value==='string'?value.slice(0,max):'';
 
@@ -16,7 +16,10 @@ export async function POST(req:Request){
   }
 
   const reference=safeString(data.orderReference,180),signature=data.merchantSignature;
+  let deletedReference=false;
+  try{deletedReference=await wasBillingReferenceDeleted(reference)}catch{return Response.json({error:'Тимчасова помилка перевірки callback.'},{status:503,headers:{'Retry-After':'5'}})}
   const valid=Boolean(config.merchantAccount&&data.merchantAccount===config.merchantAccount&&reference&&signatureMatches(callbackSignatureFields(data),signature));
+  if(deletedReference){if(valid)return accept(reference);return Response.json({error:'Невірний підпис callback.'},{status:400})}
   if(!valid){
     try{await logInvalidBillingEvent({eventKey:billingEventKey(raw),orderReference:reference||null,eventType:safeString(data.transactionStatus,100)||'invalid',data},'Invalid merchant or callback signature')}catch{}
     return Response.json({error:'Невірний підпис callback.'},{status:400});

@@ -1,8 +1,14 @@
 import {analyzeUrl,AnalyzerError} from '../../../lib/analyzer';
 import {accessFor,quotaIpKey,quotaOwnerKey,releaseFreeScan,releaseOne,reserveFreeScan,reserveOne,saveScan} from '../../../lib/db';
 import {currentUser} from '../../../lib/auth';
+import {can} from '../../../lib/entitlements';
+import {ANALYZE_REQUESTS_PER_MINUTE} from '../../../lib/request-rate-limit-policy.js';
+import {enforceRateLimit,rateLimitIdentities,rateLimitedResponse} from '../../../lib/request-rate-limit';
 
 export async function POST(req:Request){
+ let ingressLimit:{allowed:boolean;retryAfter:number};
+ try{ingressLimit=await enforceRateLimit('analyze:ingress',rateLimitIdentities(req),120)}catch{return Response.json({error:'Сервіс перевірок тимчасово недоступний.'},{status:503})}
+ if(!ingressLimit.allowed)return rateLimitedResponse('Забагато запитів на аналіз. Спробуйте пізніше.',ingressLimit.retryAfter);
  let ownerKey:string|null=null;
  let freeReservation:Awaited<ReturnType<typeof reserveFreeScan>>=null;
  let oneReservation:string|null=null;
@@ -14,19 +20,25 @@ export async function POST(req:Request){
   ownerKey=await quotaOwnerKey(req,user?.id||null);
   const ipKey=await quotaIpKey(req);
   const access=await accessFor(user?.id||null,body.deviceId,ownerKey,ipKey);
+  if(user&&!user.emailVerified&&access.plan!=='free')return Response.json({error:'Підтвердіть email, щоб користуватися вже придбаними платними можливостями.'},{status:403});
+  const planKey:'free'|'one'|'pro'=access.plan==='pro'?'pro':access.plan==='one'?'one':'free';
+  let planLimit:{allowed:boolean;retryAfter:number};
+  try{planLimit=await enforceRateLimit(`analyze:${planKey}`,rateLimitIdentities(req,user?.id),ANALYZE_REQUESTS_PER_MINUTE[planKey])}catch{return Response.json({error:'Сервіс перевірок тимчасово недоступний.'},{status:503})}
+  if(!planLimit.allowed)return rateLimitedResponse('Вичерпано хвилинний ліміт аналізу для вашого тарифу. Спробуйте пізніше.',planLimit.retryAfter);
   if(access.plan==='free'){
    freeReservation=await reserveFreeScan(ownerKey,user?.id||null,body.deviceId,ipKey);
    if(!freeReservation)return Response.json({error:'Безкоштовний ліміт — 3 перевірки на місяць. Оберіть One Sift або Pro.'},{status:402});
-  }else if(access.plan==='one'){
+  }else if(!(await can(user,'unlimited_scans',{access}))){
    oneReservation=await reserveOne(user!.id);
    if(!oneReservation)return Response.json({error:'One Sift уже використано. Активуйте ще один або перейдіть на Pro.'},{status:402});
   }
   const result=await analyzeUrl(body.url);
-  const translationPlan=user&&(access.plan==='one'||access.plan==='pro')?access.plan:null;
+  const paidEvidence=await can(user,'full_evidence',{access,translationPlan:access.plan==='one'?'one':null});
+  const translationPlan=paidEvidence?access.plan as 'one'|'pro':null;
   const id=await saveScan(body.deviceId,user?.id||null,result,translationPlan,oneReservation);
   freeReservation=null;
   oneReservation=null;
-  const visible=access.plan==='free'?{...result,findings:result.findings.slice(0,2).map(x=>({...x,evidence:'Повний доказ доступний у One Sift або Pro'})),lockedCount:Math.max(0,result.findings.length-2)}:result;
+  const visible=!paidEvidence?{...result,findings:result.findings.slice(0,2).map(x=>({...x,evidence:'Повний доказ доступний у One Sift або Pro'})),lockedCount:Math.max(0,result.findings.length-2)}:result;
   return Response.json({id,translationPlan,...visible,access:await accessFor(user?.id||null,body.deviceId,ownerKey,ipKey)});
  }catch(e){
   if(freeReservation){try{await releaseFreeScan(freeReservation)}catch{}}

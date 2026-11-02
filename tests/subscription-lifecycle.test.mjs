@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {canTransition,entitlementActive,statusAtPeriodEnd,addCalendarMonth,wayForPayDate} from '../lib/subscription-lifecycle.js';
+import {canTransition,entitlementActive,statusAtPeriodEnd,addCalendarMonth,wayForPayDate,gracePeriodEnd} from '../lib/subscription-lifecycle.js';
 
 const states=['trialing','active','past_due','canceled','expired'];
 const transitions={
@@ -24,6 +24,15 @@ test('entitlements follow status and paid-through date',()=>{
   assert.equal(entitlementActive('active',past,now),false);
   assert.equal(statusAtPeriodEnd('canceled',past,now),'expired');
   assert.equal(statusAtPeriodEnd('active',future,now),'active');
+});
+
+test('past-due keeps Pro only until the seven-day grace deadline',()=>{
+  const failed='2026-01-08T12:00:00.000Z',periodEnd='2026-01-10T12:00:00.000Z',deadline=gracePeriodEnd(failed,periodEnd);
+  assert.equal(deadline.toISOString(),'2026-01-17T12:00:00.000Z');
+  assert.equal(entitlementActive('past_due',periodEnd,Date.parse('2026-01-17T11:59:59.999Z'),deadline.toISOString()),true);
+  assert.equal(entitlementActive('past_due',periodEnd,deadline.getTime(),deadline.toISOString()),false);
+  assert.equal(entitlementActive('past_due',periodEnd,Date.parse('2026-01-12T12:00:00.000Z'),null),false);
+  assert.throws(()=>gracePeriodEnd('bad-date',periodEnd),/Invalid failed-payment date/);
 });
 
 test('monthly period rollover preserves month-end dates safely',()=>{

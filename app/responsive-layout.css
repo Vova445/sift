@@ -20,3 +20,33 @@
 .purchases>.purchaseRow:hover{background:#fafbf9}
 @media(max-width:600px){.bigstat>div.historyPrompt{grid-template-columns:minmax(0,1fr);gap:8px;padding:20px 0}.historyPrompt>button{grid-column:1;grid-row:auto;width:max-content;max-width:100%;margin-top:6px}.purchases>.purchaseRow{grid-template-columns:12px minmax(0,1fr) 48px 15px;gap:6px}.purchases span b{overflow-wrap:anywhere}}
 .translateFailure{display:block;color:#a9342b;font-size:9px;line-height:1.45;margin:-3px 0 8px}
+
+/* Clear, balanced purchase recommendation cards in both report views. */
+.report .verdict{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:22px;align-items:center;padding:18px 20px;background:linear-gradient(120deg,#eef8df,#f7faef);border-color:#d2e5b4}
+.report .verdict>div{display:grid;grid-template-columns:40px minmax(0,1fr);align-items:start;gap:14px;min-width:0}
+.report .verdict>div>svg{width:40px;height:40px;padding:10px;flex:none;border-radius:12px;background:#e1f1c8;color:#4e7425}
+.report .verdict>div>span{display:grid;justify-items:start;gap:8px;min-width:0}
+.report .verdict>div>span>small{font-size:8px;line-height:1.2;letter-spacing:.14em;color:#6b7961}
+.report .verdict .decisionTag{display:inline-flex;align-items:center;justify-content:center;width:fit-content;max-width:100%;min-height:25px;margin:0;padding:6px 10px;font-size:9px;font-weight:900;line-height:1.2;letter-spacing:.07em;white-space:normal}
+.report .verdict b{margin:0;color:#20271d;font-size:13px;line-height:1.55;overflow-wrap:anywhere}
+.report .verdict>button{min-height:46px;align-self:center;justify-content:center;gap:12px;padding:0 16px;white-space:nowrap}
+.reportDrawer .drawerScore{display:grid;grid-template-columns:92px minmax(0,1fr);gap:22px;align-items:center;padding:22px}
+.reportDrawer .drawerScoreValue{display:grid;justify-items:start;gap:7px;min-width:0}
+.reportDrawer .drawerScoreValue>b{display:flex;align-items:baseline;gap:1px;white-space:nowrap;font-size:44px;line-height:1;letter-spacing:-.05em}
+.reportDrawer .drawerScoreValue>b small{font-size:10px;letter-spacing:0}
+.reportDrawer .drawerScoreValue>small{font-size:7px;line-height:1.2;letter-spacing:.1em;color:#aab1a7}
+.reportDrawer .drawerScore>span{display:grid;justify-items:start;gap:9px;min-width:0;border-left:1px solid #394038;padding-left:22px}
+.reportDrawer .drawerScore>span>small{font-size:8px;line-height:1.2;letter-spacing:.14em;color:#aab1a7}
+.reportDrawer .drawerScore .decisionTag{display:inline-flex;align-items:center;justify-content:center;width:fit-content;max-width:100%;min-height:25px;margin:0;padding:6px 10px;font-size:9px;font-weight:900;line-height:1.2;letter-spacing:.07em;white-space:normal}
+.reportDrawer .drawerScore strong{margin:0;font-size:12px;line-height:1.55;overflow-wrap:anywhere}
+@media(max-width:600px){
+  .report .verdict{grid-template-columns:minmax(0,1fr);gap:14px;padding:16px}
+  .report .verdict>div{grid-template-columns:36px minmax(0,1fr);gap:11px}
+  .report .verdict>div>svg{width:36px;height:36px;padding:9px}
+  .report .verdict b{font-size:12px;line-height:1.55}
+  .report .verdict>button{width:100%;min-height:46px;white-space:normal}
+  .reportDrawer .drawerScore{grid-template-columns:76px minmax(0,1fr);gap:14px;padding:16px}
+  .reportDrawer .drawerScoreValue>b{font-size:36px}
+  .reportDrawer .drawerScore>span{gap:8px;padding-left:14px}
+  .reportDrawer .drawerScore strong{font-size:11px;line-height:1.55}
+}

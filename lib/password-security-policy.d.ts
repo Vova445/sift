@@ -1,0 +1,14 @@
+export const RESET_TOKEN_TTL_MS:number;
+export const LOGIN_WINDOW_MS:number;
+export const LOGIN_ACCOUNT_FAILURE_LIMIT:number;
+export const LOGIN_IP_FAILURE_LIMIT:number;
+export const LOGIN_LOCK_MS:number;
+export const RESET_EMAIL_WINDOW_MS:number;
+export const RESET_EMAIL_MAX_REQUESTS:number;
+export const RESET_IP_MAX_REQUESTS:number;
+export const RESET_RESEND_COOLDOWN_MS:number;
+export const RESET_TOKEN_ATTEMPT_WINDOW_MS:number;
+export const RESET_TOKEN_ATTEMPT_LIMIT:number;
+export function resetTokenState(token:{usedAt?:string|null;expiresAt:string}|null,now?:number):'valid'|'expired'|'used';
+export function loginLocked(bucket:{lockedUntil?:string|null}|null,now?:number):boolean;
+export function resetRequestBlocked(bucket:{requestCount:number;windowStartedAt:string;lastRequestedAt:string|null}|null,options:{now?:number;maxRequests:number;windowMs?:number;cooldownMs?:number}):boolean;
