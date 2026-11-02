@@ -1,12 +1,13 @@
 import {createHmac, timingSafeEqual} from 'node:crypto';
 import {env} from 'cloudflare:workers';
 import {ensureDb} from './db';
+import {addCalendarMonth,type SubscriptionStatus} from './subscription-lifecycle';
 
 export type PaidPlan='one'|'pro';
 export type PaymentOrder={order_reference:string;user_id:string;plan:PaidPlan;amount_uah:number;currency:string;status:string;test_mode:number;expires_at:string};
 export type WayForPayPayload=Record<string,unknown>;
 const cfg=()=>env as unknown as Record<string,string|undefined>;
-export function wayForPayConfig(){const e=cfg(),mode=e.WAYFORPAY_MODE==='sandbox'?'sandbox':'live';return{mode,merchantAccount:e.WAYFORPAY_MERCHANT_ACCOUNT||'',secret:e.WAYFORPAY_MERCHANT_SECRET||'',domain:e.WAYFORPAY_MERCHANT_DOMAIN||'',allowlist:(e.WAYFORPAY_SANDBOX_ALLOWLIST||'').split(',').map(x=>x.trim().toLowerCase()).filter(Boolean)};}
+export function wayForPayConfig(){const e=cfg(),mode=e.WAYFORPAY_MODE==='sandbox'?'sandbox':'live';return{mode,merchantAccount:e.WAYFORPAY_MERCHANT_ACCOUNT||'',secret:e.WAYFORPAY_MERCHANT_SECRET||'',merchantPassword:e.WAYFORPAY_MERCHANT_PASSWORD||'',domain:e.WAYFORPAY_MERCHANT_DOMAIN||'',allowlist:(e.WAYFORPAY_SANDBOX_ALLOWLIST||'').split(',').map(x=>x.trim().toLowerCase()).filter(Boolean)};}
 export function sandboxAllowed(email:string){const c=wayForPayConfig();return c.mode==='sandbox'&&c.allowlist.includes(email.trim().toLowerCase());}
 export function sign(value:string,secret=wayForPayConfig().secret){return createHmac('md5',secret).update(value,'utf8').digest('hex');}
 export function signatureMatches(value:string,signature:unknown){if(typeof signature!=='string'||!/^[a-f\d]{32}$/i.test(signature))return false;const expected=Buffer.from(sign(value),'hex'),actual=Buffer.from(signature,'hex');return expected.length===actual.length&&timingSafeEqual(expected,actual);}
@@ -14,19 +15,44 @@ export function planDetails(plan:PaidPlan){return plan==='one'?{label:'One Sift 
 export function providerAmountMatches(order:PaymentOrder,amount:unknown,currency:unknown){const value=Number(amount);if(!Number.isFinite(value))return false;if(currency==='UAH')return value===order.amount_uah;if(currency==='USD')return value===Number(planDetails(order.plan).usd);return false;}
 export async function getPaymentOrder(reference:string,userId?:string){await ensureDb();const q=userId?env.DB.prepare('SELECT * FROM payment_orders WHERE order_reference=? AND user_id=?').bind(reference,userId):env.DB.prepare('SELECT * FROM payment_orders WHERE order_reference=?').bind(reference);return q.first<PaymentOrder>();}
 export async function createPaymentOrder(order:{reference:string;userId:string;plan:PaidPlan;amount:number;testMode:boolean}){await ensureDb();const now=new Date(),expires=new Date(now.getTime()+60*60*1000);await env.DB.prepare(`INSERT INTO payment_orders(order_reference,user_id,plan,amount_uah,currency,status,test_mode,created_at,updated_at,expires_at) VALUES(?,?,?,?,?,'pending',?,?,?,?)`).bind(order.reference,order.userId,order.plan,order.amount,'UAH',order.testMode?1:0,now.toISOString(),now.toISOString(),expires.toISOString()).run();}
-export async function setPaymentStatus(order:PaymentOrder,status:'paid'|'declined'|'expired',providerFee?:number){
+export async function setPaymentStatus(order:PaymentOrder,status:'paid'|'declined'|'expired'){
   await ensureDb();
   // Only a pending order may transition to a final state. A repeated callback is idempotent.
   if(status==='paid'){
-    const details=planDetails(order.plan),now=new Date(),expiry=new Date(now.getTime()+details.days*864e5).toISOString();
-    await env.DB.batch([
+    const details=planDetails(order.plan),now=new Date(),expiry=(order.plan==='pro'?addCalendarMonth(now):new Date(now.getTime()+details.days*864e5)).toISOString();
+    const statements=[
       env.DB.prepare(`UPDATE payment_orders SET status='paid',updated_at=? WHERE order_reference=? AND status='pending' AND amount_uah=? AND currency='UAH'`).bind(now.toISOString(),order.order_reference,order.amount_uah),
-      env.DB.prepare(`INSERT INTO subscriptions(id,user_id,plan,status,credits,test_mode,created_at,expires_at) SELECT order_reference,user_id,plan,'active',?,?,?,? FROM payment_orders WHERE order_reference=? AND status='paid' AND NOT EXISTS (SELECT 1 FROM subscriptions WHERE id=?)`).bind(details.credits,order.test_mode,now.toISOString(),expiry,order.order_reference,order.order_reference)
-    ]);
+      env.DB.prepare(`INSERT INTO subscriptions(id,user_id,plan,status,credits,test_mode,created_at,expires_at,updated_at,recurring_order_reference,last_payment_at) SELECT order_reference,user_id,plan,'active',?,?,?, ?,?,?,? FROM payment_orders WHERE order_reference=? AND status='paid' AND NOT EXISTS (SELECT 1 FROM subscriptions WHERE id=?)`).bind(details.credits,order.test_mode,now.toISOString(),expiry,now.toISOString(),order.plan==='pro'?order.order_reference:null,now.toISOString(),order.order_reference,order.order_reference),
+      ...(order.plan==='pro'?[env.DB.prepare(`INSERT OR IGNORE INTO subscription_payments(order_reference,subscription_id,user_id,amount_uah,status,period_start,period_end,created_at,paid_at) SELECT ?,id,user_id,?,'paid',?,?,?,? FROM subscriptions WHERE id=?`).bind(order.order_reference,order.amount_uah,now.toISOString(),expiry,now.toISOString(),now.toISOString(),order.order_reference)]:[])
+    ];
+    await env.DB.batch(statements);
     return;
   }
   await env.DB.prepare(`UPDATE payment_orders SET status=?,updated_at=? WHERE order_reference=? AND status='pending'`).bind(status,new Date().toISOString(),order.order_reference).run();
-  void providerFee;
+}
+export async function cancelRecurring(orderReference:string){
+  const config=wayForPayConfig();if(!config.merchantAccount||!config.merchantPassword)throw new Error('WayForPay не налаштовано для керування регулярними платежами.');
+  const response=await fetch('https://api.wayforpay.com/regularApi',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({requestType:'REMOVE',merchantAccount:config.merchantAccount,merchantPassword:config.merchantPassword,orderReference})});
+  if(!response.ok)throw new Error('WayForPay тимчасово недоступний. Підписку не змінено.');
+  const result=await response.json() as {reasonCode?:number|string;reason?:string};if(Number(result.reasonCode)!==4100)throw new Error(`WayForPay не підтвердив скасування: ${result.reason||result.reasonCode||'невідома помилка'}`);
+}
+export async function cancelProSubscription(userId:string){
+  await ensureDb();const now=new Date().toISOString();
+  const row=await env.DB.prepare(`SELECT id,status,expires_at,recurring_order_reference,cancel_at_period_end FROM subscriptions WHERE user_id=? AND plan='pro' AND status IN ('trialing','active','past_due','expired') ORDER BY created_at DESC LIMIT 1`).bind(userId).first<{id:string;status:SubscriptionStatus;expires_at:string;recurring_order_reference:string|null;cancel_at_period_end:number}>();
+  if(!row)throw new Error('Активну підписку не знайдено.');
+  const expired=Date.parse(row.expires_at)<=Date.now();
+  if(row.cancel_at_period_end||row.status==='canceled')return {status:'canceled' as const,expiresAt:row.expires_at,cancel_at_period_end:1,auto_renew:0};
+  if(!row.recurring_order_reference)throw new Error('Цей тариф оплачений одноразово й не має автопродовження.');
+  await cancelRecurring(row.recurring_order_reference);
+  const nextStatus=expired?'expired':'canceled';
+  const result=await env.DB.prepare(`UPDATE subscriptions SET status=?,cancel_at_period_end=1,canceled_at=?,updated_at=? WHERE id=? AND status=? AND cancel_at_period_end=0`).bind(nextStatus,now,now,row.id,row.status).run();
+  if(!(result.meta?.changes||0))throw new Error('Стан підписки змінився. Оновіть сторінку й спробуйте ще раз.');
+  return {status:nextStatus,expiresAt:row.expires_at,cancel_at_period_end:1,auto_renew:0};
+}
+export async function subscriptionFor(userId:string){
+  await ensureDb();const now=new Date().toISOString();
+  await env.DB.prepare(`UPDATE subscriptions SET status='expired',updated_at=? WHERE user_id=? AND plan='pro' AND status IN ('trialing','active','past_due','canceled') AND expires_at<=?`).bind(now,userId,now).run();
+  return env.DB.prepare(`SELECT id,status,expires_at,cancel_at_period_end,canceled_at,last_payment_at,CASE WHEN recurring_order_reference IS NOT NULL AND cancel_at_period_end=0 AND status IN ('trialing','active','past_due','expired') THEN 1 ELSE 0 END AS auto_renew FROM subscriptions WHERE user_id=? AND plan='pro' ORDER BY created_at DESC LIMIT 1`).bind(userId).first<{id:string;status:SubscriptionStatus;expires_at:string;cancel_at_period_end:number;canceled_at:string|null;last_payment_at:string|null;auto_renew:number}>();
 }
 export function purchaseSignature(fields:{merchantAccount:string;merchantDomainName:string;orderReference:string;orderDate:number;amount:number;currency:string;productName:string[];productCount:number[];productPrice:number[]}){
   return sign([fields.merchantAccount,fields.merchantDomainName,fields.orderReference,fields.orderDate,fields.amount,fields.currency,...fields.productName,...fields.productCount,...fields.productPrice].join(';'));
