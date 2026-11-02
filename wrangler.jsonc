@@ -10,7 +10,8 @@
     {
       "binding": "DB",
       "database_name": "sift-production",
-      "database_id": "fa487f7a-ecfb-4968-8820-1214dd736e3c"
+      "database_id": "fa487f7a-ecfb-4968-8820-1214dd736e3c",
+      "migrations_dir": "migrations"
     }
   ],
   "observability": { "enabled": true },
