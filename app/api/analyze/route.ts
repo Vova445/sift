@@ -23,7 +23,7 @@ export async function POST(req:Request){
   }
   const result=await analyzeUrl(body.url);
   const translationPlan=user&&(access.plan==='one'||access.plan==='pro')?access.plan:null;
-  const id=await saveScan(body.deviceId,user?.id||null,result,translationPlan);
+  const id=await saveScan(body.deviceId,user?.id||null,result,translationPlan,oneReservation);
   freeReservation=null;
   oneReservation=null;
   const visible=access.plan==='free'?{...result,findings:result.findings.slice(0,2).map(x=>({...x,evidence:'Повний доказ доступний у One Sift або Pro'})),lockedCount:Math.max(0,result.findings.length-2)}:result;
