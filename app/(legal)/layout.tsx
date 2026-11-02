@@ -1,13 +1,15 @@
 import type {ReactNode} from 'react';
-import Link from 'next/link';
 import './legal.css';
+
+// Legal pages use native document navigation so links work even if client-side routing fails.
+/* eslint @next/next/no-html-link-for-pages: "off" */
 
 const policies=[['/privacy','Приватність'],['/terms','Умови'],['/refund','Повернення']];
 
 export default function LegalLayout({children}:{children:ReactNode}){
   return <div className="legalSite">
-    <header className="legalNav"><Link className="legalBrand" href="/" aria-label="Sift — на головну"><span className="legalBrandMark">S</span><b>SIFT</b><small>KNOW BEFORE YOU PAY</small></Link><nav className="legalNavActions" aria-label="Навігація документами"><Link className="legalDocsLink" href="/legal">Усі документи</Link><Link className="legalBack" href="/">← На головну</Link></nav></header>
+    <header className="legalNav"><a className="legalBrand" href="/" target="_top" aria-label="Sift — на головну"><span className="legalBrandMark">S</span><b>SIFT</b><small>KNOW BEFORE YOU PAY</small></a><nav className="legalNavActions" aria-label="Навігація документами"><a className="legalDocsLink" href="/legal" target="_top">Усі документи</a><a className="legalBack" href="/" target="_top">← На головну</a></nav></header>
     {children}
-    <footer className="legalFooter"><Link className="legalBrand" href="/"><span className="legalBrandMark">S</span><b>SIFT</b></Link><nav aria-label="Юридичні документи"><Link href="/legal">Усі документи</Link>{policies.map(([href,label])=><Link key={href} href={href}>{label}</Link>)}</nav><a href="mailto:support@sift.app">support@sift.app</a><small>© 2026 AVEIron · Автоматична інформація, не юридична порада.</small></footer>
+    <footer className="legalFooter"><a className="legalBrand" href="/" target="_top"><span className="legalBrandMark">S</span><b>SIFT</b></a><nav aria-label="Юридичні документи"><a href="/legal" target="_top">Усі документи</a>{policies.map(([href,label])=><a key={href} href={href} target="_top">{label}</a>)}</nav><a href="mailto:support@sift.app">support@sift.app</a><small>© 2026 AVEIron · Автоматична інформація, не юридична порада.</small></footer>
   </div>;
 }
