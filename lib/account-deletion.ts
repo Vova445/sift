@@ -2,6 +2,7 @@ import {env} from 'cloudflare:workers';
 import {ensureDb,ensureTranslationDb} from './db';
 import {ensureEmailVerificationDb} from './email-verification';
 import {ensurePasswordSecurityDb} from './auth-rate-limit';
+import {ensureEmailReminderDb} from './email-reminders';
 import {cancelRecurring} from './wayforpay';
 
 const enc=new TextEncoder();
@@ -9,7 +10,7 @@ const digest=async(value:string)=>[...new Uint8Array(await crypto.subtle.digest(
 
 export async function deleteAccountData(user:{id:string;email:string}){
   await ensureDb();
-  await Promise.all([ensureTranslationDb(),ensureEmailVerificationDb(),ensurePasswordSecurityDb()]);
+  await Promise.all([ensureTranslationDb(),ensureEmailVerificationDb(),ensurePasswordSecurityDb(),ensureEmailReminderDb()]);
   const recurring=await env.DB.prepare(`SELECT id,recurring_order_reference,expires_at,cancel_at_period_end FROM subscriptions WHERE user_id=? AND plan='pro' AND status IN ('trialing','active','past_due','expired','canceled') AND recurring_order_reference IS NOT NULL AND cancel_at_period_end=0`).bind(user.id).all<{id:string;recurring_order_reference:string;expires_at:string;cancel_at_period_end:number}>();
   const pending=await env.DB.prepare(`SELECT order_reference FROM payment_orders WHERE user_id=? AND status='pending' AND expires_at>? LIMIT 1`).bind(user.id,new Date().toISOString()).first<{order_reference:string}>();
   if(pending)throw new Error('Є незавершений платіж. Дочекайтеся його завершення або закінчення строку дії та повторіть видалення.');
@@ -34,6 +35,9 @@ export async function deleteAccountData(user:{id:string;email:string}){
     env.DB.prepare(`DELETE FROM email_verification_tokens WHERE user_id=?`).bind(user.id),
     env.DB.prepare(`DELETE FROM email_verification_status WHERE user_id=?`).bind(user.id),
     env.DB.prepare(`DELETE FROM email_verification_limits WHERE user_id=?`).bind(user.id),
+    env.DB.prepare(`DELETE FROM email_reminder_deliveries WHERE user_id=?`).bind(user.id),
+    env.DB.prepare(`DELETE FROM email_reminder_unsubscribe_tokens WHERE user_id=?`).bind(user.id),
+    env.DB.prepare(`DELETE FROM email_reminder_preferences WHERE user_id=?`).bind(user.id),
     env.DB.prepare(`DELETE FROM password_reset_tokens WHERE user_id=?`).bind(user.id),
     env.DB.prepare(`DELETE FROM password_reset_limits WHERE key_hash=?`).bind(resetEmailKey),
     env.DB.prepare(`DELETE FROM auth_login_limits WHERE key_hash IN (SELECT key_hash FROM auth_login_limit_email_keys WHERE email_hash=?)`).bind(await digest(user.email.trim().toLowerCase())),

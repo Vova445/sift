@@ -1,44 +1,163 @@
+import { cleanPageHtml, evaluateClarity, extractPurchaseTerms } from './analyzer-core.js';
 import { resolvePublicTarget, SsrfPolicyError, validateTarget } from './ssrf-policy.js';
 
-export type Finding={kind:'renewal'|'refund'|'cancellation'|'trial'|'price'|'warning';title:string;summary:string;evidence:string;severity:'good'|'medium'|'high'};
-export type PurchaseDecision='buy'|'wait'|'close';
+export type Finding = {
+  kind: 'renewal' | 'refund' | 'cancellation' | 'trial' | 'price' | 'warning';
+  title: string;
+  summary: string;
+  evidence: string;
+  severity: 'good' | 'medium' | 'high';
+};
+export type PurchaseDecision = 'buy' | 'wait' | 'close';
+export { evaluateClarity };
 
-export function evaluateClarity(findings:Finding[],prices:string[]){
- const kinds=new Set(findings.map(f=>f.kind));
- const has=(kind:Finding['kind'])=>kinds.has(kind);
- // The score measures how much decision-critical information is available, not seller safety.
- // Missing a confirmed price therefore caps the score at 75 instead of allowing a misleading 85+.
- const score=20+(prices.length?25:0)+(has('renewal')?15:0)+(has('cancellation')?15:0)+(has('refund')?15:0)+(has('trial')?5:0)+(has('warning')?5:0);
- const decision:PurchaseDecision=has('warning')&&!has('refund')&&!has('cancellation')?'close':prices.length>0&&has('renewal')&&has('cancellation')&&has('refund')&&!has('warning')?'buy':'wait';
- const missing:string[]=[];
- if(!prices.length)missing.push('ціну');
- if(!has('renewal'))missing.push('умову автопродовження');
- if(!has('cancellation'))missing.push('умови скасування');
- if(!has('refund'))missing.push('умови повернення');
- const verdict=decision==='buy'
-  ?'Ключові умови знайдено: ціна, автопродовження, скасування й повернення. Звірте фрагменти на першоджерелі перед оплатою.'
-  :decision==='close'
-   ?`Закрити вкладку: знайдено умову про неповоротну оплату${missing.length?`, але не підтверджено ${missing.join(', ')}`:''}. Не сплачуйте, доки не звірите умови на першоджерелі.`
-   :missing.length
-    ?`Почекати: не підтверджено ${missing.join(', ')}${has('warning')?'; також є умова про неповоротну оплату':''}. Перевірте першоджерело перед оплатою.`
-    :'Почекати: знайдено умову про неповоротну оплату. Перевірте винятки та обсяг повернення на першоджерелі.';
- return{score,decision,verdict};
+export class AnalyzerError extends Error {
+  readonly status: number;
+  constructor(message: string, status = 422) {
+    super(message);
+    this.status = status;
+  }
 }
 
-export class AnalyzerError extends Error{readonly status:number;constructor(message:string,status=422){super(message);this.status=status}}
-export function safeUrl(raw:string){try{return validateTarget(raw)}catch(error){if(error instanceof SsrfPolicyError)throw new AnalyzerError(error.message,error.status);throw error}}
-const decode=(s:string)=>s.replace(/&nbsp;|&#160;/gi,' ').replace(/&amp;/gi,'&').replace(/&quot;|&#34;/gi,'"').replace(/&#39;|&apos;/gi,"'").replace(/&lt;/gi,'<').replace(/&gt;/gi,'>').replace(/&#(\d+);/g,(_,n)=>String.fromCodePoint(Number(n))).replace(/&#x([\da-f]+);/gi,(_,n)=>String.fromCodePoint(parseInt(n,16)));
-const clean=(html:string)=>decode(html.replace(/<!--[\s\S]*?-->/g,' ').replace(/<(script|style|noscript|svg|template)[\s\S]*?<\/\1>/gi,' ').replace(/<(header|nav|footer)[\s\S]*?<\/\1>/gi,' ').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim());
-const evidence=(text:string,re:RegExp)=>{const m=re.exec(text);if(!m)return'';const start=Math.max(0,m.index-100),end=Math.min(text.length,m.index+m[0].length+140);return `…${text.slice(start,end).trim()}…`};
-async function readBounded(response:Response,maxBytes:number){const tooLarge=()=>new AnalyzerError('Сторінка завелика для безпечної перевірки (ліміт 2 МБ).',413);const declared=Number(response.headers.get('content-length')||0);if(declared>maxBytes){await response.body?.cancel();throw tooLarge()}if(!response.body){const text=await response.text();if(new TextEncoder().encode(text).length>maxBytes)throw tooLarge();return text}const reader=response.body.getReader(),parts:Uint8Array[]=[];let size=0;try{while(true){const{done,value}=await reader.read();if(done)break;size+=value.byteLength;if(size>maxBytes){await reader.cancel();throw tooLarge()}parts.push(value)}}catch(error){try{await reader.cancel()}catch{}throw error}const bytes=new Uint8Array(size);let offset=0;for(const part of parts){bytes.set(part,offset);offset+=part.length}return new TextDecoder().decode(bytes)}
-type AnalyzeDependencies={fetchImpl?:typeof fetch;dnsFetchImpl?:typeof fetch;timeoutMs?:number};
-export async function analyzeUrl(raw:string,dependencies:AnalyzeDependencies={}){const outboundFetch=dependencies.fetchImpl||fetch,dnsFetch=dependencies.dnsFetchImpl||dependencies.fetchImpl||fetch,timeoutMs=dependencies.timeoutMs??8000;let current=safeUrl(raw);const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),timeoutMs);let response:Response|undefined;try{let redirects=0;while(true){current=safeUrl(current.toString());try{await resolvePublicTarget(current,{fetchImpl:dnsFetch,signal:controller.signal});response=await outboundFetch(current,{redirect:'manual',signal:controller.signal,headers:{'user-agent':'Mozilla/5.0 (compatible; SiftPreflight/1.0)','accept':'text/html,application/xhtml+xml'}})}catch(error){if(error instanceof SsrfPolicyError)throw new AnalyzerError(error.message,error.status);if(controller.signal.aborted)throw new AnalyzerError('Сайт не відповів за 8 секунд. Спробуйте пізніше.',504);throw new AnalyzerError('Не вдалося завантажити сайт: він може блокувати автоматичні запити або бути недоступним.',502)}if(response.status>=300&&response.status<400){await response.body?.cancel();if(redirects>=3)throw new AnalyzerError('Забагато перенаправлень (максимум 3). Відкрийте кінцеву адресу сайту й спробуйте ще раз.',502);const loc=response.headers.get('location');if(!loc)throw new AnalyzerError('Сайт перенаправив запит без адреси призначення.',502);try{current=safeUrl(new URL(loc,current).toString())}catch(error){if(error instanceof AnalyzerError)throw new AnalyzerError(`Небезпечне перенаправлення заблоковано: ${error.message}`,400);throw error}redirects++;continue}break}if(!response)throw new AnalyzerError('Сайт не повернув відповідь.',502);if(!response.ok)throw new AnalyzerError(`Сайт недоступний: HTTP ${response.status}.`,502);const type=response.headers.get('content-type')||'';if(!/^\s*(?:text\/html|application\/xhtml\+xml)(?:\s*;|$)/i.test(type)){await response.body?.cancel();throw new AnalyzerError('Це не HTML-сторінка, тому її умови неможливо прочитати.',422)}const html=await readBounded(response,2*1024*1024);const text=clean(html),wordCount=text?text.split(/\s+/).length:0;const title=decode((html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1]||current.hostname).replace(/<[^>]+>/g,' ').trim());if(wordCount<80){if(/enable javascript|javascript is required|перегляньте у браузері|requires javascript|unsupported client/i.test(text+' '+title)||wordCount<20)throw new AnalyzerError('Сторінка майже не містить доступного тексту (ймовірно, контент завантажується JavaScript або захистом сайту). Перевірте іншу сторінку з умовами чи тарифами.',422);throw new AnalyzerError('На сторінці замало тексту, щоб достовірно перевірити умови.',422)}const requestedPath=safeUrl(raw).pathname;const expectsDocument=/terms?|legal|policy|conditions|pricing|plans?|purchasepolicy|help\/article/i.test(requestedPath);const genericTitle=/unsupported client|vacation rentals|online courses\s*[-–|]|amazon\.com:\s*online shopping|spotify\s*[-–|]\s*web player/i.test(title);if(expectsDocument&&genericTitle)throw new AnalyzerError('Сайт повернув загальну або не ту сторінку замість запитаної. Відкрийте умови/тариф у звичайному браузері й скопіюйте кінцеве посилання.',422);const findings:Finding[]=[];
- const rules:[Finding['kind'],string,RegExp,Finding['severity']][]=[
- ['trial','Пробний період',/(?:free|безкоштовн\w*)\s+(?:trial|пробн\w* період)|(?:trial|пробн\w* період)\s+(?:for\s+)?\d+\s*(?:day|дн)/i,'medium'],
- ['renewal','Автоматичне продовження',/auto(?:matically)?[- ]?renew(?:s|ed|al|ing)?|automatically renew\w*|автоматичн\w+\s+(?:продовжен|поновлен)|recurring\s+(?:billing|payment)/i,'high'],
- ['refund','Умови повернення',/(?:refund|money.back|повернен\w+).{0,100}(?:\d+\s*(?:day|дн)|policy|політик|eligible|available)|(?:\d+\s*(?:day|дн)).{0,80}(?:refund|повернен)/i,'good'],
- ['cancellation','Умови скасування',/(?:cancel|cancell?ation|скасув\w+).{0,120}(?:subscription|membership|підписк|plan|план|any time|будь-який час)/i,'medium'],
- ['warning','Неповоротна оплата',/non[- ]?refundable|no refunds?|не підлягає поверненню|кошти не повертаються/i,'high']];
- for(const[kind,label,re,severity]of rules){const ev=evidence(text,re);if(ev)findings.push({kind,title:label,summary:severity==='high'?'Потребує уваги до оплати':severity==='good'?'Умову повернення згадано — перевірте винятки':'Перевірте деталі на сторінці',evidence:ev,severity})}
- const money=/(?:[$€£₴]\s?\d{1,6}(?:[.,]\d{1,2})?|\d{1,6}(?:[.,]\d{1,2})?\s?(?:USD|EUR|UAH|грн))/gi,priceContext=/(?:price|pricing|cost|subscription|plan|monthly|annually|per\s+(?:month|year)|вартіст|ціна|підписк|тариф|на\s+(?:місяць|рік)|щомісячн|щорічн)/i,legalAmountContext=/(?:liabilit|damages|aggregate\s+liability|claim|lawsuit|court)/i;const prices:string[]=[];for(const m of text.matchAll(money)){const around=text.slice(Math.max(0,m.index!-90),Math.min(text.length,m.index!+m[0].length+90));if(priceContext.test(around)&&!legalAmountContext.test(around)){const value=m[0].replace(/\s+/g,' ').trim();if(!prices.includes(value)){prices.push(value);findings.push({kind:'price',title:'Знайдена сума',summary:'Звірте ціну та період оплати в першоджерелі',evidence:`…${around.trim()}…`,severity:'medium'})}if(prices.length===8)break}}
- const evaluation=evaluateClarity(findings,prices);return{url:current.toString(),host:current.hostname,title:title.slice(0,140),checkedAt:new Date().toISOString(),...evaluation,prices,findings,wordCount}}catch(error){if(controller.signal.aborted)throw new AnalyzerError('Сайт не відповів за 8 секунд. Спробуйте пізніше.',504);throw error}finally{clearTimeout(timer)}}
+export function safeUrl(raw: string) {
+  try {
+    return validateTarget(raw);
+  } catch (error) {
+    if (error instanceof SsrfPolicyError) throw new AnalyzerError(error.message, error.status);
+    throw error;
+  }
+}
+
+async function readBounded(response: Response, maxBytes: number) {
+  const tooLarge = () => new AnalyzerError('Сторінка завелика для безпечної перевірки (ліміт 2 МБ).', 413);
+  const declared = Number(response.headers.get('content-length') || 0);
+  if (declared > maxBytes) {
+    await response.body?.cancel();
+    throw tooLarge();
+  }
+  if (!response.body) {
+    const text = await response.text();
+    if (new TextEncoder().encode(text).length > maxBytes) throw tooLarge();
+    return text;
+  }
+  const reader = response.body.getReader();
+  const parts: Uint8Array[] = [];
+  let size = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      size += value.byteLength;
+      if (size > maxBytes) {
+        await reader.cancel();
+        throw tooLarge();
+      }
+      parts.push(value);
+    }
+  } catch (error) {
+    try { await reader.cancel(); } catch {}
+    throw error;
+  }
+  const bytes = new Uint8Array(size);
+  let offset = 0;
+  for (const part of parts) {
+    bytes.set(part, offset);
+    offset += part.length;
+  }
+  return new TextDecoder().decode(bytes);
+}
+
+type AnalyzeDependencies = { fetchImpl?: typeof fetch; dnsFetchImpl?: typeof fetch; timeoutMs?: number };
+
+export async function analyzeUrl(raw: string, dependencies: AnalyzeDependencies = {}) {
+  const outboundFetch = dependencies.fetchImpl || fetch;
+  const dnsFetch = dependencies.dnsFetchImpl || dependencies.fetchImpl || fetch;
+  const timeoutMs = dependencies.timeoutMs ?? 8000;
+  let current = safeUrl(raw);
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  let response: Response | undefined;
+
+  try {
+    let redirects = 0;
+    while (true) {
+      current = safeUrl(current.toString());
+      try {
+        await resolvePublicTarget(current, { fetchImpl: dnsFetch, signal: controller.signal });
+        response = await outboundFetch(current, {
+          redirect: 'manual',
+          signal: controller.signal,
+          headers: {
+            'user-agent': 'Mozilla/5.0 (compatible; SiftPreflight/1.0)',
+            accept: 'text/html,application/xhtml+xml',
+          },
+        });
+      } catch (error) {
+        if (error instanceof SsrfPolicyError) throw new AnalyzerError(error.message, error.status);
+        if (controller.signal.aborted) throw new AnalyzerError('Сайт не відповів за 8 секунд. Спробуйте пізніше.', 504);
+        throw new AnalyzerError('Не вдалося завантажити сайт: він може блокувати автоматичні запити або бути недоступним.', 502);
+      }
+
+      if (response.status >= 300 && response.status < 400) {
+        await response.body?.cancel();
+        if (redirects >= 3) throw new AnalyzerError('Забагато перенаправлень (максимум 3). Відкрийте кінцеву адресу сайту й спробуйте ще раз.', 502);
+        const location = response.headers.get('location');
+        if (!location) throw new AnalyzerError('Сайт перенаправив запит без адреси призначення.', 502);
+        try {
+          current = safeUrl(new URL(location, current).toString());
+        } catch (error) {
+          if (error instanceof AnalyzerError) throw new AnalyzerError(`Небезпечне перенаправлення заблоковано: ${error.message}`, 400);
+          throw error;
+        }
+        redirects++;
+        continue;
+      }
+      break;
+    }
+
+    if (!response) throw new AnalyzerError('Сайт не повернув відповідь.', 502);
+    if (!response.ok) throw new AnalyzerError(`Сайт недоступний: HTTP ${response.status}.`, 502);
+    const type = response.headers.get('content-type') || '';
+    if (!/^\s*(?:text\/html|application\/xhtml\+xml)(?:\s*;|$)/i.test(type)) {
+      await response.body?.cancel();
+      throw new AnalyzerError('Це не HTML-сторінка, тому її умови неможливо прочитати.', 422);
+    }
+
+    const html = await readBounded(response, 2 * 1024 * 1024);
+    const text = cleanPageHtml(html);
+    const wordCount = text ? text.split(/\s+/).length : 0;
+    const rawTitle = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1] || current.hostname;
+    const title = cleanPageHtml(rawTitle);
+    if (wordCount < 80) {
+      if (/enable javascript|javascript is required|перегляньте у браузері|requires javascript|unsupported client/i.test(`${text} ${title}`) || wordCount < 20) {
+        throw new AnalyzerError('Сторінка майже не містить доступного тексту (ймовірно, контент завантажується JavaScript або захистом сайту). Перевірте іншу сторінку з умовами чи тарифами.', 422);
+      }
+      throw new AnalyzerError('На сторінці замало тексту, щоб достовірно перевірити умови.', 422);
+    }
+
+    const requestedPath = safeUrl(raw).pathname;
+    const expectsDocument = /terms?|legal|policy|conditions|pricing|plans?|purchasepolicy|help\/article/i.test(requestedPath);
+    const genericTitle = /unsupported client|vacation rentals|online courses\s*[-–|]|amazon\.com:\s*online shopping|spotify\s*[-–|]\s*web player/i.test(title);
+    if (expectsDocument && genericTitle) {
+      throw new AnalyzerError('Сайт повернув загальну або не ту сторінку замість запитаної. Відкрийте умови/тариф у звичайному браузері й скопіюйте кінцеве посилання.', 422);
+    }
+
+    const { findings, prices } = extractPurchaseTerms(text);
+    const evaluation = evaluateClarity(findings, prices);
+    return {
+      url: current.toString(),
+      host: current.hostname,
+      title: title.slice(0, 140),
+      checkedAt: new Date().toISOString(),
+      ...evaluation,
+      prices,
+      findings,
+      wordCount,
+    };
+  } catch (error) {
+    if (controller.signal.aborted) throw new AnalyzerError('Сайт не відповів за 8 секунд. Спробуйте пізніше.', 504);
+    throw error;
+  } finally {
+    clearTimeout(timer);
+  }
+}

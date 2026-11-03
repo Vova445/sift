@@ -6,7 +6,7 @@
   "compatibility_flags": ["nodejs_compat"],
   "no_bundle": true,
   "triggers": { "crons": ["0 * * * *"] },
-  "vars": { "RATE_LIMIT_EDGE_ENABLED": "true" },
+  "vars": { "RATE_LIMIT_EDGE_ENABLED": "true", "EMAIL_REMINDER_DAYS_BEFORE": "1" },
   "assets": { "directory": "dist/client" },
   "d1_databases": [
     {

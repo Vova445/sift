@@ -100,6 +100,27 @@ test('analyzer refuses non-HTML content types and body larger than 2 MiB', async
   await assert.rejects(analyzeUrl('https://public.example/page', { fetchImpl: makeFetch('x'.repeat(2 * 1024 * 1024 + 1), 'text/html') }), /ліміт 2 МБ/);
 });
 
+test('analyzer success path connects cleaned HTML, parsed price evidence and deterministic score', async () => {
+  const longTerms = Array.from({ length: 90 }, (_, index) => `additional term ${index}`).join(' ');
+  const html = `<html><head><title>Subscription Terms</title></head><body><p>Pricing is $12 monthly. The subscription automatically renews monthly. Refund policy available within 30 days. Cancel subscription any time.</p>${longTerms}</body></html>`;
+  const fetchImpl = (request) => {
+    const url = new URL(request);
+    if (url.hostname === 'cloudflare-dns.com') return dnsResponse(url);
+    return new Response(html, { headers: { 'content-type': 'text/html; charset=utf-8' } });
+  };
+
+  const first = await analyzeUrl('https://public.example/terms', { fetchImpl });
+  const second = await analyzeUrl('https://public.example/terms', { fetchImpl });
+  assert.equal(first.title, 'Subscription Terms');
+  assert.deepEqual(first.prices, ['$12']);
+  assert.deepEqual(first.findings.map(({ kind }) => kind), ['renewal', 'refund', 'cancellation', 'price']);
+  assert.equal(first.score, 90);
+  assert.equal(first.decision, 'buy');
+  assert.equal(first.score, second.score);
+  assert.equal(first.decision, second.decision);
+  assert.deepEqual(first.prices, second.prices);
+});
+
 test('8-second overall deadline aborts a hanging request', async () => {
   const fetchImpl = (request, init) => {
     const url = new URL(request);

@@ -12,6 +12,11 @@ test('Free cannot bypass paid API features or the monthly scan limit',()=>{
   assert.equal(denied.status,403);
 });
 
+test('unknown entitlement names fail closed',()=>{
+  assert.equal(featureAllowed(plans.pro,'admin_override'),false);
+  assert.equal(featureAllowed({plan:'unknown'},'translate'),false);
+});
+
 test('One Sift unlocks one full report and only its report evidence translation',()=>{
   assert.equal(featureAllowed(plans.one,'full_evidence','one'),true);
   assert.equal(featureAllowed(plans.one,'full_evidence',null),false);
