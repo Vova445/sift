@@ -103,6 +103,8 @@ async function installCriticalPathMocks(page: Page) {
 test('signup → analyze → sandbox checkout → reopen saved report', async ({ page }) => {
   await installCriticalPathMocks(page);
   await page.goto('/');
+  const analyticsConsent=page.getByRole('complementary',{name:'Налаштування аналітики'});
+  if(await analyticsConsent.isVisible())await analyticsConsent.getByRole('button',{name:'Ні, дякую'}).click();
 
   await page.getByRole('button', { name: 'Реєстрація' }).click();
   await page.getByLabel('Email').fill(account.email);

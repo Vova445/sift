@@ -29,7 +29,11 @@
     "verify:analyze-rate-limit:local": "node scripts/verify-analyze-rate-limit-local.mjs",
     "verify:turnstile:local": "node scripts/verify-turnstile-routes-local.mjs",
     "verify:account-data:local": "node scripts/verify-account-data-local.mjs",
-    "test:entitlements": "node --test tests/entitlements.test.mjs"
+    "test:entitlements": "node --test tests/entitlements.test.mjs",
+    "test:e2e:a11y": "playwright test e2e/accessibility.spec.ts",
+    "test:monitoring": "node --test tests/worker-monitoring.test.mjs",
+    "test:backup": "node --test tests/d1-backup.test.mjs",
+    "verify:backup-restore": "node scripts/verify-d1-backup-restore.mjs"
   },
   "dependencies": {
     "framer-motion": "^13.2.0",
@@ -39,6 +43,7 @@
     "react-dom": "19.2.6"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.14.0",
     "@cloudflare/vite-plugin": "1.37.1",
     "@cloudflare/workers-types": "4.20260515.1",
     "@openai/sites-vite-plugin": "^0.1.0 || ^0.2.0",

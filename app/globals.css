@@ -12,3 +12,17 @@
 .priceNote{margin:18px auto 0;max-width:700px;text-align:center;color:#697068;font-size:10px;line-height:1.6}.checkoutFootnote{display:block;margin-top:13px;color:#697068;font-size:9px;line-height:1.5;text-align:center}.confirmCheckout:disabled{opacity:.65;cursor:wait}
 .navPolicyLink{display:none;color:#343a33;text-decoration:none;font-size:10px;font-weight:800;white-space:nowrap;padding:0 5px}
 @media(max-width:900px){.navPolicyLink{display:inline-flex;align-items:center;min-height:40px}}
+
+/* Visible keyboard focus across the site and modal dialogs. */
+:where(a,button,input,select,textarea,[tabindex]):focus-visible{outline:3px solid #5b4ce2;outline-offset:3px;box-shadow:0 0 0 2px #fff}
+:where(.siteFooter,.cta,.plans .pro,.upgradeBanner):where(a,button,input,select,textarea,[tabindex]):focus-visible{outline-color:#b8f35f;box-shadow:0 0 0 2px #10130f}
+@media(forced-colors:active){:where(a,button,input,select,textarea,[tabindex]):focus-visible{outline:3px solid Highlight;outline-offset:3px;box-shadow:none}}
+:root{--purple:#6657e1}
+.privacy,.trust>.wrap>span,.trust b,.eyebrow,.historyPrompt>span,.historyPrompt>small,.dashcopy>span,.emptyHistory,.center>span,.plans article>p,.priceNote,.modal>p,.modal footer{color:#626a60!important}
+#how .sectiontitle>span{color:#c8cec5!important}
+.popular,.ctaChecklist article>span{background:#6255d9!important}
+.ctaChecklist article>div>p{color:#fff!important}
+.footerCol>b,.footerBottom>span{color:#a1a89f!important}
+.plans .pro>p{color:#c4c9c3!important}
+.dashui header>span{color:#626a60!important}
+.quick>span{color:#626a60!important}

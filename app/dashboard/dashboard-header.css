@@ -9,6 +9,7 @@
 .topPlan{border-radius:99px;padding:8px 11px;font-size:7px;font-weight:900;letter-spacing:.1em;background:#e8f9c9;color:#426c18;border:1px solid #cce9a0}
 .topPlan.pro{background:var(--ink);color:var(--green);border-color:var(--ink)}
 .topPlan.one{background:#eeeaff;color:#594acb;border-color:#d8d1ff}
+.analyticsDashLink{display:flex;align-items:center;gap:5px;text-decoration:none;color:#5147b7;font-size:9px;font-weight:850}.analyticsDashLink svg{width:13px}
 .dashGate{grid-column:1/-1;width:100%}
 .reportDrawer{padding:14px}
 .reportDrawer>section{width:min(720px,100%);height:calc(100% - 28px);margin:auto 0;border-radius:20px;padding:30px}

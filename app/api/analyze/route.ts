@@ -4,6 +4,7 @@ import {currentUser} from '../../../lib/auth';
 import {can} from '../../../lib/entitlements';
 import {ANALYZE_REQUESTS_PER_MINUTE} from '../../../lib/request-rate-limit-policy.js';
 import {enforceRateLimit,rateLimitIdentities,rateLimitedResponse} from '../../../lib/request-rate-limit';
+import {recordFunnelEventSafely} from '../../../lib/funnel-analytics';
 
 export async function POST(req:Request){
  let ingressLimit:{allowed:boolean;retryAfter:number};
@@ -13,7 +14,7 @@ export async function POST(req:Request){
  let freeReservation:Awaited<ReturnType<typeof reserveFreeScan>>=null;
  let oneReservation:string|null=null;
  try{
-  const body=await req.json() as {url?:unknown;deviceId?:unknown};
+  const body=await req.json() as {url?:unknown;deviceId?:unknown;analyticsSessionId?:unknown};
   if(typeof body.url!=='string'||typeof body.deviceId!=='string'||!body.url||!body.deviceId)return Response.json({error:'Вкажіть посилання та deviceId'},{status:400});
   if(body.url.length>2048||body.deviceId.length>100)return Response.json({error:'Некоректні вхідні дані'},{status:400});
   const user=await currentUser(req);
@@ -36,6 +37,7 @@ export async function POST(req:Request){
   const paidEvidence=await can(user,'full_evidence',{access,translationPlan:access.plan==='one'?'one':null});
   const translationPlan=paidEvidence?access.plan as 'one'|'pro':null;
   const id=await saveScan(body.deviceId,user?.id||null,result,translationPlan,oneReservation);
+  await recordFunnelEventSafely(body.analyticsSessionId,'analyze');
   freeReservation=null;
   oneReservation=null;
   const visible=!paidEvidence?{...result,findings:result.findings.slice(0,2).map(x=>({...x,evidence:'Повний доказ доступний у One Sift або Pro'})),lockedCount:Math.max(0,result.findings.length-2)}:result;

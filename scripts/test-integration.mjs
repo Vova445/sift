@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { createHmac, randomUUID } from 'node:crypto';
+import { createHash, createHmac, randomUUID } from 'node:crypto';
 import { mkdir, mkdtemp, readFile, readdir, rm } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -14,6 +14,7 @@ const workerPath = join(workDir, 'worker.mjs');
 const merchant = 'sift-integration-merchant';
 const merchantSecret = 'sift-integration-secret-do-not-use-in-production';
 const email = `integration-${randomUUID()}@example.com`;
+const analyticsSessionId=randomUUID();
 const password = 'Initial-passphrase-938!';
 const appOrigin = 'http://127.0.0.1';
 const emailOutbox = [];
@@ -60,11 +61,12 @@ async function mockOutbound(request) {
   return Response.json({ error: `Unexpected integration-test outbound request to ${url.hostname}` }, { status: 502 });
 }
 
-async function responseFor(path, { method = 'GET', body, rawBody, cookie, origin = false, ip } = {}) {
+async function responseFor(path, { method = 'GET', body, rawBody, cookie, origin = false, ip, authorization } = {}) {
   const headers = new Headers();
   if (body !== undefined || rawBody !== undefined) headers.set('content-type', 'application/json');
   if (cookie) headers.set('cookie', cookie);
   if (origin) headers.set('origin', appOrigin);
+  if (authorization) headers.set('authorization', authorization);
   headers.set('cf-connecting-ip', ip || `198.51.100.${nextIp++}`);
   const response = await miniflare.dispatchFetch(`${appOrigin}${path}`, {
     method,
@@ -153,6 +155,7 @@ try {
       AUTH_EMAIL_FROM: 'Sift Integration <no-reply@example.com>',
       DUNNING_CRON_SECRET: 'integration-cron-secret',
       RATE_LIMIT_EDGE_ENABLED: 'false',
+      ANALYTICS_ADMIN_EMAIL: email,
     },
     outboundService: mockOutbound,
   });
@@ -167,10 +170,30 @@ try {
   }
 
   // Signup: happy path creates D1 user, acceptance record, verification token, and session.
+  const health = await responseFor('/health');
+  assert.equal(health.response.status, 200, JSON.stringify(health.data));
+  assert.equal(health.data.status, 'ok');
+  assert.equal(health.data.checks.database, 'ok');
+
+  // Explicit opt-in visit and a real successful analysis form the first two steps.
+  const visitEvent=await responseFor('/api/analytics/event',{method:'POST',body:{stage:'visit',sessionId:analyticsSessionId},origin:true});
+  assert.equal(visitEvent.response.status,200,JSON.stringify(visitEvent.data));
+  assert.equal((await responseFor('/api/analytics/event',{method:'POST',body:{stage:'visit',sessionId:analyticsSessionId},origin:true})).response.status,200);
+  assert.equal((await responseFor('/api/analytics/event',{method:'POST',body:{stage:'analyze',sessionId:analyticsSessionId},origin:true})).response.status,400);
+  assert.equal((await responseFor('/api/analytics/event',{method:'POST',body:{stage:'paywall',sessionId:randomUUID()}})).response.status,403);
+  assert.equal((await responseFor('/api/analytics/event',{method:'POST',body:{stage:'visit'},origin:true})).response.status,400);
+  const scanBody={url:'https://shop.example.com/terms',deviceId:'integration-device-1',analyticsSessionId};
+  const scan=await responseFor('/api/analyze',{method:'POST',body:scanBody});
+  assert.equal(scan.response.status,200,JSON.stringify(scan.data));
+  assert.equal(scan.data.title,'Subscription Terms');
+  assert.deepEqual(scan.data.prices,['$12.99']);
+  assert.equal(scan.data.access.used,1);
+  assert.equal((await db.prepare('SELECT COUNT(*) AS count FROM scans WHERE device_id=?').bind(scanBody.deviceId).first()).count,1);
+
   const consent = { acceptTerms: true, acknowledgePrivacy: true };
   const signup = await responseFor('/api/auth/signup', {
     method: 'POST',
-    body: { email, password, turnstileToken: 'valid-signup-token', legalConsent: consent },
+    body: { email, password, turnstileToken: 'valid-signup-token', legalConsent: consent,analyticsSessionId },
   });
   assert.equal(signup.response.status, 201, JSON.stringify(signup.data));
   assert.equal(signup.data.user.email, email);
@@ -179,6 +202,7 @@ try {
   const unverifiedMe = await responseFor('/api/auth/me', { cookie: session });
   assert.equal(unverifiedMe.response.status, 200);
   assert.equal(unverifiedMe.data.user.emailVerified, false);
+  assert.equal((await responseFor('/api/analytics/funnel',{cookie:session})).response.status,403);
   assert.equal((await db.prepare('SELECT COUNT(*) AS count FROM users WHERE email=?').bind(email).first()).count, 1);
   assert.equal((await db.prepare('SELECT COUNT(*) AS count FROM legal_acceptances WHERE user_id=?').bind(signup.data.user.id).first()).count, 1);
 
@@ -274,13 +298,6 @@ try {
   assert.equal((await responseFor('/api/auth/logout', { method: 'POST' })).response.status, 200);
 
   // Analyze API: successful HTML fetch creates a persisted report; SSRF input fails and refunds quota.
-  const scanBody = { url: 'https://shop.example.com/terms', deviceId: 'integration-device-1' };
-  const scan = await responseFor('/api/analyze', { method: 'POST', body: scanBody });
-  assert.equal(scan.response.status, 200, JSON.stringify(scan.data));
-  assert.equal(scan.data.title, 'Subscription Terms');
-  assert.deepEqual(scan.data.prices, ['$12.99']);
-  assert.equal(scan.data.access.used, 1);
-  assert.equal((await db.prepare('SELECT COUNT(*) AS count FROM scans WHERE device_id=?').bind(scanBody.deviceId).first()).count, 1);
   const analyzeInvalid = await responseFor('/api/analyze', { method: 'POST', body: { ...scanBody, url: 'http://127.0.0.1' } });
   assert.equal(analyzeInvalid.response.status, 400);
   assert.equal((await responseFor('/api/analyze', { method: 'POST', body: { deviceId: 'missing-url' } })).response.status, 400);
@@ -293,6 +310,9 @@ try {
   const billingLogin = await responseFor('/api/auth/login', { method: 'POST', body: { email, password: changedPasswordValue } });
   assert.equal(billingLogin.response.status, 200);
   const billingSession = sessionFrom(billingLogin.response);
+  const accountSummary=await responseFor('/api/account?deviceId=integration-device-1',{cookie:billingSession});
+  assert.equal(accountSummary.response.status,200,JSON.stringify(accountSummary.data));
+  assert.equal(accountSummary.data.canViewAnalytics,true);
   const checkoutConsent = { ...consent, acceptRefund: true, requestImmediatePerformance: true };
   const checkoutAnonymous = await responseFor('/api/billing/wayforpay/checkout', {
     method: 'POST', body: { plan: 'one', legalConsent: checkoutConsent }, origin: true,
@@ -311,7 +331,7 @@ try {
   });
   assert.equal(checkoutBadPlan.response.status, 400);
   const checkout = await responseFor('/api/billing/wayforpay/checkout', {
-    method: 'POST', cookie: billingSession, origin: true, body: { plan: 'one', legalConsent: checkoutConsent },
+    method: 'POST', cookie: billingSession, origin: true, body: { plan: 'one', legalConsent: checkoutConsent,analyticsSessionId },
   });
   assert.equal(checkout.response.status, 200, JSON.stringify(checkout.data));
   assert.equal(checkout.data.price.uah, 59);
@@ -333,14 +353,28 @@ try {
   assert.equal(paidCallback.data.status, 'accept');
   const callbackReplay = await responseFor('/api/billing/wayforpay/callback', { method: 'POST', body: validCallback });
   assert.equal(callbackReplay.response.status, 200);
-  const paymentOrder = await db.prepare('SELECT status FROM payment_orders WHERE order_reference=?').bind(orderReference).first();
+  const paymentOrder = await db.prepare('SELECT status,analytics_session_hash FROM payment_orders WHERE order_reference=?').bind(orderReference).first();
   assert.equal(paymentOrder.status, 'paid');
+  assert.equal(paymentOrder.analytics_session_hash,null);
   const credit = await db.prepare('SELECT COUNT(*) AS count FROM subscriptions WHERE id=? AND user_id=? AND plan=\'one\' AND credits=1').bind(orderReference, signup.data.user.id).first();
   assert.equal(credit.count, 1);
   const event = await db.prepare('SELECT processing_status,attempts FROM billing_events WHERE order_reference=? AND event_type=\'Approved\'').bind(orderReference).first();
   assert.deepEqual(event, { processing_status: 'processed', attempts: 1 });
   const badEvent = await db.prepare('SELECT processing_status FROM billing_events WHERE order_reference=? AND signature_valid=0').bind(orderReference).first();
   assert.equal(badEvent.processing_status, 'rejected');
+
+  // Funnel reporting is private and counts only ordered, deduplicated stages.
+  const funnel=await responseFor('/api/analytics/funnel',{cookie:billingSession});
+  assert.equal(funnel.response.status,200,JSON.stringify(funnel.data));
+  assert.deepEqual(funnel.data.funnel,{visit:1,analyze:1,signup:1,paywall:1,pay:1});
+  assert.equal((await responseFor('/api/analytics/funnel')).response.status,401);
+  const sessionHash=createHash('sha256').update(analyticsSessionId).digest('hex');
+  const funnelRows=await db.prepare('SELECT COUNT(*) AS count FROM analytics_events WHERE session_hash=?').bind(sessionHash).first();
+  assert.equal(funnelRows.count,5);
+  await db.prepare(`INSERT INTO analytics_events(id,session_hash,stage,created_at) VALUES(?,?,?,?)`).bind(randomUUID(),createHash('sha256').update(randomUUID()).digest('hex'),'visit',new Date(Date.now()-91*864e5).toISOString()).run();
+  const retention=await responseFor('/api/internal/privacy-retention',{method:'POST',authorization:'Bearer integration-cron-secret'});
+  assert.equal(retention.response.status,200,JSON.stringify(retention.data));
+  assert.equal(retention.data.analyticsDeleted,1);
 
   const mismatchedCheckout = await responseFor('/api/billing/wayforpay/checkout', {
     method: 'POST', cookie: billingSession, origin: true, body: { plan: 'one', legalConsent: checkoutConsent },
@@ -361,7 +395,7 @@ try {
   assert.equal((await responseFor('/api/billing/wayforpay/status?reference=sift_00000000000000000000000000000000', { cookie: billingSession })).response.status, 404);
   assert.equal((await responseFor(`/api/billing/wayforpay/status?reference=${encodeURIComponent(orderReference)}`)).response.status, 401);
 
-  console.log('Integration tests passed: 14 API routes, isolated Miniflare D1, auth, analysis, checkout, history, and WayForPay webhooks.');
+  console.log('Integration tests passed: isolated Miniflare D1, auth, analysis, consent-gated funnel, admin authorization, paid-event idempotency, retention, and WayForPay webhooks.');
   console.log(`Outbound calls were fully stubbed (${outboundCallCount}); email sends captured: ${emailOutbox.length}.`);
 } finally {
   await miniflare?.dispose();

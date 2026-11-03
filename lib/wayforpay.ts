@@ -5,10 +5,11 @@ import type {CheckoutLegalConsent} from './legal-consent-policy.js';
 import {ensureDb} from './db';
 import {addCalendarMonth,type SubscriptionStatus} from './subscription-lifecycle';
 import {planDetails,type PaidPlan} from './plan-catalog';
+import {ensureFunnelAnalyticsDb,recordFunnelEventByHash} from './funnel-analytics';
 export {planDetails} from './plan-catalog';
 export type {PaidPlan} from './plan-catalog';
 
-export type PaymentOrder={order_reference:string;user_id:string;plan:PaidPlan;amount_uah:number;currency:string;status:string;test_mode:number;expires_at:string};
+export type PaymentOrder={order_reference:string;user_id:string;plan:PaidPlan;amount_uah:number;currency:string;status:string;test_mode:number;expires_at:string;analytics_session_hash?:string|null};
 export type WayForPayPayload=Record<string,unknown>;
 const cfg=()=>env as unknown as Record<string,string|undefined>;
 const sha256=async(value:string)=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(value)))].map(x=>x.toString(16).padStart(2,'0')).join('');
@@ -19,8 +20,8 @@ export function sign(value:string,secret=wayForPayConfig().secret){return create
 export function signatureMatches(value:string,signature:unknown){if(typeof signature!=='string'||!/^[a-f\d]{32}$/i.test(signature))return false;const expected=Buffer.from(sign(value),'hex'),actual=Buffer.from(signature,'hex');return expected.length===actual.length&&timingSafeEqual(expected,actual);}
 export function providerAmountMatches(order:PaymentOrder,amount:unknown,currency:unknown){const value=Number(amount);if(!Number.isFinite(value))return false;if(currency==='UAH')return value===order.amount_uah;if(currency==='USD')return value===Number(planDetails(order.plan).usd);return false;}
 export async function getPaymentOrder(reference:string,userId?:string){await ensureDb();const q=userId?env.DB.prepare('SELECT * FROM payment_orders WHERE order_reference=? AND user_id=?').bind(reference,userId):env.DB.prepare('SELECT * FROM payment_orders WHERE order_reference=?').bind(reference);return q.first<PaymentOrder>();}
-export async function createPaymentOrder(order:{reference:string;userId:string;plan:PaidPlan;amount:number;testMode:boolean;legalConsent:CheckoutLegalConsent}){await ensureDb();const now=new Date(),expires=new Date(now.getTime()+60*60*1000);await env.DB.batch([
-  env.DB.prepare(`INSERT INTO payment_orders(order_reference,user_id,plan,amount_uah,currency,status,test_mode,created_at,updated_at,expires_at) VALUES(?,?,?,?,?,'pending',?,?,?,?)`).bind(order.reference,order.userId,order.plan,order.amount,'UAH',order.testMode?1:0,now.toISOString(),now.toISOString(),expires.toISOString()),
+export async function createPaymentOrder(order:{reference:string;userId:string;plan:PaidPlan;amount:number;testMode:boolean;legalConsent:CheckoutLegalConsent;analyticsSessionHash?:string|null}){await ensureFunnelAnalyticsDb();const now=new Date(),expires=new Date(now.getTime()+60*60*1000);await env.DB.batch([
+  env.DB.prepare(`INSERT INTO payment_orders(order_reference,user_id,plan,amount_uah,currency,status,test_mode,created_at,updated_at,expires_at,analytics_session_hash) VALUES(?,?,?,?,?,'pending',?,?,?,?,?)`).bind(order.reference,order.userId,order.plan,order.amount,'UAH',order.testMode?1:0,now.toISOString(),now.toISOString(),expires.toISOString(),order.analyticsSessionHash||null),
   checkoutAcceptanceStatement({userId:order.userId,plan:order.plan,orderReference:order.reference,consent:order.legalConsent,acceptedAt:now.toISOString()})
 ]);}
 export async function setPaymentStatus(order:PaymentOrder,status:'paid'|'declined'|'expired'){
@@ -34,9 +35,10 @@ export async function setPaymentStatus(order:PaymentOrder,status:'paid'|'decline
       ...(order.plan==='pro'?[env.DB.prepare(`INSERT OR IGNORE INTO subscription_payments(order_reference,subscription_id,user_id,amount_uah,status,period_start,period_end,created_at,paid_at) SELECT ?,id,user_id,?,'paid',?,?,?,? FROM subscriptions WHERE id=?`).bind(order.order_reference,order.amount_uah,now.toISOString(),expiry,now.toISOString(),now.toISOString(),order.order_reference)]:[])
     ];
     await env.DB.batch(statements);
+    try{const stored=await recordFunnelEventByHash(order.analytics_session_hash,'pay');if(stored)await env.DB.prepare(`UPDATE payment_orders SET analytics_session_hash=NULL WHERE order_reference=?`).bind(order.order_reference).run()}catch(error){console.error('[funnel-analytics] payment event write failed',error instanceof Error?error.message:'unknown error')}
     return;
   }
-  await env.DB.prepare(`UPDATE payment_orders SET status=?,updated_at=? WHERE order_reference=? AND status='pending'`).bind(status,new Date().toISOString(),order.order_reference).run();
+  await env.DB.prepare(`UPDATE payment_orders SET status=?,analytics_session_hash=NULL,updated_at=? WHERE order_reference=? AND status='pending'`).bind(status,new Date().toISOString(),order.order_reference).run();
 }
 export async function cancelRecurring(orderReference:string){
   const config=wayForPayConfig();if(!config.merchantAccount||!config.merchantPassword)throw new Error('WayForPay не налаштовано для керування регулярними платежами.');

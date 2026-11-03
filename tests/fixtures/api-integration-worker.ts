@@ -9,9 +9,14 @@ import { POST as resetPassword } from '../../app/api/auth/password/reset/route';
 import { POST as changePassword } from '../../app/api/auth/password/change/route';
 import { POST as analyze } from '../../app/api/analyze/route';
 import { GET as history } from '../../app/api/history/route';
+import { GET as health } from '../../app/health/route';
 import { POST as checkout } from '../../app/api/billing/wayforpay/checkout/route';
 import { POST as wayForPayCallback } from '../../app/api/billing/wayforpay/callback/route';
 import { GET as paymentStatus } from '../../app/api/billing/wayforpay/status/route';
+import { POST as analyticsEvent } from '../../app/api/analytics/event/route';
+import { GET as analyticsFunnel } from '../../app/api/analytics/funnel/route';
+import { POST as privacyRetention } from '../../app/api/internal/privacy-retention/route';
+import { GET as account } from '../../app/api/account/route';
 
 const routes: Record<string, (request: Request) => Promise<Response>> = {
   'POST /api/auth/signup': signup,
@@ -25,9 +30,14 @@ const routes: Record<string, (request: Request) => Promise<Response>> = {
   'POST /api/auth/password/change': changePassword,
   'POST /api/analyze': analyze,
   'GET /api/history': history,
+  'GET /health': health,
   'POST /api/billing/wayforpay/checkout': checkout,
   'POST /api/billing/wayforpay/callback': wayForPayCallback,
   'GET /api/billing/wayforpay/status': paymentStatus,
+  'POST /api/analytics/event': analyticsEvent,
+  'GET /api/analytics/funnel': analyticsFunnel,
+  'POST /api/internal/privacy-retention': privacyRetention,
+  'GET /api/account': account,
 };
 
 const integrationWorker = {
