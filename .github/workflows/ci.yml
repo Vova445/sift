@@ -4,7 +4,7 @@ on:
   pull_request:
     branches: [master]
   push:
-    branches: [master]
+    branches: ['**']
   workflow_dispatch:
 
 permissions:
@@ -98,4 +98,5 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
       - name: Publish preview URL
-        run: echo 'Preview: https://sift-app-preview.reviewradar-vova445.workers.dev' >> "$GITHUB_STEP_SUMMARY"
+        run: |
+          echo "Preview: https://sift-app-preview.reviewradar-vova445.workers.dev" >> "$GITHUB_STEP_SUMMARY"
