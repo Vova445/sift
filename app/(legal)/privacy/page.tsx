@@ -1,7 +1,8 @@
 import type {Metadata} from 'next';
+import {pageMetadata} from '../../../lib/seo';
 import LegalDocument from '../LegalDocument';
 
-export const metadata:Metadata={title:'Політика приватності — Sift',description:'Які дані обробляє Sift, навіщо, скільки часу та кому передає.'};
+export const metadata:Metadata=pageMetadata('/privacy','Політика приватності — Sift','Які дані обробляє Sift, навіщо, скільки часу та кому передає.');
 
 export default function PrivacyPage(){return <LegalDocument label="ПРИВАТНІСТЬ" title="Ваші дані. Без загадок." lead="Пояснюємо, які дані Sift отримує під час аналізу сторінок, створення акаунта та платежів." >
   <section><h2>1. Хто обробляє дані</h2><p>Оператор сервісу: <strong>AVEIron</strong>. Для звернень щодо приватності та даних: <a href="mailto:support@sift.app">support@sift.app</a>. Поштову адресу оператора не публікуємо за запитом власника.</p><p>Ця політика призначена для користувачів в Україні та Європейській економічній зоні (ЄЕЗ). Якщо GDPR застосовується до обробки, вважайте Sift контролером даних акаунта й користування сервісом, а постачальників нижче — процесорами або окремими одержувачами у межах їхніх послуг.</p><div className="operatorNotice"><b>Оператор зазначений як AVEIron.</b> Поштова адреса не оприлюднюється за запитом власника; юридичний статус оператора потрібно підтвердити під час юридичної перевірки.</div></section>

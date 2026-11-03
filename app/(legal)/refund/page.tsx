@@ -1,7 +1,8 @@
 import type {Metadata} from 'next';
+import {pageMetadata} from '../../../lib/seo';
 import LegalDocument from '../LegalDocument';
 
-export const metadata:Metadata={title:'Оплата та повернення — Sift',description:'Як скасувати Sift Pro, подати запит на повернення та отримати допомогу з платежем.'};
+export const metadata:Metadata=pageMetadata('/refund','Оплата та повернення — Sift','Як скасувати Sift Pro, подати запит на повернення та отримати допомогу з платежем.');
 
 export default function RefundPage(){return <LegalDocument label="ОПЛАТА І ПОВЕРНЕННЯ" title="Платіж — без сюрпризів." lead="Як працюють разова покупка One Sift, щомісячний Sift Pro, скасування та звернення щодо платежу." >
   <section><h2>1. Тарифи та списання</h2><ul><li><strong>One Sift — ₴59 (орієнтир $1.49):</strong> разова покупка одного повного звіту; повторно списання не відбувається.</li><li><strong>Sift Pro — ₴279 на місяць (орієнтир $6.90):</strong> щомісячне автопродовження до скасування.</li></ul><p>Фінальну суму у гривні підтверджує checkout WayForPay до того, як ви введете картку. Sift не зберігає карткові дані. Квитанції та керування платіжним методом доступні у WayForPay.</p></section>

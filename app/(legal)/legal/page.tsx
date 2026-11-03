@@ -1,8 +1,9 @@
 import type {Metadata} from 'next';
+import {pageMetadata} from '../../../lib/seo';
 
 /* eslint @next/next/no-html-link-for-pages: "off" */
 
-export const metadata:Metadata={title:'Правові документи — Sift',description:'Політика приватності, умови користування та правила оплати й повернення Sift.'};
+export const metadata:Metadata=pageMetadata('/legal','Правові документи — Sift','Політика приватності, умови користування та правила оплати й повернення Sift.');
 
 const documents=[
   {href:'/privacy',number:'01',title:'Політика приватності',description:'Які дані обробляє Sift, для чого, як довго та яким постачальникам вони передаються.'},

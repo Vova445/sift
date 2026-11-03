@@ -1,9 +1,10 @@
 import type {Metadata} from 'next';
+import {pageMetadata} from '../../../lib/seo';
 import LegalDocument from '../LegalDocument';
 
 /* eslint @next/next/no-html-link-for-pages: "off" */
 
-export const metadata:Metadata={title:'Умови користування — Sift',description:'Правила користування Sift, тарифами та цифровими звітами.'};
+export const metadata:Metadata=pageMetadata('/terms','Умови користування — Sift','Правила користування Sift, тарифами та цифровими звітами.');
 
 export default function TermsPage(){return <LegalDocument label="УМОВИ КОРИСТУВАННЯ" title="Ясні правила. Перед оплатою." lead="Ці умови описують доступ до Sift, звіти, тарифи та межі відповідальності сервісу." >
   <section><h2>1. Постачальник та контакт</h2><p>Оператор послуги: <strong>AVEIron</strong>. Контакт підтримки: <a href="mailto:support@sift.app">support@sift.app</a>. Поштову адресу не публікуємо за запитом власника.</p><div className="operatorNotice"><b>Робочий проєкт, не текст від юриста.</b> Юридичний статус оператора AVEIron має бути підтверджений під час професійної перевірки.</div></section>
