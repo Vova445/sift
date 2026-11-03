@@ -1,14 +1,15 @@
 import assert from 'node:assert/strict';
 import { createHmac, randomUUID } from 'node:crypto';
-import { mkdtemp, readFile, readdir, rm } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
+import { mkdir, mkdtemp, readFile, readdir, rm } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { build } from 'esbuild';
 import { Miniflare } from 'miniflare';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const workDir = await mkdtemp(join(tmpdir(), 'sift-api-integration-'));
+const workRoot = join(root, '.wrangler');
+await mkdir(workRoot, { recursive: true });
+const workDir = await mkdtemp(join(workRoot, 'sift-api-integration-'));
 const workerPath = join(workDir, 'worker.mjs');
 const merchant = 'sift-integration-merchant';
 const merchantSecret = 'sift-integration-secret-do-not-use-in-production';
