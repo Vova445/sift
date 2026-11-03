@@ -53,6 +53,15 @@ test('purchase term extraction identifies trial, renewal, refund, cancellation a
   assert.equal(findings.find(({ kind }) => kind === 'warning').severity, 'high');
 });
 
+test('purchase terms recognize common recurring-billing and refund eligibility wording', () => {
+  const text = 'Membership renews automatically. The plans are billed monthly. You may be eligible for a refund within 30 days. Some purchases are non-refundable, and we do not refund partial periods.';
+  const { findings } = extractPurchaseTerms(text);
+  const kinds = findings.map(({ kind }) => kind);
+  assert.ok(kinds.includes('renewal'));
+  assert.ok(kinds.includes('refund'));
+  assert.ok(kinds.includes('warning'));
+});
+
 test('price parser supports symbols, ISO currency suffixes and Ukrainian hryvnia', () => {
   const { findings, prices } = extractPurchaseTerms('Pricing: $12.50 per month, €9 annually, 150 UAH monthly, 299 грн на місяць, £6 per year and ₴75 тариф.');
   assert.deepEqual(prices, ['$12.50', '€9', '150 UAH', '299 грн', '£6', '₴75']);

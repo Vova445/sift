@@ -11,6 +11,7 @@
     "start": "vinext start",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next --ignore-pattern .wrangler --ignore-pattern test-results --ignore-pattern playwright-report",
     "test": "node --experimental-test-coverage --test-coverage-include=lib/analyzer-core.js --test-coverage-include=lib/entitlement-policy.js --test-coverage-include=lib/plan-catalog.js --test-coverage-include=lib/request-rate-limit-policy.js --test-coverage-include=lib/scan-quota-policy.js --test-coverage-lines=80 --test-coverage-branches=80 --test-coverage-functions=80 --test tests/*.test.mjs",
+    "eval:analyzer": "node scripts/evaluate-analyzer.mjs",
     "test:integration": "node scripts/test-integration.mjs",
     "test:e2e": "playwright test",
     "test:e2e:install": "playwright install chromium && playwright install chromium-headless-shell",

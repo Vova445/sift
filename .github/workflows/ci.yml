@@ -37,6 +37,9 @@ jobs:
       - name: Unit tests
         run: npm test
 
+      - name: Analyzer labeled-page evaluation
+        run: npm run eval:analyzer
+
       - name: Local D1 backup and restore drill
         run: npm run verify:backup-restore
 
