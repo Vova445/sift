@@ -13,6 +13,6 @@ export async function POST(req:Request){
   try{
     const result=await submitDomainCorrection(body);
     if(!result.ok)return Response.json({error:result.error},{status:400,headers:noStore});
-    return Response.json({ok:true,domain:result.domain,message:'Звернення отримано. Команда Sift перевірить його перед будь-яким оновленням публічної сторінки.'},{status:201,headers:noStore});
+    return Response.json({ok:true,domain:result.domain,message:'Звернення на модерації. Публікація не автоматична: команда Sift спочатку перевірить повноваження та надані докази.'},{status:201,headers:noStore});
   }catch{return Response.json({error:'Не вдалося надіслати звернення. Спробуйте пізніше.'},{status:503,headers:noStore})}
 }

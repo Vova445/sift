@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, ArrowRight, CalendarDays, Check, Copy, CreditCard, Link2, LogOut, Plus, ShieldCheck, Trash2, UsersRound, X } from 'lucide-react';
 import './space.css';
+import AccessGate from '../AccessGate';
 
 type Member = { user_id: string; email: string; role: 'owner' | 'member'; joined_at: string };
 type Item = { id: string; title: string; service_url: string | null; amount_minor: number | null; currency: 'UAH' | 'USD' | 'EUR' | 'GBP'; next_charge_date: string | null; status: 'active' | 'canceling' | 'canceled'; note: string; assigned_to_user_id: string | null; created_by_user_id: string; assigned_email: string | null; created_by_email: string };
@@ -12,6 +13,7 @@ type Space = { id: string; owner_user_id: string; title: string; status: 'pendin
 type Draft = { title: string; serviceUrl: string; amount: string; currency: Item['currency']; nextChargeDate: string; status: Item['status']; note: string; assignedToUserId: string };
 type ApiBody = { error?: string; spaces?: Space[]; space?: Space; invite?: { id: string; url: string; expiresAt: string; maxUses: number }; spaceId?: string; alreadyMember?: boolean; ok?: boolean; status?: string; testMode?: boolean; price?: { uah: number; termDays: number; autoRenew: boolean }; periodEnd?: string; action?: string; fields?: Record<string, unknown> };
 const emptyDraft: Draft = { title: '', serviceUrl: '', amount: '', currency: 'UAH', nextChargeDate: '', status: 'active', note: '', assignedToUserId: '' };
+const memberInitials = (email: string) => email.split('@')[0].split(/[._-]+/).filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase() || '').join('') || '?';
 const money = (minor: number | null, currency: string) => minor === null ? 'Суму не вказано' : new Intl.NumberFormat('uk-UA', { style: 'currency', currency, maximumFractionDigits: 2 }).format(minor / 100);
 const statusLabel = (status: Space['status']) => ({ pending: 'Очікує оплати', active: 'Активний', expired: 'Потрібно поновити', closed: 'Закритий' })[status];
 
@@ -125,9 +127,7 @@ export default function SharedSpacePage() {
 
   if (loading) return <main className="spaceLoading"><span/><p>Завантажуємо спільні простори…</p></main>;
   if (signedIn === false) {
-    const returnPath = `/dashboard/space${window.location.search}`;
-    const next = encodeURIComponent(returnPath);
-    return <main className="spaceGate"><div className="spaceGateCard"><span className="spaceIcon"><UsersRound/></span><small>SHARED SIFT SPACE</small><h1>Спільний простір<br/>для важливих підписок.</h1><p>Увійдіть, щоб працювати зі спільним календарем, списком підписок і запрошенням.</p><Link className="spacePrimary" href={`/?login=1&next=${next}`}>Увійти до простору <ArrowRight/></Link><Link href={`/?signup=1&next=${next}`} className="spaceTextLink">Створити акаунт</Link></div></main>;
+    return <AccessGate variant="space"/>;
   }
 
   return <main className="spacePage">
@@ -145,7 +145,7 @@ export default function SharedSpacePage() {
           {space.status === 'closed' && <section className="spaceEmpty"><ShieldCheck/><h3>Цей простір закрито</h3><p>Спільні дані більше недоступні.</p></section>}
           {space.status === 'active' && <>
             <section className="spaceMembers"><header><div><small>OWNER + MEMBERS</small><h3>Учасники</h3></div>{space.role === 'owner' && <button className="spaceSecondary" onClick={() => void makeInvite()} disabled={busy || space.members.length >= space.maxMembers}><Link2/>{busy ? 'Готуємо…' : 'Створити запрошення'}</button>}{space.role === 'member' && <button className="spaceSecondary" onClick={() => void leaveSpace()} disabled={busy}>Вийти з простору</button>}</header>
-              <div className="spaceMemberList">{space.members.map((member) => <article key={member.user_id}><span className={`memberAvatar ${member.role}`}>{member.role === 'owner' ? 'O' : member.email.slice(0, 1).toUpperCase()}</span><span><b>{member.email}</b><small>{member.role === 'owner' ? 'Власник · керує оплатою й учасниками' : 'Учасник · додає та веде власні записи'}</small></span>{space.role === 'owner' && member.role === 'member' && <button className="spaceIconButton" aria-label={`Видалити ${member.email}`} onClick={() => void removeMember(member.user_id)}><Trash2/></button>}</article>)}</div>
+              <div className="spaceMemberList" role="list" aria-label={`Місця у просторі: ${space.members.length} із ${space.maxMembers}`}>{space.members.map((member) => <article role="listitem" key={member.user_id}><span className={`memberAvatar ${member.role}`}>{memberInitials(member.email)}</span><span><b>{member.email}</b><small>{member.role === 'owner' ? 'Власник · керує оплатою й учасниками' : 'Учасник · додає та веде власні записи'}</small></span>{space.role === 'owner' && member.role === 'member' && <button className="spaceIconButton" aria-label={`Видалити ${member.email}`} onClick={() => void removeMember(member.user_id)}><Trash2/></button>}</article>)}{Array.from({ length: Math.max(0, space.maxMembers - space.members.length) }, (_, index) => <article role="listitem" className="spaceSeatEmpty" key={`empty-seat-${index}`}><span className="memberAvatar empty"><Plus/></span><span><b>Вільне місце</b><small>Доступно для запрошення</small></span></article>)}</div>
               {inviteUrl && <div className="spaceInviteShare"><div><small>ПРИВАТНЕ ПОСИЛАННЯ · ДІЄ 7 ДНІВ</small><input aria-label="Посилання-запрошення" value={inviteUrl} readOnly onFocus={(event) => event.currentTarget.select()}/></div><button className="spacePrimary" onClick={() => void copyInvite(inviteUrl)}><Copy/>Копіювати</button></div>}
               {space.role === 'owner' && space.invites.length > 0 && <div className="spaceInviteList">{space.invites.map((invite) => <article key={invite.id}><span><b>Активне запрошення</b><small>Використано {invite.uses_count} з {invite.max_uses} · до {new Date(invite.expires_at).toLocaleDateString('uk-UA')}</small></span><button onClick={() => void revokeInvite(invite.id)}>Скасувати</button></article>)}</div>}
             </section>

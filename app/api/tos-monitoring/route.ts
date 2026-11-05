@@ -4,7 +4,7 @@ import { currentUser } from '../../../lib/auth';
 import { guardFeature } from '../../../lib/entitlements';
 import { canonicalAppUrl, sameOriginBillingRequest } from '../../../lib/billing-security.js';
 import { featureFlagEnabled } from '../../../lib/support-tools-db';
-import { getTosMonitoringForUser, setTosMonitoring } from '../../../lib/tos-monitoring';
+import { getTosMonitoringForUser, requestTosMonitoringRetry, setTosMonitoring } from '../../../lib/tos-monitoring';
 
 async function authorize(request: Request) {
   const user = await currentUser(request);
@@ -29,11 +29,20 @@ export async function POST(request: Request) {
   const app = canonicalAppUrl(values.APP_BASE_URL, values.WAYFORPAY_MODE === 'sandbox');
   if (!app || !sameOriginBillingRequest(request, app)) return Response.json({ error: 'Недозволене джерело запиту' }, { status: 403 });
 
-  let body: { scanId?: unknown; enabled?: unknown };
-  try { body = await request.json() as { scanId?: unknown; enabled?: unknown }; }
+  let body: { scanId?: unknown; enabled?: unknown; action?: unknown };
+  try { body = await request.json() as { scanId?: unknown; enabled?: unknown; action?: unknown }; }
   catch { return Response.json({ error: 'Некоректний запит' }, { status: 400 }); }
-  if (typeof body.scanId !== 'string' || !body.scanId || body.scanId.length > 100 || typeof body.enabled !== 'boolean') {
-    return Response.json({ error: 'Вкажіть звіт і стан моніторингу' }, { status: 400 });
+  if (typeof body.scanId !== 'string' || !body.scanId || body.scanId.length > 100) {
+    return Response.json({ error: 'Вкажіть звіт для моніторингу' }, { status: 400 });
+  }
+  if (body.action === 'retry') {
+    const result = await requestTosMonitoringRetry(auth.user.id, body.scanId);
+    if (!result) return Response.json({ error: 'Не знайдено активний моніторинг цього звіту.' }, { status: 404 });
+    if (result.busy) return Response.json({ error: 'Сторінка вже перевіряється. Дочекайтеся завершення.' }, { status: 409 });
+    return Response.json({ item: result.item, message: 'Повтор додано до черги на найближчий запланований запуск.' }, { headers: { 'Cache-Control': 'no-store, private' } });
+  }
+  if (typeof body.enabled !== 'boolean') {
+    return Response.json({ error: 'Вкажіть стан моніторингу' }, { status: 400 });
   }
   if (body.enabled && !(await getTosMonitoringForUser(auth.user.id)).configured) {
     return Response.json({ error: 'Email-сповіщення ще не налаштовані. Спробуйте пізніше.' }, { status: 503 });

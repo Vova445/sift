@@ -1,0 +1,17 @@
+.actionConfirmBackdrop{position:fixed;inset:0;z-index:220;display:grid;place-items:center;padding:20px;background:#10130fbb;backdrop-filter:blur(8px)}
+.actionConfirmDialog{position:relative;width:min(100%,440px);max-height:min(90dvh,720px);overflow:auto;padding:30px;border:1px solid #e0e5dc;border-radius:22px;background:#fbfcfa;color:#141711;box-shadow:0 28px 90px #0005}
+.actionConfirmClose{position:absolute;top:17px;right:17px;width:40px;height:40px;display:grid;place-items:center;border:0;border-radius:50%;background:#eef1eb;color:#232920;cursor:pointer}
+.actionConfirmClose svg{width:18px;height:18px}
+.actionConfirmIcon{width:48px;height:48px;display:grid;place-items:center;margin-bottom:20px;border-radius:15px;background:#fff0e8;color:#bd5839}
+.actionConfirmIcon svg{width:21px;height:21px}
+.actionConfirmDialog>small{display:block;margin-bottom:7px;color:#777e72;font-size:9px;font-weight:900;letter-spacing:.13em}
+.actionConfirmDialog h2{max-width:340px;margin:0;color:#141711;font-size:clamp(24px,5vw,30px);line-height:1.12;letter-spacing:-.04em}
+.actionConfirmDialog>p{margin:12px 0 22px;color:#60685d;font-size:13px;line-height:1.6}
+.actionConfirmDialog>p.actionConfirmMessage{margin:-10px 0 16px;padding:10px 12px;border:1px solid #f2c5bd;border-radius:10px;background:#fff1ee;color:#9c392e;font-size:11px}
+.actionConfirmButtons{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.actionConfirmButtons button{min-height:46px;padding:0 13px;border-radius:11px;font:inherit;font-size:12px;font-weight:850;cursor:pointer}
+.actionConfirmCancel{border:1px solid #dce2d8;background:#fff;color:#31372e}
+.actionConfirmSubmit{border:1px solid #a94337;background:#aa4034;color:white}
+.actionConfirmButtons button:disabled,.actionConfirmClose:disabled{opacity:.55;cursor:not-allowed}
+.actionConfirmDialog button:focus-visible{outline:3px solid #9ddc51;outline-offset:3px}
+@media(max-width:540px){.actionConfirmBackdrop{padding:14px}.actionConfirmDialog{padding:26px 20px;border-radius:20px}.actionConfirmClose{top:13px;right:13px}}

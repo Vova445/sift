@@ -85,6 +85,13 @@ export async function referralUrlForUser(userId: string, origin: string, req?: R
   return `${origin}/r/${saved.token}`;
 }
 
+export async function confirmedReferralCount(userId: string) {
+  await ensureReferralDb();
+  const row = await d1().prepare(`SELECT COUNT(*) AS count FROM referral_attributions WHERE referrer_user_id=? AND completed_at IS NOT NULL`)
+    .bind(userId).first<{ count: number }>();
+  return Number(row?.count || 0);
+}
+
 export async function attributeReferralSignup(refereeUserId: string, token: unknown, req?: Request, deviceId?: unknown) {
   await ensureReferralDb();
   if (typeof token !== 'string' || !/^[A-Za-z0-9_-]{43}$/.test(token)) return false;

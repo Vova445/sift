@@ -7,3 +7,51 @@
 .darkPatternFindings{min-width:0;min-height:302px;padding:14px;border:1px solid #e8ece5;border-radius:15px;background:#fbfcfa}.darkPatternEmpty{min-height:270px;display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:18px}.darkPatternEmpty>span{width:46px;height:46px;border-radius:14px;background:#f0efff;color:#7160f3;display:grid;place-items:center}.darkPatternEmpty>span svg{width:21px}.darkPatternEmpty>b,.darkPatternLoading>b{margin:13px 0 5px;font-size:13px}.darkPatternEmpty>p,.darkPatternLoading>p{max-width:330px;margin:0;color:#72796f;font-size:10px;line-height:1.6}.darkPatternEmpty>small{display:flex;align-items:flex-start;gap:6px;margin-top:17px;color:#8a6d38;font-size:8px;line-height:1.5;text-align:left}.darkPatternEmpty>small svg{width:13px;height:13px;flex:none}.darkPatternLoading{min-height:270px;display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center}.darkPatternLoading>svg{width:27px;height:27px;color:#659536}.darkPatternResultsHeading{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:3px 1px 12px;border-bottom:1px solid #e6ebe3}.darkPatternResultsHeading>div{display:grid;gap:5px}.darkPatternResultsHeading>div small{color:#777f74;font-size:7px;font-weight:900;letter-spacing:.14em}.darkPatternResultsHeading>div b{font-size:13px}.darkPatternResultsHeading>span{flex:none;border-radius:7px;background:#eef2eb;padding:7px;color:#687166;font-size:8px;font-weight:700}.darkPatternFindingList{display:grid;gap:8px;max-height:365px;overflow:auto;padding:10px 2px}.darkPatternFindingCard{display:grid;grid-template-columns:27px minmax(0,1fr);gap:9px;width:100%;padding:10px;border:1px solid #e4e9e1;border-radius:11px;background:white;text-align:left;color:var(--ink);cursor:pointer}.darkPatternFindingCard:hover,.darkPatternFindingCard.selected{border-color:#a5d26e;background:#f9fdec}.darkPatternFindingNumber{width:25px;height:25px;border-radius:8px;background:#eefbdc;color:#4c7825;display:grid;place-items:center;font-size:10px;font-weight:900}.darkPatternFindingBody{min-width:0;display:grid;gap:5px}.darkPatternFindingBody>b{font-size:11px;line-height:1.3}.darkPatternFindingBody>small{color:#64843e;font-size:8px;font-weight:800}.darkPatternFindingCard.low .darkPatternFindingBody>small{color:#97713c}.darkPatternFindingBody q{color:#4f584d;font-size:9px;line-height:1.45}.darkPatternFindingBody>span{color:#737a70;font-size:9px;line-height:1.5}.darkPatternNoFindings{display:flex;align-items:center;gap:8px;margin-top:14px;border-radius:10px;background:#eff9e7;padding:13px;color:#486d28;font-size:10px;font-weight:700}.darkPatternNoFindings svg{width:16px;flex:none}.darkPatternResultNote{display:flex;gap:7px;margin:9px 0 0;border-radius:9px;background:#fff5df;padding:10px;color:#866021;font-size:8px;line-height:1.5}.darkPatternResultNote svg{width:13px;height:13px;flex:none}.darkPatternUsage{display:block;margin:9px 2px 0;color:#80877e;font-size:8px}.darkPatternError{margin:11px 0 0;border:1px solid #ffd2cb;border-radius:9px;background:#fff0ee;padding:10px;color:#ad3f32;font-size:10px;line-height:1.5}
 @media(max-width:800px){.darkPatternGrid{grid-template-columns:1fr}.darkPatternFindings{min-height:220px}.darkPatternEmpty,.darkPatternLoading{min-height:190px}.darkPatternPreview{max-height:390px}.darkPatternPreview img{max-height:390px}}
 @media(max-width:520px){.darkPatternPanel{padding:18px 14px;border-radius:16px}.darkPatternHeader{gap:10px}.darkPatternHeader h2{font-size:24px}.darkPatternHeader p{font-size:11px}.darkPatternShield{width:38px;height:38px;border-radius:12px}.darkPatternTaxonomy{gap:6px;margin:15px 0}.darkPatternTaxonomy span{padding:6px 8px;font-size:8px}.darkPatternDrop{min-height:205px;padding:17px}.darkPatternFindings{padding:11px}.darkPatternPreview{max-height:320px}.darkPatternPreview img{max-height:320px}.darkPatternResultsHeading>div b{font-size:12px}}
+
+/* Screenshot geometry stays tied to the image's real aspect ratio so the overlay never stretches away from its evidence. */
+.darkPatternDrop.dragging{border-color:#7dac3d;background:#f1f9e6;box-shadow:0 0 0 4px #b8f35f35}
+.darkPatternDrop:focus-visible,.darkPatternAnalyze:focus-visible,.darkPatternFileActions button:focus-visible,.darkPatternFindingCard:focus-visible,.darkPatternOverlay g:focus-visible{outline:3px solid #7160f3;outline-offset:3px}
+.darkPatternPreviewToolbar>span{flex:1;display:grid;grid-template-columns:16px minmax(0,1fr);grid-template-rows:auto auto;column-gap:8px;row-gap:3px;white-space:normal}
+.darkPatternPreviewToolbar>span>svg{grid-row:1/3}
+.darkPatternPreviewToolbar>span>b,.darkPatternPreviewToolbar>span>small{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.darkPatternPreviewToolbar>span>b{font-size:10px}
+.darkPatternPreviewToolbar>span>small{color:#788174;font-size:8px;font-weight:500}
+.darkPatternFileActions{display:flex;gap:6px;flex:none}
+.darkPatternFileActions button:hover{background:#e7eddF;color:#28331f}
+.darkPatternImageStage{position:relative;flex:none;max-width:100%;overflow:hidden;background:#e7eae5}
+.darkPatternImageStage img{display:block;width:100%;height:100%;max-height:none;object-fit:fill}
+.darkPatternImageStage .darkPatternOverlay{position:absolute;inset:0;width:100%;height:100%;overflow:hidden;pointer-events:none}
+.darkPatternOverlay g{pointer-events:all;outline:none}
+.darkPatternOverlay rect{fill:#b8f35f18;stroke:#e5483f;stroke-width:3}
+.darkPatternOverlay g.major rect{fill:#e5483f20;stroke:#e5483f}
+.darkPatternOverlay g.caution rect{fill:#f2ad321c;stroke:#d98a16}
+.darkPatternOverlay circle{fill:#e5483f;stroke:#fff;stroke-width:2}
+.darkPatternOverlay g.caution circle{fill:#d98a16}
+.darkPatternOverlay g.active rect{fill:#e5483f42;stroke:#b72e27;stroke-width:4}
+.darkPatternOverlay g.caution.active rect{fill:#f2ad3242;stroke:#a9690b}
+.darkPatternOverlay g.active circle{fill:#b72e27;stroke:#fff}
+.darkPatternOverlay g.caution.active circle{fill:#a9690b}
+.darkPatternOverlay text{font-size:14px;fill:#fff;font-weight:900;paint-order:stroke;stroke:#161a14;stroke-width:1px}
+.darkPatternOverlay g:focus-visible rect{stroke:#7160f3;stroke-width:5}
+.darkPatternFindingCard.major{border-color:#f0c1bc;background:#fffaf9}
+.darkPatternFindingCard.major .darkPatternFindingNumber{background:#fde7e4;color:#a9322b}
+.darkPatternFindingCard.caution{border-color:#efd7ae;background:#fffdf8}
+.darkPatternFindingCard.caution .darkPatternFindingNumber{background:#fff0d4;color:#8b5c14}
+.darkPatternFindingCard.major:hover,.darkPatternFindingCard.major.selected{border-color:#df665d;background:#fff3f1}
+.darkPatternFindingCard.caution:hover,.darkPatternFindingCard.caution.selected{border-color:#d8a64f;background:#fff8eb}
+.darkPatternFindingCard.low .darkPatternFindingBody>small{color:#8b5c14}
+.darkPatternImpact{width:fit-content;border-radius:100px;padding:3px 7px;background:#fde7e4;color:#a9322b!important;font-size:7px!important;font-weight:800}
+.darkPatternFindingCard.caution .darkPatternImpact{background:#fff0d4;color:#8b5c14!important}
+.darkPatternFindingBody q{display:block;border-left:2px solid #bdc7b5;padding-left:8px;font-style:normal}
+.darkPatternFindingCard.major .darkPatternFindingBody q{border-color:#df665d}
+.darkPatternFindingCard.caution .darkPatternFindingBody q{border-color:#d8a64f}
+.darkPatternSkeletonList{width:100%;display:grid;gap:9px;margin-top:23px}
+.darkPatternSkeletonList i{height:68px;border:1px solid #e6ebe3;border-radius:11px;background:linear-gradient(100deg,#f0f2ee 20%,#fafbf9 38%,#f0f2ee 56%);background-size:220% 100%;animation:dark-pattern-shimmer 1.35s ease-in-out infinite}
+@keyframes dark-pattern-shimmer{to{background-position-x:-220%}}
+.darkPatternScope{display:flex;align-items:flex-start;gap:7px;margin:8px 2px 0;border:1px solid #f3dfb8;border-radius:9px;background:#fff9ed;padding:8px 9px;color:#80612d;font-size:8px;line-height:1.5}
+.darkPatternScope svg{width:13px;height:13px;flex:none}
+.darkPatternPrivacy b{color:#535d4f}
+.darkPatternNoFindings{align-items:flex-start;border:1px solid #dcebd0;background:#f5faef;color:#526647;line-height:1.5}
+@media(max-width:800px){.darkPatternFindingList{max-height:none;overflow:visible}.darkPatternFindings{min-height:0}.darkPatternFindingCard{grid-template-columns:32px minmax(0,1fr);gap:10px;padding:12px}.darkPatternFindingNumber{width:30px;height:30px;font-size:11px}.darkPatternFindingBody>b{font-size:12px}.darkPatternFindingBody>small,.darkPatternFindingBody q,.darkPatternFindingBody>span{font-size:10px}}
+@media(max-width:520px){.darkPatternFindingCard{padding:11px}.darkPatternImpact{font-size:8px!important}.darkPatternScope{font-size:9px}.darkPatternPrivacy{font-size:9px}}
+@media(prefers-reduced-motion:reduce){.darkPatternSkeletonList i{animation:none}.darkPatternSpin,.darkPatternLoading>svg{animation-duration:2.4s}}

@@ -50,11 +50,13 @@ export default function RealCostTimeline({report}:Props){
       </div>
       <details className="realCostMonthDetails"><summary>Суми за кожен місяць</summary><div className="realCostMonthGrid">{timeline.months.map(item=><div key={item.month}><small>М{item.month}</small><b>{formatCompact(item.cumulative,timeline.currency!)}</b></div>)}</div></details>
       {timeline.sourceEvidence&&<details className="realCostEvidence"><summary>Показати доказ ціни</summary><blockquote>{timeline.sourceEvidence}</blockquote></details>}
-    </>:<div className="realCostUnavailable"><CircleAlert aria-hidden="true"/><div><b>Надійний прогноз поки неможливо побудувати</b><p>{timeline.unavailableReason}</p></div></div>}
+    </>:<div className="realCostUnavailable"><CircleAlert aria-hidden="true"/><div className="realCostUnavailableCopy"><b>Надійний прогноз поки неможливо побудувати</b><p>{timeline.unavailableReason}</p></div></div>}
+
+    {timeline.events.length>0&&<div className="realCostTimelineBlock"><h4><CalendarClock aria-hidden="true"/>Події протягом року</h4><ol className="realCostTimelineNodes">{timeline.events.map((event,index)=>{const config=kinds[event.kind]||kinds.trial;const Icon=config.icon;return <li className={`realCostTimelineNode ${config.className}`} key={`${event.kind}-node-${index}`}><span className="realCostTimelineDot"><Icon aria-hidden="true"/></span><div><small>{event.date?`${formatDate(event.date)} · Місяць ${event.month}`:event.month?`Місяць ${event.month} · дата не визначена`:'Строк не визначено'}</small><b>{event.title}</b><p>{event.detail}</p></div></li>})}</ol></div>}
 
     {timeline.events.length>0&&<div className="realCostEvents"><h4><CalendarClock aria-hidden="true"/>Ключові умови</h4><ul>{timeline.events.map((event,index)=>{const config=kinds[event.kind]||kinds.trial;const Icon=config.icon;return <li className={`realCostEvent ${config.className}`} key={`${event.kind}-${index}`}><span className="realCostEventIcon"><Icon aria-hidden="true"/></span><div className="realCostEventBody"><div className="realCostEventTitle"><b>{event.title}</b>{event.date&&<time dateTime={event.date}>{formatDate(event.date)} · М{event.month}</time>}</div><p>{event.detail}</p>{event.evidence&&<details><summary>Доказ з умов</summary><blockquote>{event.evidence}</blockquote></details>}</div></li>})}</ul></div>}
 
-    {timeline.notes.length>0&&<ul className="realCostNotes">{timeline.notes.map((note,index)=><li key={index}><CircleAlert aria-hidden="true"/>{note}</li>)}</ul>}
+    {timeline.notes.length>0&&<ul className="realCostNotes">{timeline.notes.map((note,index)=><li key={index}><CircleAlert aria-hidden="true"/><span>{note}</span></li>)}</ul>}
     <p className="realCostFootnote">Це прогноз за доступними цитатами, а не гарантія продавця. Він не включає податки, курсові зміни чи непідтверджені комісії. Повернення та можливі штрафи не зменшують і не збільшують основну суму.</p>
   </section>;
 }

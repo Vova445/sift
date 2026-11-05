@@ -21,6 +21,7 @@ const appOrigin = 'http://127.0.0.1';
 const emailOutbox = [];
 const telegramOutbox = [];
 let telegramSendFailures = 0;
+let telegramGroupMemberCount = 10;
 const resendAttemptKeys = [];
 let outboundCallCount = 0;
 let nextIp = 10;
@@ -67,8 +68,9 @@ async function mockOutbound(request) {
     return Response.json([{ rate: 40, exchangedate: '04.11.2026' }]);
   }
   if (url.hostname === 'api.telegram.org') {
-    const payload = JSON.parse(await request.clone().text());
+    const payload = request.method==='GET'?{}:JSON.parse(await request.clone().text());
     if (telegramSendFailures > 0) { telegramSendFailures--; return Response.json({ ok: false, description: 'temporary Telegram test failure' }, { status: 503 }); }
+    if (url.pathname.endsWith('/getChatMemberCount')) return Response.json({ ok: true, result: telegramGroupMemberCount });
     if (url.pathname.endsWith('/sendMessage')) telegramOutbox.push(payload);
     return Response.json({ ok: true, result: { message_id: telegramOutbox.length } });
   }
@@ -334,6 +336,22 @@ try {
   };
   const primaryDomainScan=randomUUID();
   await domainSample(primaryDomainScan,signup.data.user.id,60,domainCreatedAt).run();
+  const defaultDomainConsent=await responseFor('/api/domain-index/consent',{cookie:loginSession});
+  assert.equal(defaultDomainConsent.response.status,200,JSON.stringify(defaultDomainConsent.data));
+  assert.equal(defaultDomainConsent.data.enabled,false,'domain index participation is off by default');
+  assert.equal(defaultDomainConsent.data.contributionCount,0);
+  const unverifiedDomainUserId=randomUUID(),unverifiedToken=`integration-domain-unverified-${randomUUID()}`,unverifiedEmail=`domain-index-unverified-${randomUUID()}@example.net`,unverifiedAt=new Date().toISOString(),unverifiedHash=createHash('sha256').update(unverifiedToken).digest('hex');
+  await db.prepare(`INSERT INTO users(id,email,password_hash,salt,created_at) VALUES(?,?,?,'integration-salt',?)`).bind(unverifiedDomainUserId,unverifiedEmail,'integration-hash',unverifiedAt).run();
+  await db.prepare(`INSERT INTO sessions(token_hash,user_id,expires_at,created_at) VALUES(?,?,?,?)`).bind(unverifiedHash,unverifiedDomainUserId,new Date(Date.now()+86400_000).toISOString(),unverifiedAt).run();
+  const unverifiedUserHash=createHash('sha256').update(`sift-domain-index-v1:${unverifiedDomainUserId}`).digest('hex');
+  await db.prepare(`INSERT INTO domain_index_observations(domain,user_hash,clarity_score,indicators_json,report_count,first_seen_at,last_seen_at) VALUES('unverified.example.net',?,66,'{}',1,?,?)`).bind(unverifiedUserHash,unverifiedAt,unverifiedAt).run();
+  const unverifiedDomainOptIn=await responseFor('/api/domain-index/consent',{method:'POST',cookie:`sift_session=${unverifiedToken}`,origin:true,body:{enabled:true}});
+  assert.equal(unverifiedDomainOptIn.response.status,403,'unverified email cannot enable domain index participation');
+  const unverifiedDomainDelete=await responseFor('/api/domain-index/consent',{method:'POST',cookie:`sift_session=${unverifiedToken}`,origin:true,body:{action:'delete_contributions'}});
+  assert.equal(unverifiedDomainDelete.response.status,200,'an unverified account can still erase prior contributions');
+  assert.equal(unverifiedDomainDelete.data.enabled,false);
+  assert.equal(unverifiedDomainDelete.data.removedContributions,1);
+  assert.equal(unverifiedDomainDelete.data.contributionCount,0);
   const primaryOptIn=await responseFor('/api/domain-index/consent',{method:'POST',cookie:loginSession,origin:true,body:{enabled:true}});
   assert.equal(primaryOptIn.response.status,200,JSON.stringify(primaryOptIn.data));
   assert.equal(primaryOptIn.data.enabled,true);
@@ -385,7 +403,7 @@ try {
   assert.equal(invalidPublish.response.status,400);
   const unverifiedPublish=await responseFor('/api/admin/domain-corrections',{method:'POST',cookie:loginSession,origin:true,body:{id:correctionId,action:'publish',response:'The service states that its current subscription renews annually. Please review the linked official terms for the latest details.'}});
   assert.equal(unverifiedPublish.response.status,400);
-  const correctionPublished=await responseFor('/api/admin/domain-corrections',{method:'POST',cookie:loginSession,origin:true,body:{id:correctionId,action:'publish',ownerVerified:true,response:'The service states that its current subscription renews annually. Please review the linked official terms for the latest details.'}});
+  const correctionPublished=await responseFor('/api/admin/domain-corrections',{method:'POST',cookie:loginSession,origin:true,body:{id:correctionId,action:'publish',ownerVerified:true,sourceVerified:true,response:'The service states that its current subscription renews annually. Please review the linked official terms for the latest details.'}});
   assert.equal(correctionPublished.response.status,200,JSON.stringify(correctionPublished.data));
   assert.ok((await db.prepare(`SELECT owner_verified_at FROM domain_correction_requests WHERE id=?`).bind(correctionId).first()).owner_verified_at);
   assert.equal((await db.prepare(`SELECT verified_by FROM domain_owner_responses WHERE request_id=?`).bind(correctionId).first()).verified_by,signup.data.user.id);
@@ -394,9 +412,17 @@ try {
   assert.equal(domainAfterResponse.data.ownerResponse.organization,'Example Service');
   assert.equal(domainAfterResponse.data.ownerResponse.response.startsWith('The service states'),true);
   assert.equal(JSON.stringify(domainAfterResponse.data).includes('press@example.com'),false);
+  const deleteOnlyContributions=await responseFor('/api/domain-index/consent',{method:'POST',cookie:loginSession,origin:true,body:{action:'delete_contributions'}});
+  assert.equal(deleteOnlyContributions.response.status,200,JSON.stringify(deleteOnlyContributions.data));
+  assert.equal(deleteOnlyContributions.data.enabled,true,'delete-only keeps the opt-in active');
+  assert.equal(deleteOnlyContributions.data.contributionCount,0);
+  assert.ok(deleteOnlyContributions.data.removedContributions>0);
+  assert.equal((await responseFor('/api/domain-index/example.com')).response.status,404,'deleting one account contribution drops the public sample below threshold');
   const domainOptOut=await responseFor('/api/domain-index/consent',{method:'POST',cookie:loginSession,origin:true,body:{enabled:false}});
   assert.equal(domainOptOut.response.status,200);
   assert.equal(domainOptOut.data.enabled,false);
+  assert.equal(domainOptOut.data.contributionCount,0);
+  assert.ok(domainOptOut.data.removedContributions>=0);
   assert.equal((await responseFor('/api/domain-index/example.com')).response.status,404,'public profile is hidden below the independent-account threshold');
 
   // Verification resend: auth required; verified addresses return a safe no-op success.
@@ -477,7 +503,9 @@ try {
   assert.equal(accountSummary.response.status,200,JSON.stringify(accountSummary.data));
   assert.equal(accountSummary.data.canViewAnalytics,true);
   assert.equal(accountSummary.data.canAccessSupport,true);
-  assert.equal((await responseFor('/api/admin/support',{cookie:billingSession})).response.status,200);
+  const supportConsole=await responseFor('/api/admin/support',{cookie:billingSession});
+  assert.equal(supportConsole.response.status,200);
+  assert.equal(supportConsole.data.billingMode,'sandbox');
   const adminSearch=await responseFor('/api/admin/support?q=integration-',{cookie:billingSession});
   assert.equal(adminSearch.response.status,200);
   assert.ok(adminSearch.data.users.some(user=>user.id===signup.data.user.id));
@@ -591,6 +619,14 @@ try {
   const telegramPrivateReportId = (await db.prepare(`SELECT id FROM scans WHERE user_id=? AND url LIKE '%source=telegram-private'`).bind(signup.data.user.id).first()).id;
 
   const groupChatId = -1001_000_001;
+  const oversizedGroupId=-1001_000_099;
+  telegramGroupMemberCount=11;
+  const oversizedGroupUpdate={update_id:8800025,message:{message_id:25,from:{id:9001,username:'sift_test_owner',first_name:'Owner'},chat:{id:oversizedGroupId,type:'supergroup',title:'Too many members'},text:'/allowgroup'}};
+  const oversizedGroupAttempt=await responseFor('/api/telegram/webhook',{method:'POST',body:oversizedGroupUpdate,telegramSecret:telegramWebhookSecret});
+  assert.equal(oversizedGroupAttempt.response.status,200);
+  assert.ok(telegramOutbox.at(-1).text.includes('максимум із 10 учасниками'));
+  assert.equal(await db.prepare(`SELECT chat_id FROM telegram_group_authorizations WHERE chat_id=?`).bind(String(oversizedGroupId)).first(),null,'groups over the member cap cannot be authorized');
+  telegramGroupMemberCount=10;
   const allowGroupUpdate = { update_id: 880003, message: { message_id: 3, from: { id: 9001, username: 'sift_test_owner', first_name: 'Owner' }, chat: { id: groupChatId, type: 'supergroup', title: 'Sift beta 10' }, text: '/allowgroup' } };
   assert.equal((await responseFor('/api/telegram/webhook', { method: 'POST', body: allowGroupUpdate, telegramSecret: telegramWebhookSecret })).response.status, 200);
   assert.equal((await db.prepare(`SELECT owner_user_id FROM telegram_group_authorizations WHERE chat_id=?`).bind(String(groupChatId)).first()).owner_user_id, signup.data.user.id);
@@ -610,6 +646,17 @@ try {
   const groupReports = await db.prepare(`SELECT COUNT(*) AS count FROM scans WHERE user_id=? AND url LIKE '%group-member=%'`).bind(signup.data.user.id).first();
   assert.equal(groupReports.count, 10, 'all ten group members can use the explicitly authorized group and reports belong to its Pro owner');
   assert.equal((await responseFor('/api/telegram/link', { cookie: billingSession })).data.telegram.authorizedGroups, 1);
+
+  telegramGroupMemberCount=11;
+  const growthBeyondCap={update_id:880029,message:{message_id:29,from:{id:9200,first_name:'Member 1'},chat:{id:groupChatId,type:'supergroup',title:'Sift beta 10'},text:'https://shop.example.com/terms?group-over-cap'}};
+  const beforeOverCapScans=await db.prepare(`SELECT COUNT(*) AS count FROM scans WHERE user_id=?`).bind(signup.data.user.id).first();
+  await responseFor('/api/telegram/webhook',{method:'POST',body:growthBeyondCap,telegramSecret:telegramWebhookSecret});
+  assert.ok(telegramOutbox.at(-1).text.includes('Груповий доступ призупинено'));
+  assert.equal(await db.prepare(`SELECT chat_id FROM telegram_group_authorizations WHERE chat_id=?`).bind(String(groupChatId)).first(),null,'a group that grows beyond 10 members is automatically disabled');
+  assert.equal((await db.prepare(`SELECT COUNT(*) AS count FROM scans WHERE user_id=?`).bind(signup.data.user.id).first()).count,beforeOverCapScans.count,'oversized groups do not consume analysis quota');
+  telegramGroupMemberCount=10;
+  const reallowGroup={update_id:8800291,message:{message_id:291,from:{id:9001,username:'sift_test_owner',first_name:'Owner'},chat:{id:groupChatId,type:'supergroup',title:'Sift beta 10'},text:'/allowgroup'}};
+  await responseFor('/api/telegram/webhook',{method:'POST',body:reallowGroup,telegramSecret:telegramWebhookSecret});
 
   const disableGroup = { update_id: 880030, message: { message_id: 30, from: { id: 9001, first_name: 'Owner' }, chat: { id: groupChatId, type: 'supergroup', title: 'Sift beta 10' }, text: '/disablegroup' } };
   await responseFor('/api/telegram/webhook', { method: 'POST', body: disableGroup, telegramSecret: telegramWebhookSecret });
@@ -754,6 +801,23 @@ try {
   assert.equal(tosEnabled.data.item.checked_at, null);
   assert.ok(Date.parse(tosEnabled.data.item.next_check_at) > Date.now());
   assert.equal((await responseFor('/api/tos-monitoring', { cookie: billingSession })).data.activeCount, 1);
+  await db.prepare(`UPDATE tos_monitor_subscriptions SET last_error='test retry',lease_until=? WHERE watchlist_id=?`)
+    .bind(new Date(Date.now() + 30_000).toISOString(), tosWatchlistId).run();
+  const tosBusyRetry = await responseFor('/api/tos-monitoring', {
+    method: 'POST', cookie: billingSession, origin: true,
+    body: { scanId: tosScan.data.id, action: 'retry' },
+  });
+  assert.equal(tosBusyRetry.response.status, 409, 'manual retry does not overlap a live monitoring lease');
+  assert.equal((await db.prepare(`SELECT last_error FROM tos_monitor_subscriptions WHERE watchlist_id=?`).bind(tosWatchlistId).first()).last_error, 'test retry');
+  await db.prepare(`UPDATE tos_monitor_subscriptions SET lease_until=NULL WHERE watchlist_id=?`).bind(tosWatchlistId).run();
+  const tosManualRetry = await responseFor('/api/tos-monitoring', {
+    method: 'POST', cookie: billingSession, origin: true,
+    body: { scanId: tosScan.data.id, action: 'retry' },
+  });
+  assert.equal(tosManualRetry.response.status, 200, JSON.stringify(tosManualRetry.data));
+  assert.match(tosManualRetry.data.message, /найближчий запланований запуск/i);
+  assert.equal(tosManualRetry.data.item.last_error, null);
+  assert.ok(Date.parse(tosManualRetry.data.item.next_check_at) <= Date.now() + 1_000, 'manual retry is queued immediately despite worker/runner millisecond skew');
 
   currentPagePrice = '$14.99';
   resendFailuresRemaining = 1;
@@ -824,6 +888,10 @@ try {
   });
   assert.equal(tosDisabled.response.status, 200, JSON.stringify(tosDisabled.data));
   assert.equal(tosDisabled.data.item.enabled, false);
+  assert.equal((await responseFor('/api/tos-monitoring', {
+    method: 'POST', cookie: billingSession, origin: true,
+    body: { scanId: tosScan.data.id, action: 'retry' },
+  })).response.status, 404, 'manual retry is only available for an active monitor');
   const tosNoActive = await responseFor('/api/internal/tos-monitoring', {
     method: 'POST', authorization: 'Bearer integration-cron-secret',
   });
@@ -923,30 +991,39 @@ try {
   assert.equal((await responseFor(`/api/billing/wayforpay/status?reference=${encodeURIComponent(orderReference)}`)).response.status, 401);
 
   // Support case: provider confirms a real paid Pro order that has no subscription row.
-  const supportProReference=`sift_${'a'.repeat(32)}`,supportRefundReference=`sift_${'b'.repeat(32)}`,now=new Date().toISOString(),future=new Date(Date.now()+30*864e5).toISOString();
+  const supportProReference=`sift_${'a'.repeat(32)}`,supportRefundReference=`sift_${'b'.repeat(32)}`,supportOneReference=`sift_${'c'.repeat(32)}`,now=new Date().toISOString(),future=new Date(Date.now()+30*864e5).toISOString();
   await db.prepare(`INSERT INTO payment_orders(order_reference,user_id,plan,amount_uah,currency,status,test_mode,created_at,updated_at,expires_at) VALUES(?,?,'pro',279,'UAH','paid',0,?,?,?)`).bind(supportProReference,signup.data.user.id,now,now,future).run();
   providerCheckAmount=279;
   const reconcile=await responseFor('/api/admin/support',{method:'POST',cookie:billingSession,origin:true,body:{action:'reconcile_pro',orderReference:supportProReference}});
   assert.equal(reconcile.response.status,200,JSON.stringify(reconcile.data));
   assert.equal((await db.prepare(`SELECT status FROM subscriptions WHERE id=? AND user_id=?`).bind(supportProReference,signup.data.user.id).first()).status,'active');
   assert.equal((await db.prepare(`SELECT action FROM support_audit_log WHERE action='reconcile_pro' AND order_reference=?`).bind(supportProReference).first()).action,'reconcile_pro');
-  const proRefund=await responseFor('/api/admin/support/refund',{method:'POST',cookie:billingSession,origin:true,body:{orderReference:supportProReference,reason:'Customer request: subscription was accidental',confirmation:'ПОВЕРНУТИ'}});
-  assert.equal(proRefund.response.status,200,JSON.stringify(proRefund.data));
-  assert.equal((await db.prepare(`SELECT status FROM subscriptions WHERE id=?`).bind(supportProReference).first()).status,'expired');
+  await db.prepare(`INSERT INTO payment_orders(order_reference,user_id,plan,amount_uah,currency,status,test_mode,created_at,updated_at,expires_at) VALUES(?,?,'one',59,'UAH','pending',0,?,?,?)`).bind(supportOneReference,signup.data.user.id,now,now,future).run();
+  providerCheckAmount=59;
+  const reconcileOne=await responseFor('/api/admin/support',{method:'POST',cookie:billingSession,origin:true,body:{action:'reconcile_payment',orderReference:supportOneReference}});
+  assert.equal(reconcileOne.response.status,200,JSON.stringify(reconcileOne.data));
+  assert.equal((await db.prepare(`SELECT status FROM payment_orders WHERE order_reference=?`).bind(supportOneReference).first()).status,'paid');
+  assert.equal((await db.prepare(`SELECT status,credits FROM subscriptions WHERE id=? AND plan='one'`).bind(supportOneReference).first()).credits,1);
+  assert.equal((await db.prepare(`SELECT action FROM support_audit_log WHERE action='reconcile_payment' AND order_reference=?`).bind(supportOneReference).first()).action,'reconcile_payment');
+  const liveRefundInSandbox=await responseFor('/api/admin/support/refund',{method:'POST',cookie:billingSession,origin:true,body:{orderReference:supportProReference,reason:'Customer request: subscription was accidental',confirmation:true}});
+  assert.equal(liveRefundInSandbox.response.status,409,'sandbox must reject production payment refunds');
 
   // Support refund: server-sourced amount, signed provider response, idempotency, entitlement revocation.
-  await db.prepare(`INSERT INTO payment_orders(order_reference,user_id,plan,amount_uah,currency,status,test_mode,created_at,updated_at,expires_at) VALUES(?,?,'one',59,'UAH','paid',0,?,?,?)`).bind(supportRefundReference,signup.data.user.id,now,now,future).run();
-  await db.prepare(`INSERT INTO subscriptions(id,user_id,plan,status,credits,test_mode,created_at,expires_at,updated_at) VALUES(?,?,'one','active',1,0,?,?,?)`).bind(supportRefundReference,signup.data.user.id,now,future,now).run();
+  await db.prepare(`INSERT INTO payment_orders(order_reference,user_id,plan,amount_uah,currency,status,test_mode,created_at,updated_at,expires_at) VALUES(?,?,'one',59,'UAH','paid',1,?,?,?)`).bind(supportRefundReference,signup.data.user.id,now,now,future).run();
+  await db.prepare(`INSERT INTO subscriptions(id,user_id,plan,status,credits,test_mode,created_at,expires_at,updated_at) VALUES(?,?,'one','active',1,1,?,?,?)`).bind(supportRefundReference,signup.data.user.id,now,future,now).run();
   const badRefund=await responseFor('/api/admin/support/refund',{method:'POST',cookie:billingSession,origin:true,body:{orderReference:supportRefundReference,reason:'Customer request: duplicate purchase',confirmation:'NO'}});
   assert.equal(badRefund.response.status,400);
-  const refund=await responseFor('/api/admin/support/refund',{method:'POST',cookie:billingSession,origin:true,body:{orderReference:supportRefundReference,reason:'Customer request: duplicate purchase',confirmation:'ПОВЕРНУТИ'}});
+  const refund=await responseFor('/api/admin/support/refund',{method:'POST',cookie:billingSession,origin:true,body:{orderReference:supportRefundReference,reason:'Customer request: duplicate purchase',confirmation:true}});
   assert.equal(refund.response.status,200,JSON.stringify(refund.data));
+  assert.equal(refund.data.mode,'sandbox');
+  assert.match(refund.data.message,/тестове повернення/);
   assert.equal((await db.prepare(`SELECT status FROM payment_orders WHERE order_reference=?`).bind(supportRefundReference).first()).status,'refunded');
   assert.equal((await db.prepare(`SELECT status,credits FROM subscriptions WHERE id=?`).bind(supportRefundReference).first()).status,'expired');
-  const duplicateRefund=await responseFor('/api/admin/support/refund',{method:'POST',cookie:billingSession,origin:true,body:{orderReference:supportRefundReference,reason:'Customer request: duplicate purchase',confirmation:'ПОВЕРНУТИ'}});
+  const duplicateRefund=await responseFor('/api/admin/support/refund',{method:'POST',cookie:billingSession,origin:true,body:{orderReference:supportRefundReference,reason:'Customer request: duplicate purchase',confirmation:true}});
   assert.ok([409,429].includes(duplicateRefund.response.status));
   assert.equal((await db.prepare(`SELECT COUNT(*) AS count FROM support_refunds WHERE order_reference=?`).bind(supportRefundReference).first()).count,1);
   assert.equal((await db.prepare(`SELECT COUNT(*) AS count FROM support_audit_log WHERE action='refund_completed' AND order_reference=?`).bind(supportRefundReference).first()).count,1);
+  assert.equal(JSON.parse((await db.prepare(`SELECT details_json FROM support_audit_log WHERE action='refund_completed' AND order_reference=?`).bind(supportRefundReference).first()).details_json).mode,'sandbox');
 
   const flagCsrf=await responseFor('/api/admin/support',{method:'POST',cookie:billingSession,body:{action:'set_flag',key:'ai_translation',enabled:false,reason:'Provider outage mitigation'}});
   assert.equal(flagCsrf.response.status,403);
@@ -966,7 +1043,7 @@ try {
   assert.equal((await responseFor('/api/subscription-radar')).response.status,401);
   const radarWrongOrigin=await responseFor('/api/subscription-radar',{method:'POST',cookie:billingSession,body:{action:'create'}});
   assert.equal(radarWrongOrigin.response.status,403);
-  await db.prepare(`UPDATE subscriptions SET status='expired' WHERE id=?`).bind(tosSubscriptionId).run();
+  await db.prepare(`UPDATE subscriptions SET status='expired' WHERE user_id=? AND plan='pro'`).bind(signup.data.user.id).run();
   const radarFree=await responseFor('/api/subscription-radar',{cookie:billingSession});
   assert.equal(radarFree.response.status,403);
   await db.prepare(`UPDATE subscriptions SET status='active' WHERE id=?`).bind(tosSubscriptionId).run();
@@ -1222,6 +1299,9 @@ try {
   assert.equal((await db.prepare(`SELECT COUNT(*) AS count FROM events WHERE user_id=? AND type='referral_completed'`).bind(signup.data.user.id).first()).count, 1);
   const referredAchievement = await responseFor('/api/achievements', { cookie: billingSession });
   assert.ok(referredAchievement.data.badges.find((badge) => badge.key === 'mentor')?.earnedAt);
+  assert.equal(referredAchievement.data.confirmedReferrals, 1, 'dashboard referral count includes only email-confirmed referrals');
+  assert.equal(referredAchievement.data.recentStreak.length, 7, 'achievement API returns exactly seven UTC activity markers');
+  assert.ok(referredAchievement.data.badges.every((badge) => typeof badge.condition === 'string' && badge.condition.length > 0));
 
   const mentorReward = await db.prepare(`SELECT id,status FROM rewards WHERE user_id=? AND reward_key='badge:mentor:one_credit'`).bind(signup.data.user.id).first();
   assert.ok(mentorReward, 'completed, verified referral creates one idempotent mentor reward ledger row');
@@ -1262,6 +1342,11 @@ try {
   assert.equal((await db.prepare(`SELECT COUNT(*) AS count FROM rewards WHERE user_id=? AND reward_type='one_credit' AND quarter_key=? AND status!='capped'`).bind(quotaSignup.data.user.id, quarterKey).first()).count, 3, 'quarterly ledger never issues a fourth free credit');
   await responseFor('/api/achievements', { cookie: quotaSession });
   assert.equal((await db.prepare(`SELECT COUNT(*) AS count FROM rewards WHERE user_id=? AND reward_key='badge:skeptic:one_credit'`).bind(quotaSignup.data.user.id).first()).count, 1, 'capped reward remains idempotent on projection replay');
+  const quotaWallet = await responseFor('/api/rewards', { cookie: quotaSession });
+  assert.equal(quotaWallet.response.status, 200, JSON.stringify(quotaWallet.data));
+  assert.equal(quotaWallet.data.currentQuarter, quarterKey);
+  assert.equal(quotaWallet.data.quarterlyCreditsUsed, 3, 'wallet reports the three credits charged against this quarter');
+  assert.equal(quotaWallet.data.quarterlyCreditLimit, 3);
 
   // A server-issued achievement credit unlocks One access and is redeemed atomically with its report.
   await db.prepare(`UPDATE subscriptions SET status='expired',expires_at='2000-01-01T00:00:00.000Z',cancel_at_period_end=1 WHERE user_id=?`)
@@ -1269,6 +1354,9 @@ try {
   const earnedWallet = await responseFor('/api/rewards', { cookie: billingSession });
   assert.equal(earnedWallet.response.status, 200, JSON.stringify(earnedWallet.data));
   assert.ok(earnedWallet.data.availableOneCredits > 0, 'achievement reward appears as a server-counted One credit');
+  const earnedQuarterCount = await db.prepare(`SELECT COUNT(*) AS count FROM rewards WHERE user_id=? AND reward_type='one_credit' AND quarter_key=? AND status!='capped'`).bind(signup.data.user.id, quarterKey).first();
+  assert.equal(earnedWallet.data.quarterlyCreditsUsed, earnedQuarterCount.count, 'wallet quota mirrors non-capped server ledger rows');
+  assert.equal(earnedWallet.data.quarterlyCreditLimit, 3);
   const rewardedScan = await responseFor('/api/analyze', {
     method: 'POST', cookie: billingSession,
     body: { url: 'https://shop.example.com/terms?reward-credit', deviceId: `reward-credit-${randomUUID()}` },
@@ -1311,10 +1399,21 @@ try {
   const experimentStarted = await responseFor('/api/analytics/achievements', { method: 'POST', cookie: billingSession, origin: true, body: { enabled: true } });
   assert.equal(experimentStarted.response.status, 200, JSON.stringify(experimentStarted.data));
   assert.equal(experimentStarted.data.experiment.enabled, true);
+  await db.prepare(`UPDATE achievement_experiments SET progress_percent=100 WHERE experiment_key='badge_progress_visibility_v1'`).run();
   const noConsentAssignment = await responseFor('/api/achievements?experimentConsent=denied', { cookie: billingSession });
   assert.equal(noConsentAssignment.response.status, 200);
   assert.equal(noConsentAssignment.data.experiment.assigned, false);
-  const consentedAssignment = await responseFor('/api/achievements?experimentConsent=granted', { cookie: billingSession });
+  const progressVariant = await responseFor('/api/achievements?experimentConsent=granted', { cookie: billingSession });
+  assert.equal(progressVariant.response.status, 200, JSON.stringify(progressVariant.data));
+  assert.equal(progressVariant.data.experiment.variant, 'progress');
+  assert.equal(progressVariant.data.experiment.showProgress, true);
+  await db.prepare(`DELETE FROM achievement_experiment_assignments WHERE experiment_key='badge_progress_visibility_v1' AND user_id=?`).bind(signup.data.user.id).run();
+  await db.prepare(`UPDATE achievement_experiments SET progress_percent=0 WHERE experiment_key='badge_progress_visibility_v1'`).run();
+  const controlVariant = await responseFor('/api/achievements?experimentConsent=granted', { cookie: billingSession });
+  assert.equal(controlVariant.response.status, 200, JSON.stringify(controlVariant.data));
+  assert.equal(controlVariant.data.experiment.variant, 'control');
+  assert.equal(controlVariant.data.experiment.showProgress, false);
+  const consentedAssignment = controlVariant;
   assert.equal(consentedAssignment.response.status, 200, JSON.stringify(consentedAssignment.data));
   assert.ok(['progress', 'control'].includes(consentedAssignment.data.experiment.variant));
   assert.equal(consentedAssignment.data.experiment.showProgress, consentedAssignment.data.experiment.variant === 'progress');
@@ -1324,6 +1423,7 @@ try {
   const revokeExperimentConsent = await responseFor('/api/achievements?experimentConsent=denied', { cookie: billingSession });
   assert.equal(revokeExperimentConsent.data.experiment.assigned, false);
   assert.equal((await db.prepare(`SELECT COUNT(*) AS count FROM achievement_experiment_assignments WHERE user_id=?`).bind(signup.data.user.id).first()).count, 0, 'revoking consent removes the account assignment');
+  await db.prepare(`UPDATE achievement_experiments SET progress_percent=50 WHERE experiment_key='badge_progress_visibility_v1'`).run();
 
   const historicStart = new Date(Date.now() - 40 * 864e5);
   await db.prepare(`UPDATE achievement_experiments SET started_at=? WHERE experiment_key='badge_progress_visibility_v1'`).bind(historicStart.toISOString()).run();

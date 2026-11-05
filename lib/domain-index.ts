@@ -9,11 +9,18 @@ export async function ensureDomainIndexDb(){
   await db().prepare(`CREATE TABLE IF NOT EXISTS domain_index_consent(user_id TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,enabled INTEGER NOT NULL CHECK(enabled IN (0,1)),agreed_at TEXT,updated_at TEXT NOT NULL)`).run();
   await db().prepare(`CREATE TABLE IF NOT EXISTS domain_index_observations(domain TEXT NOT NULL,user_hash TEXT NOT NULL,clarity_score INTEGER NOT NULL CHECK(clarity_score BETWEEN 0 AND 100),indicators_json TEXT NOT NULL,report_count INTEGER NOT NULL DEFAULT 1,first_seen_at TEXT NOT NULL,last_seen_at TEXT NOT NULL,PRIMARY KEY(domain,user_hash))`).run();
   await db().prepare(`CREATE INDEX IF NOT EXISTS idx_domain_index_observations_recent ON domain_index_observations(domain,last_seen_at DESC)`).run();
-  await db().prepare(`CREATE TABLE IF NOT EXISTS domain_correction_requests(id TEXT PRIMARY KEY,domain TEXT NOT NULL,contact_email TEXT NOT NULL,contact_name TEXT NOT NULL,organization TEXT NOT NULL,message TEXT NOT NULL,evidence_url TEXT,owner_attested_at TEXT NOT NULL DEFAULT '',status TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending','published','rejected')),moderator_note TEXT,created_at TEXT NOT NULL,reviewed_at TEXT,expires_at TEXT NOT NULL,reviewer_user_id TEXT REFERENCES users(id) ON DELETE SET NULL,owner_verified_at TEXT)`).run();
+  await db().prepare(`CREATE TABLE IF NOT EXISTS domain_correction_requests(id TEXT PRIMARY KEY,domain TEXT NOT NULL,contact_email TEXT NOT NULL,contact_name TEXT NOT NULL,organization TEXT NOT NULL,message TEXT NOT NULL,evidence_url TEXT,owner_attested_at TEXT NOT NULL DEFAULT '',status TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending','published','rejected')),moderator_note TEXT,created_at TEXT NOT NULL,reviewed_at TEXT,expires_at TEXT NOT NULL,reviewer_user_id TEXT REFERENCES users(id) ON DELETE SET NULL,owner_verified_at TEXT,source_verified_at TEXT)`).run();
   const correctionColumns=await db().prepare(`PRAGMA table_info(domain_correction_requests)`).all<{name:string}>();
   const existingCorrectionColumns=new Set((correctionColumns.results||[]).map((column)=>column.name));
   if(!existingCorrectionColumns.has('owner_attested_at'))await db().prepare(`ALTER TABLE domain_correction_requests ADD COLUMN owner_attested_at TEXT NOT NULL DEFAULT ''`).run();
   if(!existingCorrectionColumns.has('owner_verified_at'))await db().prepare(`ALTER TABLE domain_correction_requests ADD COLUMN owner_verified_at TEXT`).run();
+  if(!existingCorrectionColumns.has('source_verified_at')){
+    try{await db().prepare(`ALTER TABLE domain_correction_requests ADD COLUMN source_verified_at TEXT`).run();}
+    catch(error){
+      const refreshed=await db().prepare(`PRAGMA table_info(domain_correction_requests)`).all<{name:string}>();
+      if(!(refreshed.results||[]).some((column)=>column.name==='source_verified_at'))throw error;
+    }
+  }
   await db().prepare(`CREATE INDEX IF NOT EXISTS idx_domain_corrections_status_created ON domain_correction_requests(status,created_at DESC)`).run();
   await db().prepare(`CREATE TABLE IF NOT EXISTS domain_owner_responses(id TEXT PRIMARY KEY,request_id TEXT NOT NULL UNIQUE,domain TEXT NOT NULL,organization TEXT NOT NULL,response TEXT NOT NULL,published_at TEXT NOT NULL,verified_by TEXT REFERENCES users(id) ON DELETE SET NULL)`).run();
   const responseColumns=await db().prepare(`PRAGMA table_info(domain_owner_responses)`).all<{name:string}>();
@@ -24,7 +31,15 @@ export async function ensureDomainIndexDb(){
 export async function domainIndexConsentForUser(userId:string){
   await ensureDomainIndexDb();
   const row=await db().prepare(`SELECT enabled,agreed_at,updated_at FROM domain_index_consent WHERE user_id=?`).bind(userId).first<{enabled:number;agreed_at:string|null;updated_at:string}>();
-  return{enabled:row?.enabled===1,agreedAt:row?.agreed_at||null,updatedAt:row?.updated_at||null};
+  const userHash=await domainContributionHash(userId),contributions=await db().prepare(`SELECT COUNT(*) AS count FROM domain_index_observations WHERE user_hash=?`).bind(userHash).first<{count:number}>();
+  return{enabled:row?.enabled===1,agreedAt:row?.agreed_at||null,updatedAt:row?.updated_at||null,contributionCount:contributions?.count||0};
+}
+
+export async function deleteDomainIndexContributions(userId:string){
+  await ensureDomainIndexDb();
+  const userHash=await domainContributionHash(userId);
+  const result=await db().prepare(`DELETE FROM domain_index_observations WHERE user_hash=?`).bind(userHash).run();
+  return result.meta?.changes||0;
 }
 
 type DomainObservationInput={url?:unknown;score?:unknown;prices?:unknown;findings?:unknown};
@@ -63,11 +78,11 @@ export async function setDomainIndexConsent(userId:string,enabled:boolean){
   const now=new Date().toISOString();
   if(!enabled){
     const userHash=await domainContributionHash(userId);
-    await db().batch([
+    const results=await db().batch([
       db().prepare(`DELETE FROM domain_index_observations WHERE user_hash=?`).bind(userHash),
       db().prepare(`INSERT INTO domain_index_consent(user_id,enabled,agreed_at,updated_at) VALUES(?,0,NULL,?) ON CONFLICT(user_id) DO UPDATE SET enabled=0,updated_at=excluded.updated_at`).bind(userId,now),
     ]);
-    return{enabled:false,agreedAt:null,updatedAt:now,removedContributions:true};
+    return{enabled:false,agreedAt:null,updatedAt:now,contributionCount:0,removedContributions:results[0]?.meta?.changes||0};
   }
   await db().prepare(`INSERT INTO domain_index_consent(user_id,enabled,agreed_at,updated_at) VALUES(?,1,?,?) ON CONFLICT(user_id) DO UPDATE SET enabled=1,agreed_at=excluded.agreed_at,updated_at=excluded.updated_at`).bind(userId,now,now).run();
   const recent=await db().prepare(`SELECT url,score,result_json,created_at FROM scans WHERE user_id=? AND created_at>=? ORDER BY created_at DESC LIMIT 500`).bind(userId,new Date(Date.now()-DOMAIN_INDEX_MAX_AGE_DAYS*86400_000).toISOString()).all<{url:string;score:number;result_json:string;created_at:string}>();
@@ -85,7 +100,8 @@ export async function setDomainIndexConsent(userId:string,enabled:boolean){
   }
   const observations=[...grouped.values()];
   for(let index=0;index<observations.length;index+=40)await db().batch(observations.slice(index,index+40).map(observationUpsert));
-  return{enabled:true,agreedAt:now,updatedAt:now,processedReports:observations.length};
+  const contributionCount=await db().prepare(`SELECT COUNT(*) AS count FROM domain_index_observations WHERE user_hash=?`).bind(userHash).first<{count:number}>();
+  return{enabled:true,agreedAt:now,updatedAt:now,contributionCount:contributionCount?.count||0,processedReports:observations.length};
 }
 
 type ObservationRow={clarity_score:number;indicators_json:string;last_seen_at:string};
@@ -124,23 +140,24 @@ export async function pendingDomainCorrections(){
   return rows.results||[];
 }
 
-export async function reviewDomainCorrection(input:{id:string;action:'publish'|'reject';response?:string;ownerVerified?:boolean;reviewerId:string}){
+export async function reviewDomainCorrection(input:{id:string;action:'publish'|'reject';response?:string;ownerVerified?:boolean;sourceVerified?:boolean;confirmReject?:boolean;reviewerId:string}){
   await ensureDomainIndexDb();
   const now=new Date().toISOString();
   const row=await db().prepare(`SELECT id,domain,organization,message,status,expires_at FROM domain_correction_requests WHERE id=?`).bind(input.id).first<{id:string;domain:string;organization:string;message:string;status:string;expires_at:string}>();
   if(!row||row.status!=='pending'||row.expires_at<=now)return{kind:'missing' as const};
   if(input.action==='reject'){
+    if(input.confirmReject!==true)return{kind:'rejection_confirmation_required' as const};
     const result=await db().prepare(`UPDATE domain_correction_requests SET status='rejected',reviewed_at=?,reviewer_user_id=? WHERE id=? AND status='pending' AND expires_at>?`).bind(now,input.reviewerId,row.id,now).run();
     if((result.meta?.changes||0)!==1)return{kind:'missing' as const};
     return{kind:'rejected' as const,domain:row.domain};
   }
-  if(input.ownerVerified!==true)return{kind:'owner_verification_required' as const};
-  const response=typeof input.response==='string'?input.response.normalize('NFKC').replace(/[\u0000-\u001f\u007f]/g,' ').replace(/\s+/g,' ').trim().slice(0,3000):'';
-  if(response.length<20)return{kind:'invalid_response' as const};
+  if(input.ownerVerified!==true||input.sourceVerified!==true)return{kind:'verification_required' as const};
+  const response=typeof input.response==='string'?input.response.normalize('NFKC').replace(/[\u0000-\u001f\u007f]/g,' ').replace(/\s+/g,' ').trim():'';
+  if(response.length<20||response.length>3000)return{kind:'invalid_response' as const};
   const responseId=crypto.randomUUID();
   const results=await db().batch([
-    db().prepare(`UPDATE domain_correction_requests SET status='published',reviewed_at=?,reviewer_user_id=?,owner_verified_at=? WHERE id=? AND status='pending' AND expires_at>?`).bind(now,input.reviewerId,now,row.id,now),
-    db().prepare(`INSERT INTO domain_owner_responses(id,request_id,domain,organization,response,published_at,verified_by) SELECT ?,id,domain,organization,?,?,? FROM domain_correction_requests WHERE id=? AND status='published' AND reviewed_at=? AND reviewer_user_id=? AND owner_verified_at=? ON CONFLICT(request_id) DO NOTHING`).bind(responseId,response,now,input.reviewerId,row.id,now,input.reviewerId,now),
+    db().prepare(`UPDATE domain_correction_requests SET status='published',reviewed_at=?,reviewer_user_id=?,owner_verified_at=?,source_verified_at=? WHERE id=? AND status='pending' AND expires_at>?`).bind(now,input.reviewerId,now,now,row.id,now),
+    db().prepare(`INSERT INTO domain_owner_responses(id,request_id,domain,organization,response,published_at,verified_by) SELECT ?,id,domain,organization,?,?,? FROM domain_correction_requests WHERE id=? AND status='published' AND reviewed_at=? AND reviewer_user_id=? AND owner_verified_at=? AND source_verified_at=? ON CONFLICT(request_id) DO NOTHING`).bind(responseId,response,now,input.reviewerId,row.id,now,input.reviewerId,now,now),
   ]);
   if((results[0]?.meta?.changes||0)!==1||(results[1]?.meta?.changes||0)!==1)return{kind:'missing' as const};
   return{kind:'published' as const,domain:row.domain};

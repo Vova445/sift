@@ -170,5 +170,13 @@ export async function rewardsForUser(userId: string) {
     };
     return { id: row.id, key: row.reward_key, type: row.reward_type, status: row.status, quarter: row.quarter_key, earnedAt: row.created_at, expiresAt: row.expires_at, redeemedAt: row.redeemed_at, badgeKey: metadata.badgeKey || null, ...labels[row.reward_type] };
   });
-  return { items, availableOneCredits: items.filter((item) => item.type === 'one_credit' && item.status === 'available' && (!item.expiresAt || item.expiresAt > now)).length };
+  const currentQuarter = quarterKey(new Date(now));
+  const quarterlyCreditsUsed = items.filter((item) => item.type === 'one_credit' && item.quarter === currentQuarter && item.status !== 'capped').length;
+  return {
+    items,
+    availableOneCredits: items.filter((item) => item.type === 'one_credit' && item.status === 'available' && (!item.expiresAt || item.expiresAt > now)).length,
+    currentQuarter,
+    quarterlyCreditsUsed,
+    quarterlyCreditLimit: QUARTERLY_FREE_CREDIT_LIMIT,
+  };
 }

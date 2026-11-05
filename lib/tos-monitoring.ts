@@ -112,6 +112,20 @@ export async function setTosMonitoring(userId: string, scanId: string, enabled: 
   return (await getTosMonitoringForUser(userId)).items.find((monitor) => monitor.watchlist_id === item.watchlist_id) || null;
 }
 
+export async function requestTosMonitoringRetry(userId: string, scanId: string, now = new Date()) {
+  const item = await ownedWatchlistItem(userId, scanId);
+  if (!item) return null;
+  const current = await env.DB.prepare(`SELECT enabled,lease_until FROM tos_monitor_subscriptions WHERE watchlist_id=? AND user_id=?`)
+    .bind(item.watchlist_id, userId).first<{ enabled: number; lease_until: string | null }>();
+  if (!current?.enabled) return null;
+  if (current.lease_until && Date.parse(current.lease_until) > now.getTime()) return { queued: false as const, busy: true as const, item: null };
+  const nowIso = utc(now);
+  await env.DB.prepare(`UPDATE tos_monitor_subscriptions SET next_check_at=?,lease_until=NULL,last_error=NULL,updated_at=? WHERE watchlist_id=? AND user_id=? AND enabled=1`)
+    .bind(nowIso, nowIso, item.watchlist_id, userId).run();
+  const monitor = (await getTosMonitoringForUser(userId)).items.find((row) => row.watchlist_id === item.watchlist_id) || null;
+  return { queued: Boolean(monitor), busy: false as const, item: monitor };
+}
+
 export async function getTosMonitoringForUser(userId: string) {
   await ensureDb();
   const rows = await env.DB.prepare(`SELECT m.watchlist_id,m.enabled,m.checked_at,m.next_check_at,m.last_error,

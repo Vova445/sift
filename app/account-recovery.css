@@ -1,0 +1,58 @@
+.recoveryPage{box-sizing:border-box;min-height:100svh;min-height:100dvh;padding:28px 18px}
+.recoveryCard{box-sizing:border-box}
+.recoveryCard .verifyBrand{display:inline-flex;align-items:center;justify-content:flex-start;gap:9px;width:max-content;min-height:34px;margin:0;padding:0;border:0;border-radius:0;background:transparent;color:#141812;text-align:left;text-decoration:none}
+.recoveryCard .verifyBrand span{display:grid;place-items:center;width:34px;height:34px;margin:0;border-radius:10px;background:#b7f55f;color:#11150f}
+.recoveryCard .verifyEyebrow{margin-top:25px;font-size:9px}
+.recoveryCard h1{margin:10px 0 9px;font-size:32px;line-height:1.08;letter-spacing:-.045em}
+.recoveryCard .recoveryLead{margin:0;color:#667064;font-size:14px;line-height:1.65}
+.recoveryForm{gap:9px;margin-top:22px}
+.recoveryForm>label{margin:9px 0 0;font-size:12px}
+.recoveryForm>input,.recoveryPasswordField>input{box-sizing:border-box;min-height:52px;padding:0 14px;border:1px solid #d7ded3;border-radius:11px;background:#fff;color:#151914;font:inherit;font-size:16px;outline:none;transition:border-color .15s,box-shadow .15s}
+.recoveryForm>input:focus,.recoveryPasswordField>input:focus{border-color:#7869f2;box-shadow:0 0 0 3px #7869f21c}
+.recoveryPasswordField{position:relative;min-width:0}
+.recoveryPasswordField>input{width:100%;padding-right:52px}
+.verifyCard .recoveryPasswordToggle{position:absolute;top:5px;right:5px;width:42px;height:42px;min-height:42px;margin:0;padding:0;border:0;border-radius:9px;background:transparent;color:#697168;cursor:pointer}
+.verifyCard .recoveryPasswordToggle:hover{background:#f1f4ee;color:#171b15}
+.recoveryHint{margin-top:-4px;color:#737b70;font-size:11px}
+.recoveryMatch{display:flex;align-items:center;gap:6px;margin-top:-3px;color:#a3352b;font-size:11px;font-weight:700}
+.recoveryMatch.isMatch{color:#477a21}
+.recoveryMatch svg{flex:none}
+.recoveryForm .turnstileField{margin:11px 0 2px}
+.recoveryForm .turnstileStatus{display:flex;align-items:center;gap:10px;min-height:50px;padding:9px 12px;border:1px solid #dce6d5;border-radius:11px;background:#f7faf4;color:#5a6654;font-size:12px;font-weight:700;line-height:1.45}
+.recoveryForm .turnstileStatus>span:first-child{display:grid;place-items:center;flex:none;width:28px;height:28px;border-radius:8px;background:#e9f5dc;color:#58802f}
+.recoveryForm .turnstileStatus.isVerified{border-color:#d7e7c7;background:#f2f8ea;color:#48652d}
+.recoveryForm .turnstileStatus.isVerified>span:first-child{background:#b7f55f;color:#18220f}
+.recoveryForm .turnstileStatus+.turnstileMount:not(:has(iframe)){height:0!important;min-height:0!important;overflow:hidden}
+.verifyCard .recoveryForm>button,.verifyCard .recoveryMainAction{position:relative;min-height:50px;margin:5px 0 0;padding:0 48px;justify-content:center;gap:9px;background:#11150f;color:#fff;cursor:pointer}
+.verifyCard .recoveryForm>button:not(:disabled):hover,.verifyCard .recoveryMainAction:hover{background:#252c22}
+.verifyCard .recoveryForm>button:disabled{cursor:not-allowed;opacity:.55}
+.verifyCard .recoveryForm>button svg:first-child,.verifyCard .recoveryMainAction svg:first-child{flex:none;margin:0}
+.verifyCard .recoveryForm>button svg:last-child,.verifyCard .recoveryMainAction svg:last-child{position:absolute;right:15px;flex:none;margin:0}
+.recoveryStatus{display:flex;align-items:flex-start;gap:8px;margin:2px 0;padding:12px 13px;font-size:12px}
+.recoveryStatus svg{flex:none;margin-top:1px}
+.verifyCard .recoveryBack{min-height:42px;margin-top:13px;background:#f1f4ef;color:#454d42;font-size:12px}
+.verifyCard .recoveryBack:hover{background:#e8ede4}
+.recoverySecurity{align-items:flex-start!important;margin-top:22px!important;padding-top:16px;border-top:1px solid #edf0eb;font-size:11px!important;line-height:1.55!important}
+.recoverySecurity>svg{flex:none;color:#6e8561;margin-top:2px}
+.recoverySecurity>span{display:block}
+.recoverySecurity b{display:inline-flex;align-items:center;gap:5px;color:#424a3f;font-weight:800}
+.recoverySecurity b svg{flex:none}
+.recoveryResult{display:grid;grid-template-columns:42px minmax(0,1fr);gap:12px;margin-top:22px;padding:17px;border:1px solid #d8e5c9;border-radius:13px;background:#f7fbf1}
+.recoveryResultError{border-color:#efd6ad;background:#fff8eb}
+.recoveryResultIcon{display:grid;place-items:center;width:40px;height:40px;border-radius:12px;background:#eaf6dc;color:#54802a}
+.recoveryResultError .recoveryResultIcon{background:#fff0d0;color:#9c6513}
+.recoveryResult h2{margin:1px 0 5px;font-size:15px;line-height:1.3}
+.recoveryResult p{margin:0;color:#667064;font-size:12px;line-height:1.6}
+.verifyCard .recoveryResend,.verifyCard .recoveryPrimaryLink{grid-column:1/-1;min-height:48px;margin:3px 0 0;gap:10px;padding:0 14px;background:#11150f;color:#fff}
+.verifyCard .recoveryPrimaryLink{background:#b7f55f;color:#151914}
+.verifyCard .recoveryPrimaryLink:hover,.verifyCard .recoveryResend:hover{filter:brightness(.96)}
+.recoveryStateIcon{display:grid;place-items:center;width:54px;height:54px;margin-top:27px;border-radius:15px;background:#edf5e5;color:#527e2c}
+.recoveryStateIcon.isSuccess{background:#e8f8d5;color:#4a7b22}
+.recoveryStateIcon.isError{background:#fff0d0;color:#9c6513}
+.recoverySpinner{animation:recoverySpin .9s linear infinite}
+.recoveryWorking{display:flex;align-items:center;justify-content:center;gap:9px;min-height:50px;margin-top:15px;border:1px solid #d9e2d2;border-radius:10px;background:#f7faf4;color:#4d5c47;font-size:12px;font-weight:800}
+@keyframes recoverySpin{to{transform:rotate(360deg)}}
+body:has(.recoveryPage) .funnelConsent{display:none}
+@media(max-width:520px){.recoveryPage{padding:18px 14px calc(18px + env(safe-area-inset-bottom))}.recoveryCard{padding:26px 21px;border-radius:18px}.recoveryCard .verifyEyebrow{margin-top:22px}.recoveryCard h1{font-size:29px}.recoveryCard .recoveryLead{font-size:14px}.recoveryForm{margin-top:18px}.recoverySecurity{font-size:11px!important}.recoveryResult{padding:14px;gap:10px}}
+@media(max-height:700px){.recoveryPage{align-items:start;padding-top:16px;padding-bottom:16px}.recoveryCard{margin-block:auto}}
+@media(prefers-reduced-motion:reduce){.recoverySpinner{animation-duration:2s}}

@@ -1,0 +1,26 @@
+.legalDocument:not(.legalIndex){width:min(980px,calc(100% - 40px))}
+.legalDisclaimer{align-items:flex-start;background:#fff7e7;border-color:#edce8b;color:#634915}
+.legalDisclaimer>span{width:22px;height:22px;flex:none;display:grid;place-items:center;border:1.5px solid currentColor;border-radius:50%;font-size:13px}
+.legalDocLayout{display:grid;grid-template-columns:190px minmax(0,720px);align-items:start;gap:32px;margin-top:20px}
+.legalContents{position:sticky;top:20px;display:grid;gap:4px;align-self:start;padding:14px 10px;border:1px solid var(--legal-line);border-radius:14px;background:#f9fbf7}
+.legalContents>b{padding:0 8px 8px;color:#777f73;font-size:9px;letter-spacing:.15em}
+.legalContents>a{display:grid;grid-template-columns:22px minmax(0,1fr);align-items:start;gap:7px;padding:7px 8px;border-radius:8px;color:#515a4e;text-decoration:none;font-size:10px;font-weight:700;line-height:1.35}
+.legalContents>a span{color:#929b8c;font-size:8px;font-weight:900;letter-spacing:.04em}
+.legalContents>a:hover,.legalContents>a:focus-visible{background:#eaf2e3;color:#28341f;outline:none}
+.legalBody{width:100%;max-width:720px;min-width:0;padding:clamp(25px,4vw,46px)}
+.legalBody section{scroll-margin-top:26px}
+.legalBody h2{font-size:23px;line-height:1.25}
+.legalBody p,.legalBody li{font-size:17px;line-height:1.7}
+.legalBody li+li{margin-top:10px}
+.legalBody .operatorNotice,.legalFootnote{margin:18px 0;padding:15px 17px;border:1px solid #efd89f;border-radius:12px;background:#fff8e9;color:#684e1b;font-size:14px;line-height:1.65}
+.legalFootnote b{display:block;margin-bottom:4px}
+.refundSteps{counter-reset:refund-step;list-style:none!important;padding:0!important}
+.refundSteps li{counter-increment:refund-step;display:grid;grid-template-columns:30px minmax(0,1fr);gap:11px;align-items:start}
+.refundSteps li::before{content:counter(refund-step,decimal-leading-zero);display:grid;place-items:center;width:28px;height:28px;border-radius:8px;background:#edf6e4;color:#446a29;font-size:10px;font-weight:900}
+.refundContactCard{display:grid;grid-template-columns:1fr auto;gap:8px 18px;align-items:center;margin-top:16px;padding:19px;border-radius:14px;background:#111510;color:#f7f8f4}
+.refundContactCard small{grid-column:1/-1;color:#b7c0af;font-size:10px;font-weight:850;letter-spacing:.12em}
+.refundContactCard b{font-size:15px}
+.refundContactCard a{color:#b7f55f;font-size:13px;font-weight:850;text-decoration:none}
+.refundContactCard p{grid-column:1/-1;margin:0;color:#c0c7ba;font-size:13px;line-height:1.6}
+@media(max-width:900px){.legalDocument{width:min(100% - 32px,760px)}.legalDocLayout{grid-template-columns:1fr;gap:16px}.legalContents{position:static;grid-template-columns:repeat(2,minmax(0,1fr));gap:3px}.legalContents>b{grid-column:1/-1}.legalBody{max-width:none}}
+@media(max-width:600px){.legalDocument{width:calc(100% - 28px);padding:38px 0 48px}.legalDisclaimer{margin:22px 0 14px;padding:14px;gap:10px}.legalDisclaimer p{font-size:13px;line-height:1.6}.legalContents{padding:10px;grid-template-columns:repeat(2,minmax(0,1fr))}.legalContents>a{font-size:10px;padding:7px 5px;grid-template-columns:19px minmax(0,1fr);gap:5px}.legalBody{padding:21px 18px}.legalBody h2{font-size:20px}.legalBody p,.legalBody li{font-size:17px;line-height:1.7}.legalBody table{min-width:520px}.legalFootnote,.legalBody .operatorNotice{padding:13px;font-size:13px}.refundSteps li{grid-template-columns:26px minmax(0,1fr);gap:9px}.refundSteps li::before{width:25px;height:25px}.refundContactCard{grid-template-columns:1fr;gap:9px;padding:16px}.refundContactCard small,.refundContactCard p{grid-column:auto}.refundContactCard a{font-size:13px}}

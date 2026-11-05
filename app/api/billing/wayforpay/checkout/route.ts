@@ -7,6 +7,11 @@ import { checkoutLegalConsent } from '../../../../../lib/legal-consent-policy.js
 import { hashFunnelSession, recordFunnelEventSafely } from '../../../../../lib/funnel-analytics';
 import { releaseProDiscountReward, reserveProDiscountReward } from '../../../../../lib/rewards';
 
+export async function GET() {
+  const config = wayForPayConfig();
+  return Response.json({ testMode: config.mode === 'sandbox', available: Boolean(config.merchantAccount && config.secret) }, { headers: { 'Cache-Control': 'no-store' } });
+}
+
 export async function POST(req: Request) {
   let reservedRewardId: string | null = null;
   let orderReference = '';
@@ -55,9 +60,9 @@ export async function POST(req: Request) {
     }
     await recordFunnelEventSafely(body.analyticsSessionId, 'paywall');
 
-    const productLabel = reservedRewardId ? 'Sift Pro — 50% знижка на перший платіж' : details.label;
+    const productLabel = reservedRewardId ? 'Sift Pro — 50% off first payment' : details.label;
     const fields = { merchantAccount: config.merchantAccount, merchantDomainName: domain, orderReference, orderDate, amount, currency: 'UAH', productName: [productLabel], productCount: [1], productPrice: [amount] };
-    const form = { ...fields, merchantAuthType: 'SimpleSignature', merchantTransactionSecureType: 'AUTO', merchantSignature: purchaseSignature(fields), apiVersion: 1, language: 'UA', returnUrl: descriptor.returnUrl, serviceUrl: descriptor.serviceUrl, orderTimeout: 3600, alternativeAmount: amountUsd, alternativeCurrency: 'USD', clientAccountId: user.id, ...(plan === 'pro' ? { regularMode: 'monthly', regularBehavior: 'preset', regularAmount: details.uah, dateNext: wayForPayDate(addCalendarMonth(new Date())), regularOn: 1 } : {}) };
+    const form = { ...fields, merchantAuthType: 'SimpleSignature', merchantTransactionSecureType: 'AUTO', merchantSignature: purchaseSignature(fields), apiVersion: 1, language: 'EN', returnUrl: descriptor.returnUrl, serviceUrl: descriptor.serviceUrl, orderTimeout: 3600, alternativeAmount: amountUsd, alternativeCurrency: 'USD', clientAccountId: user.id, ...(plan === 'pro' ? { regularMode: 'monthly', regularBehavior: 'preset', regularAmount: details.uah, dateNext: wayForPayDate(addCalendarMonth(new Date())), regularOn: 1 } : {}) };
     return Response.json({ action: 'https://secure.wayforpay.com/pay', fields: form, plan, price: { uah: amount, usd: amountUsd, originalUah: details.uah, discountPercent: reservedRewardId ? 50 : 0 }, rewardApplied: Boolean(reservedRewardId), testMode });
   } catch (error) {
     if (reservedRewardId && orderReference) await releaseProDiscountReward(reservedRewardId, orderReference).catch(() => {});

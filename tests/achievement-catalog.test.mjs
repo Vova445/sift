@@ -9,6 +9,7 @@ test('the versioned catalogue defines exactly the eight required server rules', 
   assert.equal(ACHIEVEMENT_CATALOG_VERSION, 1);
   assert.deepEqual(ACHIEVEMENT_CATALOG.map((item) => item.key), ['skeptic', 'renewal_hunter', 'saver', 'timely_stop', 'polyglot', 'guardian', 'streak_7_days', 'mentor']);
   assert.ok(ACHIEVEMENT_CATALOG.every((item) => typeof item.rule === 'function'));
+  assert.ok(ACHIEVEMENT_CATALOG.every((item) => typeof item.condition === 'string' && item.condition.length > 0));
 });
 
 test('Skeptic unlocks on the third distinct completed analysis, not the second or a duplicate', () => {

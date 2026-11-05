@@ -15,19 +15,21 @@ export async function POST(req:Request){
   let body:{orderReference?:unknown;reason?:unknown;confirmation?:unknown};try{body=JSON.parse(raw) as typeof body}catch{return Response.json({error:'Некоректний JSON.'},{status:400})}
   const reference=typeof body.orderReference==='string'?body.orderReference.trim():'';
   const reason=typeof body.reason==='string'?body.reason.trim().replace(/[\r\n\t]+/g,' ').slice(0,250):'';
-  if(!/^sift_[a-f\d]{32}$/i.test(reference)||body.confirmation!=='ПОВЕРНУТИ'||reason.length<8)return Response.json({error:'Вкажіть замовлення, причину повернення та підтвердження «ПОВЕРНУТИ».'},{status:400});
+  if(!/^sift_[a-f\d]{32}$/i.test(reference)||body.confirmation!==true||reason.length<8)return Response.json({error:'Вкажіть замовлення, причину повернення та поставте прапорець підтвердження.'},{status:400});
   const order=await getPaymentOrder(reference);
-  if(!order||order.status!=='paid'||order.test_mode!==0)return Response.json({error:'Повернення доступне лише для успішної реальної оплати.'},{status:409});
-  const config=wayForPayConfig();if(!config.merchantAccount||!config.secret)return Response.json({error:'WayForPay не налаштовано на сервері.'},{status:503});
+  const config=wayForPayConfig();
+  const allowedMode=config.mode==='sandbox'?order?.test_mode===1:order?.test_mode===0;
+  if(!order||order.status!=='paid'||!allowedMode)return Response.json({error:config.mode==='sandbox'?'У тестовому режимі можна повертати лише успішні тестові замовлення.':'У production можна повертати лише успішні production-замовлення.'},{status:409});
+  if(!config.merchantAccount||!config.secret)return Response.json({error:'WayForPay не налаштовано на сервері.'},{status:503});
   const now=new Date().toISOString(),id=crypto.randomUUID();
   try{
     await d1().prepare(`INSERT INTO support_refunds(id,order_reference,actor_user_id,amount_uah,reason,status,created_at,updated_at) VALUES(?,?,?,?,?,'processing',?,?)`).bind(id,reference,auth.user.id,order.amount_uah,reason,now,now).run();
   }catch{
     return Response.json({error:'Для цього платежу вже є повернення або запит, що очікує перевірки. Перегляньте журнал перед повторною дією.'},{status:409});
   }
-  await writeSupportAudit({actorUserId:auth.user.id,action:'refund_started',targetUserId:order.user_id,orderReference:reference,details:{amountUah:order.amount_uah,reason}});
+  await writeSupportAudit({actorUserId:auth.user.id,action:'refund_started',targetUserId:order.user_id,orderReference:reference,details:{amount:order.amount_uah,currency:order.currency,mode:config.mode,reason}});
   try{
-    if(order.plan==='pro'){
+    if(config.mode==='live'&&order.plan==='pro'){
       const sub=await d1().prepare(`SELECT id,recurring_order_reference,cancel_at_period_end FROM subscriptions WHERE user_id=? AND plan='pro' AND (id=? OR recurring_order_reference=?) AND status IN ('trialing','active','past_due') ORDER BY created_at DESC LIMIT 1`).bind(order.user_id,reference,reference).first<{id:string;recurring_order_reference:string|null;cancel_at_period_end:number}>();
       if(sub?.recurring_order_reference&&!sub.cancel_at_period_end)await cancelRecurring(sub.recurring_order_reference);
     }
@@ -62,8 +64,8 @@ export async function POST(req:Request){
       d1().prepare(`UPDATE payment_orders SET status='refunded',updated_at=? WHERE order_reference=? AND status='paid'`).bind(updatedAt,reference),
       d1().prepare(`UPDATE subscriptions SET status='expired',credits=0,cancel_at_period_end=1,canceled_at=COALESCE(canceled_at,?),expires_at=?,updated_at=? WHERE user_id=? AND ((plan='one' AND id=?) OR (plan='pro' AND (id=? OR recurring_order_reference=?)))`).bind(updatedAt,updatedAt,updatedAt,order.user_id,reference,reference,reference),
     ]);
-    await writeSupportAudit({actorUserId:auth.user.id,action:'refund_completed',targetUserId:order.user_id,orderReference:reference,details:{amountUah:order.amount_uah,providerStatus,reasonCode}});
-    return Response.json({ok:true,status:'refunded',amountUah:order.amount_uah,message:'WayForPay підтвердив повернення. Доступ, пов’язаний із цим платежем, відкликано.'});
+    await writeSupportAudit({actorUserId:auth.user.id,action:'refund_completed',targetUserId:order.user_id,orderReference:reference,details:{amount:order.amount_uah,currency:order.currency,mode:config.mode,providerStatus,reasonCode,reason}});
+    return Response.json({ok:true,status:'refunded',amount:order.amount_uah,currency:order.currency,mode:config.mode,message:`WayForPay підтвердив ${config.mode==='sandbox'?'тестове ':''}повернення. Доступ, пов’язаний із цим платежем, відкликано.`});
   }
   if(providerStatus==='declined'){
     await d1().prepare(`UPDATE support_refunds SET status='declined',provider_reason_code=?,updated_at=? WHERE id=?`).bind(reasonCode,updatedAt,id).run();

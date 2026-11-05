@@ -25,6 +25,11 @@ test('shared family space shows common calendar and lets an authorized owner add
   await expect(page.getByRole('heading', { name: 'Ваші підписки. Спільна ясність.' })).toBeVisible();
   await expect(page.locator('.spaceMemberList b').filter({ hasText: 'owner@example.test' })).toBeVisible();
   await expect(page.locator('.spaceMemberList b').filter({ hasText: 'member@example.test' })).toBeVisible();
+  await expect(page.getByText('Власник · керує оплатою й учасниками')).toBeVisible();
+  await expect(page.getByText('Учасник · додає та веде власні записи')).toBeVisible();
+  await expect(page.locator('.spaceSeatEmpty')).toHaveCount(3);
+  await expect(page.getByText('119 ₴ за 30 днів')).toBeVisible();
+  await expect(page.getByText(/Автопродовження немає/)).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Найближчі списання' })).toBeVisible();
 
   await page.getByLabel('Назва', { exact: true }).fill('Хмарне сховище');
@@ -38,4 +43,29 @@ test('shared family space shows common calendar and lets an authorized owner add
 
   const dimensions = await page.evaluate(() => ({ width: document.documentElement.clientWidth, scrollWidth: document.documentElement.scrollWidth }));
   expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.width + 1);
+  const columns = await page.locator('.spaceList').evaluate((element) => getComputedStyle(element).gridTemplateColumns.split(' ').length);
+  if ((page.viewportSize()?.width ?? 1440) <= 800) expect(columns).toBe(2);
+});
+
+test('guest sign-in preserves the shared-space invitation', async ({ page }) => {
+  await page.route('**/api/spaces', (route) => route.fulfill({ status: 401, contentType: 'application/json', body: JSON.stringify({ error: 'Увійдіть до акаунту.' }) }));
+  await page.route('**/api/spaces/invites/accept', (route) => route.fulfill({ status: 401, contentType: 'application/json', body: JSON.stringify({ error: 'Увійдіть, щоб прийняти запрошення.' }) }));
+  await page.goto('/dashboard/space?invite=one-time-invite-token');
+
+  await expect(page.getByRole('heading', { name: /Спільний простір/ })).toBeVisible();
+  const loginHref = await page.getByRole('link', { name: 'Увійти до простору' }).getAttribute('href');
+  expect(new URL(loginHref!, page.url()).searchParams.get('next')).toBe('/dashboard/space?invite=one-time-invite-token');
+});
+
+test('closed spaces show a clear closed state without active controls', async ({ page }) => {
+  const owner = { user_id: 'owner-closed', email: 'owner@example.test', role: 'owner', joined_at: '2026-11-01T12:00:00.000Z' } as const;
+  const closedSpace = { id: 'space-closed', owner_user_id: owner.user_id, title: 'Закритий простір', status: 'closed', test_mode: 0, expires_at: null, role: 'owner', members: [owner], items: [], invites: [], payments: [], priceUah: 119, termDays: 30, maxMembers: 5 };
+  await page.route('**/api/spaces', (route) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ spaces: [closedSpace] }) }));
+  await page.route('**/api/spaces/space-closed', (route) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ space: closedSpace }) }));
+  await page.goto('/dashboard/space');
+
+  await expect(page.getByRole('heading', { name: 'Цей простір закрито' })).toBeVisible();
+  await expect(page.getByText('Закритий', { exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Перейти до оплати' })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Створити запрошення' })).toHaveCount(0);
 });

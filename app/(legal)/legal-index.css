@@ -1,0 +1,20 @@
+.legalIndexGrid{gap:16px;margin-top:38px}
+.legalIndexCard{min-height:258px;padding:22px;gap:20px;border-color:#d7ded3;border-radius:18px;box-shadow:0 5px 14px #11151008}
+.legalIndexCard:hover,.legalIndexCard:focus-visible{transform:translateY(-3px);border-color:var(--legal-ink);box-shadow:0 16px 32px #11151016;outline:none}
+.legalIndexCard:focus-visible{outline:3px solid #7468f4;outline-offset:3px}
+.legalIndexCardTop{display:grid;grid-template-columns:42px 1fr 24px;align-items:center;gap:10px}
+.legalIndexIcon{width:42px;height:42px;display:grid;place-items:center;border-radius:12px;background:#ebf8de;color:#5c8b35}
+.legalIndexIcon svg{width:19px;height:19px;stroke-width:1.8}
+.legalIndexCardTop>small{color:#727b6e;font-size:8px;font-weight:900;letter-spacing:.13em}
+.legalIndexArrow{width:18px;height:18px;color:#91998d;transition:transform .18s,color .18s}
+.legalIndexCard:hover .legalIndexArrow,.legalIndexCard:focus-visible .legalIndexArrow{transform:translate(2px,-2px);color:var(--legal-ink)}
+.legalIndexCardCopy{flex:1}
+.legalIndexCard h2{margin:0 0 9px;font-size:21px;line-height:1.18;letter-spacing:-.04em}
+.legalIndexCard p{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;margin:0;color:#626b5f;font-size:12px;line-height:1.65}
+.legalIndexCardAction{display:flex;align-items:center;justify-content:space-between;padding-top:14px;border-top:1px solid #e7ebe4;color:#1a1f18;font-size:11px}
+.legalIndexCardAction svg{width:15px;height:15px;color:#7063e8}
+.legalIndexHome{min-height:46px;gap:9px;margin-top:26px;padding:0 17px;border-radius:10px;background:var(--legal-ink);color:white;transition:background .18s,color .18s,transform .18s}
+.legalIndexHome svg{width:15px;height:15px;transform:rotate(180deg)}
+.legalIndexHome:hover,.legalIndexHome:focus-visible{background:var(--legal-green);color:var(--legal-ink);transform:translateY(-1px);outline:2px solid var(--legal-ink);outline-offset:2px}
+@media(max-width:800px){.legalIndexGrid{grid-template-columns:1fr;gap:12px}.legalIndexCard{min-height:188px}}
+@media(max-width:600px){.legalIndex{padding-top:42px}.legalIndexGrid{margin-top:28px}.legalIndexCard{min-height:168px;padding:18px;gap:15px}.legalIndexCard h2{font-size:19px}.legalIndexCard p{font-size:12px}.legalIndexHome{margin-top:20px}}

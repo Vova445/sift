@@ -3,3 +3,19 @@
 @media(max-width:360px){.compareToolTop{display:grid}.compareOfferHead{padding:9px}.compareRow:not(.compareHead){gap:6px;padding:9px}.compareRow:not(.compareHead) .compareValue{padding:8px 6px;font-size:9px}}
 .comparePromo{display:block;padding:7px 8px;border-radius:7px;background:#fff6df;color:#815911;font-size:9px!important}
 .compareConfidence{display:inline-flex;width:max-content;padding:4px 7px;border-radius:99px;font-size:8px;font-weight:850}.compareConfidence.high{background:#eaf7db;color:#42691d}.compareConfidence.medium,.compareConfidence.unknown{background:#fff2dc;color:#88570e}.compareConfidence.low{background:#ffe9e4;color:#a63125}.compareSource{color:#5b7185;font-size:9px;font-weight:800}
+.compareConfidence.unresolved{background:#eef0ed;color:#5f675d}
+.compareReportDetails{margin-top:3px;border-top:1px solid #e2e7df;padding-top:7px;min-width:0}
+.compareReportDetails summary{display:inline-flex;align-items:center;min-height:34px;color:#5146b7;font-size:10px;font-weight:850;cursor:pointer;list-style:none}
+.compareReportDetails summary::-webkit-details-marker{display:none}
+.compareReportDetails summary::after{content:'＋';margin-left:7px;color:#7164e7;font-size:13px}
+.compareReportDetails[open] summary::after{content:'−'}
+.compareReportDetails>div{display:grid;gap:8px;margin-top:8px;padding:11px;border:1px solid #e0e5dd;border-radius:10px;background:#fff;color:#32382f;font-size:10px;line-height:1.5;overflow-wrap:anywhere}
+.compareReportDetails>div>p{margin:0;color:#626b5e}
+.compareReportDetails>div>strong{color:#395d22}
+.compareReportDetails article{display:grid;gap:4px;padding-top:8px;border-top:1px solid #e9ece7}
+.compareReportDetails article>span{color:#687264;font-size:9px;font-weight:800}
+.compareReportDetails article>b{font-size:10px}
+.compareReportDetails article>small{color:#687264;font-size:9px}
+.compareReportDetails article>a,.compareReportDetails>div>a{display:flex;align-items:center;gap:5px;color:#554bc0;font-size:9px;font-weight:850}
+.compareReportDetails .compareReportUnknown{padding:8px;border:0;border-radius:8px;background:#f0f1ef;color:#656c62}
+.compareReportVerdict{grid-column:1/-1;line-height:1.45}

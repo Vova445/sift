@@ -9,8 +9,10 @@
   "vars": {
     "RATE_LIMIT_EDGE_ENABLED": "true",
     "EMAIL_REMINDER_DAYS_BEFORE": "1",
+    "APP_BASE_URL": "https://sift-app.reviewradar-vova445.workers.dev",
+    "WAYFORPAY_MODE": "live",
     "CF_ACCOUNT_ID": "0cd622d5a5fb3204755a63d4f36df48f",
-    "D1_BACKUP_DATABASE_ID": "fa487f7a-ecfb-4968-8820-1214dd736e3c",
+    "D1_BACKUP_DATABASE_ID": "bfbef29e-ba0b-4b41-a7b2-14d34b382023",
     "DARK_PATTERN_AI_ENABLED": "true"
   },
   "assets": { "directory": "dist/client" },
@@ -18,7 +20,7 @@
     {
       "binding": "DB",
       "database_name": "sift-production",
-      "database_id": "fa487f7a-ecfb-4968-8820-1214dd736e3c",
+      "database_id": "bfbef29e-ba0b-4b41-a7b2-14d34b382023",
       "migrations_dir": "migrations"
     }
   ],

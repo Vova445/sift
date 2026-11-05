@@ -1,0 +1,78 @@
+.accessGateRoot{--gate-ink:#11140f;--gate-paper:#f1f4ef;--gate-lime:#b5f15e;--gate-violet:#9a8cff;position:relative;isolation:isolate;min-height:100svh;overflow:hidden;background:var(--gate-paper);color:#141711;font-family:Arial,Helvetica,sans-serif;padding-bottom:24px}
+body:has(.accessGateRoot) .funnelConsent{display:none!important}
+.accessGateHero{position:relative;isolation:isolate;min-height:430px;box-sizing:border-box;padding:30px clamp(22px,5vw,64px) 88px;overflow:hidden;background:var(--gate-ink);color:#f6f7f4}
+.accessGateHero:before{content:"";position:absolute;inset:-10% 0 0;background-image:linear-gradient(#ffffff12 1px,transparent 1px),linear-gradient(90deg,#ffffff12 1px,transparent 1px);background-size:42px 42px;mask-image:linear-gradient(to bottom,#000 0%,#000 24%,transparent 100%);pointer-events:none;opacity:.58}
+.accessGateHero:after{content:"";position:absolute;z-index:-1;top:-200px;right:-100px;width:min(680px,70vw);aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,#7869f85c 0,rgba(120,105,248,.22) 24%,transparent 68%);filter:blur(18px);animation:accessGateGlow 20s ease-in-out infinite alternate;pointer-events:none}
+.accessGateHeroInner{position:relative;z-index:1;max-width:1100px;margin:0 auto}
+.accessGateBrand{display:inline-flex;align-items:center;gap:10px;color:#f5f7f2;text-decoration:none;font-size:14px;letter-spacing:.13em}
+.accessGateBrand>span{width:36px;height:36px;display:grid;place-items:center;border-radius:10px;background:var(--gate-lime);color:#11140f;font-size:16px;font-weight:950;letter-spacing:0}
+.accessGateBrand>b{font-weight:950}.accessGateBrand>small{margin-left:6px;color:#9ba398;font-size:9px;letter-spacing:.13em}
+.accessGateCopy{max-width:900px;margin:42px auto 0}
+.accessGateEyebrow,.accessGateCardEyebrow{font:800 11px/1.3 ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:.14em;color:var(--gate-lime)}
+.accessGateCopy h1{margin:18px 0 14px;font-size:clamp(42px,5vw,56px);line-height:.99;letter-spacing:-.055em;font-weight:620}
+.accessGateCopy h1 em{font-family:Georgia,'Times New Roman',serif;color:var(--gate-violet);font-weight:400}
+.accessGateCopy>p{max-width:650px;margin:0;color:#c5cbc1;font-size:17px;line-height:1.55}
+.accessGatePills{display:flex;flex-wrap:wrap;gap:9px;margin-top:23px}
+.accessGatePills>span{display:inline-flex;min-height:36px;align-items:center;gap:8px;padding:0 13px;border:1px solid #464c43;border-radius:999px;background:#1b201a;color:#f0f3ed;font-size:12px;font-weight:680}
+.accessGatePills svg{width:14px;height:14px;color:var(--gate-lime);stroke-width:2.4}
+.accessGateCard{position:relative;z-index:3;width:min(520px,calc(100% - 32px));box-sizing:border-box;margin:-48px auto 0;padding:32px;border:1px solid #e0e5dc;border-radius:28px;background:#fff;box-shadow:0 24px 70px #161b101e}
+.accessGateLock{position:relative;width:54px;height:54px;display:grid;place-items:center;margin-bottom:22px;border-radius:16px;background:var(--gate-lime);color:#10130f;transition:background .2s ease,transform .2s ease}
+.accessGateLock svg{position:absolute;width:23px;height:23px;transition:opacity .2s ease,transform .2s ease}.accessGateLockOpen{opacity:0;transform:scale(.78) rotate(-12deg)}
+.accessGateCard:has(.accessGatePrimary:hover) .accessGateLock{background:#c5fa7c;transform:translateY(-1px)}
+.accessGateCard:has(.accessGatePrimary:hover) .accessGateLockClosed{opacity:0;transform:scale(.78) rotate(12deg)}
+.accessGateCard:has(.accessGatePrimary:hover) .accessGateLockOpen{opacity:1;transform:scale(1) rotate(0)}
+.accessGateCardEyebrow{display:block;color:#697365;font-size:10px}
+.accessGateCard h2{margin:12px 0 10px;font-size:40px;line-height:1.02;letter-spacing:-.055em;font-weight:580}
+.accessGateCard>p{margin:0;color:#667064;font-size:14px;line-height:1.6}
+.accessGatePrimary{width:100%;min-height:52px;box-sizing:border-box;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:22px;padding:0 18px;border-radius:12px;background:var(--gate-ink);color:#fff;text-decoration:none;font-size:13px;font-weight:850;transition:background .2s ease,transform .2s ease}
+.accessGatePrimary:hover{background:#252c21;transform:translateY(-1px)}
+.accessGatePrimary svg{width:18px;height:18px;transition:transform .2s ease}.accessGatePrimary:hover svg{transform:translateX(4px)}
+.accessGateSecondary{width:100%;min-height:44px;display:flex;align-items:center;justify-content:center;margin-top:7px;color:#5a4acb;text-decoration:none;font-size:13px;font-weight:750}
+.accessGateSecondary:hover{text-decoration:underline;text-underline-offset:3px}
+.accessGateTrust{display:flex;align-items:center;gap:10px;margin-top:18px;padding-top:17px;border-top:1px solid #e8ece5;color:#515a4e;font-size:12px;line-height:1.5;font-weight:600}
+.accessGateTrust svg{width:17px;height:17px;flex:none;color:#5f823d}
+.accessGateTeaser{width:min(690px,calc(100% - 32px));margin:26px auto 0;filter:blur(2.1px);opacity:.56;user-select:none;pointer-events:none}
+.accessGateTeaserHead{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;color:#65705f;font-size:9px;font-weight:900;letter-spacing:.14em}.accessGateTeaserHead small{font-size:10px;font-weight:500;letter-spacing:0}
+.accessGateStats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.accessGateStats article{min-height:70px;padding:12px 15px;border:1px solid #d8dfd4;border-radius:13px;background:#fff}.accessGateStats article small{display:block;color:#74806f;font-size:8px;font-weight:850;letter-spacing:.12em}.accessGateStats article b{display:block;margin-top:6px;font-size:21px}.accessGateStats article em{font-size:9px;font-style:normal;font-weight:600}
+.accessGateRows{display:grid;gap:7px;margin-top:9px}.accessGateRows>div{min-height:54px;display:flex;align-items:center;gap:12px;padding:7px 13px;border:1px solid #d8dfd4;border-radius:12px;background:#fff}.accessGateRows>div>i{width:33px;height:33px;border-radius:50%;background:conic-gradient(#9c8cff 48%,#e3e8e0 0)}.accessGateRows>div>span{display:grid;gap:4px}.accessGateRows b{font-size:11px}.accessGateRows small{color:#697465;font-size:9px}.accessGateRows em{margin-left:auto;color:#596352;font-size:12px;font-style:normal;font-weight:800}
+.accessGateRoot.isRestricted .accessGateCardEyebrow{color:#6759d6}.accessGateRoot.isRestricted .accessGateCard h2{font-size:36px}
+.accessGateRoot.isCompact{min-height:0;padding:0 0 18px;border:1px solid #242a22;border-radius:20px;background:var(--gate-ink)}
+.accessGateRoot.isCompact .accessGateHero{min-height:0;padding:22px 24px 65px;border-radius:20px 20px 0 0}
+.accessGateRoot.isCompact .accessGateBrand{display:none}.accessGateRoot.isCompact .accessGateCopy{margin:0;max-width:none}
+.accessGateRoot.isCompact .accessGateEyebrow{font-size:9px}.accessGateRoot.isCompact .accessGateCopy h1{margin:10px 0 6px;font-size:28px}
+.accessGateRoot.isCompact .accessGateCopy>p{font-size:13px}.accessGateRoot.isCompact .accessGatePills{display:none}
+.accessGateRoot.isCompact .accessGateCard{width:min(420px,calc(100% - 32px));margin:-40px auto 0;padding:20px 22px;border-radius:18px}
+.accessGateRoot.isCompact .accessGateLock{width:42px;height:42px;margin-bottom:13px;border-radius:12px}
+.accessGateRoot.isCompact .accessGateLock svg{width:19px;height:19px}.accessGateRoot.isCompact .accessGateCardEyebrow{font-size:9px}
+.accessGateRoot.isCompact .accessGateCard h2{font-size:23px;margin:8px 0 5px}.accessGateRoot.isCompact .accessGateCard>p{font-size:12px}
+.accessGateRoot.isCompact .accessGatePrimary{width:max-content;min-width:180px;min-height:44px;margin-top:13px;font-size:12px}
+.accessGateRoot.isCompact .accessGateSecondary{min-height:36px;margin-top:2px;font-size:11px}
+.accessGateRoot.isCompact .accessGateTrust{font-size:11px;margin-top:12px;padding-top:10px}
+.accessGateRoot.isCompact .accessGateTeaser{display:none}
+@keyframes accessGateGlow{0%{transform:translate3d(0,0,0) scale(.96)}100%{transform:translate3d(-24px,24px,0) scale(1.05)}}
+@media(max-width:600px){
+ .accessGateRoot{min-height:calc(100svh - 118px);padding-bottom:14px}
+ .accessGateHero{min-height:360px;padding:20px 18px 72px}
+ .accessGateBrand>small{font-size:8px}
+ .accessGateCopy{margin:38px 0 0}
+ .accessGateEyebrow{font-size:9px}
+ .accessGateCopy h1{margin:15px 0 11px;font-size:34px;line-height:1.02}
+ .accessGateCopy>p{max-width:460px;font-size:14px;line-height:1.5}
+ .accessGatePills{gap:6px;margin-top:17px}
+ .accessGatePills>span{min-height:32px;padding:0 9px;font-size:10px}
+ .accessGatePills svg{width:12px;height:12px}
+ .accessGateCard{width:calc(100% - 32px);margin-top:-48px;padding:25px 21px 20px;border-radius:23px}
+ .accessGateLock{width:48px;height:48px;margin-bottom:18px;border-radius:14px}
+ .accessGateCard h2{font-size:32px}
+ .accessGateCard>p{font-size:13px}
+ .accessGatePrimary{min-height:52px;margin-top:17px}
+ .accessGateTrust{margin-top:13px;padding-top:13px;font-size:12px}
+ .accessGateTeaser{display:none}
+ .accessGateRoot.isCompact{min-height:0;margin:0;padding:0 0 14px}
+ .accessGateRoot.isCompact .accessGateHero{min-height:0;padding:19px 19px 56px}
+ .accessGateRoot.isCompact .accessGateCopy h1{font-size:25px}
+ .accessGateRoot.isCompact .accessGateCard{width:calc(100% - 24px);margin-top:-40px;padding:17px}
+ .accessGateRoot.isCompact .accessGateCard h2{font-size:20px}
+ .accessGateRoot.isCompact .accessGatePrimary{width:100%}
+}
+@media(prefers-reduced-motion:reduce){.accessGateHero:after{animation:none}.accessGatePrimary,.accessGatePrimary svg,.accessGateLock,.accessGateLock svg{transition:none}}

@@ -1,5 +1,6 @@
 import { env } from 'cloudflare:workers';
 import { ACHIEVEMENT_CATALOG } from './achievement-catalog.js';
+import { ANALYTICS_MIN_SAMPLE, intervalsOverlap, isAnalyticsMature, wilsonInterval95 } from './analytics-statistics.js';
 import { ensureDb } from './db';
 import { ensureEventBusDb } from './event-bus';
 
@@ -96,19 +97,6 @@ function percentage(numerator: number, denominator: number) {
   return denominator ? Math.round(numerator / denominator * 1000) / 10 : null;
 }
 
-function confidenceInterval95(successes: number, sampleSize: number) {
-  if (!sampleSize) return null;
-  const z = 1.96;
-  const proportion = successes / sampleSize;
-  const denominator = 1 + z * z / sampleSize;
-  const center = (proportion + z * z / (2 * sampleSize)) / denominator;
-  const margin = z * Math.sqrt(proportion * (1 - proportion) / sampleSize + z * z / (4 * sampleSize * sampleSize)) / denominator;
-  return {
-    low: Math.round(Math.max(0, center - margin) * 1000) / 10,
-    high: Math.round(Math.min(1, center + margin) * 1000) / 10,
-  };
-}
-
 export async function getAchievementExperimentAnalytics(now = new Date()) {
   await ensureAchievementExperimentDb();
   await ensureEventBusDb();
@@ -150,10 +138,11 @@ export async function getAchievementExperimentAnalytics(now = new Date()) {
     const d30Eligible = row?.d30_eligible || 0, d30Returned = row?.d30_returned || 0;
     const proEligible = row?.pro_eligible || 0, proConverted = row?.pro_converted || 0;
     return {
-      variant, assigned, earnedAfterAssignment: earned, earnedRate: percentage(earned, assigned),
-      d7: { eligible: d7Eligible, returned: d7Returned, rate: percentage(d7Returned, d7Eligible), interval95: confidenceInterval95(d7Returned, d7Eligible) },
-      d30: { eligible: d30Eligible, returned: d30Returned, rate: percentage(d30Returned, d30Eligible), interval95: confidenceInterval95(d30Returned, d30Eligible) },
-      pro30: { eligible: proEligible, converted: proConverted, rate: percentage(proConverted, proEligible), interval95: confidenceInterval95(proConverted, proEligible) },
+      variant, assigned, earnedAfterAssignment: earned, earnedRate: percentage(earned, assigned), earnedInterval95: wilsonInterval95(earned, assigned),
+      earnedMature: assigned >= EXPERIMENT_MINIMUM_ARM_SIZE,
+      d7: { eligible: d7Eligible, returned: d7Returned, rate: percentage(d7Returned, d7Eligible), interval95: wilsonInterval95(d7Returned, d7Eligible), mature: d7Eligible >= EXPERIMENT_MINIMUM_ARM_SIZE, minimumSample: EXPERIMENT_MINIMUM_ARM_SIZE },
+      d30: { eligible: d30Eligible, returned: d30Returned, rate: percentage(d30Returned, d30Eligible), interval95: wilsonInterval95(d30Returned, d30Eligible), mature: d30Eligible >= EXPERIMENT_MINIMUM_ARM_SIZE, minimumSample: EXPERIMENT_MINIMUM_ARM_SIZE },
+      pro30: { eligible: proEligible, converted: proConverted, rate: percentage(proConverted, proEligible), interval95: wilsonInterval95(proConverted, proEligible), mature: proEligible >= EXPERIMENT_MINIMUM_ARM_SIZE, minimumSample: EXPERIMENT_MINIMUM_ARM_SIZE },
     };
   });
   const totalUsers = totalRow?.count || 0;
@@ -163,19 +152,29 @@ export async function getAchievementExperimentAnalytics(now = new Date()) {
   const daysRunning = startedAt ? Math.max(0, Math.floor((now.getTime() - Date.parse(startedAt)) / 86_400_000)) : 0;
   const reportDueAt = startedAt ? new Date(Date.parse(startedAt) + EXPERIMENT_REPORT_DELAY_DAYS * 86_400_000).toISOString() : null;
   const enoughSample = groups.every((group) => group.assigned >= EXPERIMENT_MINIMUM_ARM_SIZE && group.d7.eligible >= EXPERIMENT_MINIMUM_ARM_SIZE);
+  const comparisons = ['earned', 'd7', 'd30', 'pro30'].map((metric) => {
+    const progressGroup = groups.find((group) => group.variant === 'progress');
+    const controlGroup = groups.find((group) => group.variant === 'control');
+    const a = metric === 'earned' ? progressGroup?.earnedInterval95 || null : progressGroup?.[metric as 'd7' | 'd30' | 'pro30'].interval95 || null;
+    const b = metric === 'earned' ? controlGroup?.earnedInterval95 || null : controlGroup?.[metric as 'd7' | 'd30' | 'pro30'].interval95 || null;
+    return { metric, intervalsOverlap: intervalsOverlap(a, b), hasIntervals: Boolean(a && b) };
+  });
   return {
     experiment: {
       key: ACHIEVEMENT_PROGRESS_EXPERIMENT, enabled: settings?.enabled === 1,
       progressPercent: settings?.progress_percent || 50, startedAt, daysRunning, reportDueAt,
       minimumArmSize: EXPERIMENT_MINIMUM_ARM_SIZE,
-      reportReady: daysRunning >= EXPERIMENT_REPORT_DELAY_DAYS && enoughSample,
+      reportReady: isAnalyticsMature({ observations: groups.reduce((sum, group) => sum + group.assigned, 0), observedDays: daysRunning, minimumSample: EXPERIMENT_MINIMUM_ARM_SIZE * 2 }) && enoughSample,
+      maturity: { mature: isAnalyticsMature({ observations: groups.reduce((sum, group) => sum + group.assigned, 0), observedDays: daysRunning, minimumSample: EXPERIMENT_MINIMUM_ARM_SIZE * 2 }), observations: groups.reduce((sum, group) => sum + group.assigned, 0), minimumObservations: EXPERIMENT_MINIMUM_ARM_SIZE * 2, observedDays: daysRunning, minimumDays: EXPERIMENT_REPORT_DELAY_DAYS },
       updatedAt: settings?.updated_at || nowIso,
     },
     badgeDistribution: {
       totalUsers, usersWithAnyBadge: usersWithBadge, usersWithAnyBadgeRate: percentage(usersWithBadge,totalUsers),
-      badges: ACHIEVEMENT_CATALOG.map((badge) => ({ key: badge.key, title: badge.title, users: counts.get(badge.key) || 0, rate: percentage(counts.get(badge.key) || 0,totalUsers) })),
+      maturity: { mature: totalUsers >= ANALYTICS_MIN_SAMPLE, observations: totalUsers, minimumObservations: ANALYTICS_MIN_SAMPLE },
+      badges: ACHIEVEMENT_CATALOG.map((badge) => ({ key: badge.key, title: badge.title, users: counts.get(badge.key) || 0, rate: percentage(counts.get(badge.key) || 0,totalUsers), mature: totalUsers >= ANALYTICS_MIN_SAMPLE, observations: totalUsers, minimumObservations: ANALYTICS_MIN_SAMPLE })),
     },
     groups,
+    comparisons,
     definitions: { d7: 'meaningful server event during days 7–8 after assignment', d30: 'meaningful server event during days 30–31 after assignment', pro30: 'paid Pro order within 30 days of assignment' },
     generatedAt: nowIso,
   };

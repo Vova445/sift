@@ -1,6 +1,7 @@
 'use client';
 
 import {useEffect,useRef,useState} from 'react';
+import {Check,ShieldCheck} from 'lucide-react';
 
 type WidgetApi={render:(container:HTMLElement,options:Record<string,unknown>)=>string;remove:(widgetId:string)=>void};
 declare global{interface Window{turnstile?:WidgetApi}}
@@ -13,10 +14,11 @@ function loadTurnstile(){
 }
 
 export default function TurnstileWidget({action,onToken,resetVersion=0}:{action:'signup'|'password_reset';onToken:(token:string)=>void;resetVersion?:number}){
-  const container=useRef<HTMLDivElement>(null),tokenCallback=useRef(onToken),[siteKey,setSiteKey]=useState(''),[configReady,setConfigReady]=useState(false),[error,setError]=useState('');
+  const container=useRef<HTMLDivElement>(null),tokenCallback=useRef(onToken),[siteKey,setSiteKey]=useState(''),[configReady,setConfigReady]=useState(false),[error,setError]=useState(''),[verifiedVersion,setVerifiedVersion]=useState<number|null>(null);
+  const verified=verifiedVersion===resetVersion;
   useEffect(()=>{tokenCallback.current=onToken},[onToken]);
   useEffect(()=>{let alive=true;fetch('/api/security/turnstile',{cache:'no-store'}).then(async response=>await response.json() as {siteKey?:string}).then(config=>{if(alive){setSiteKey(config.siteKey||'');setConfigReady(true)}}).catch(()=>{if(alive){setConfigReady(true);setError('Не вдалося завантажити антибот-перевірку.')}});return()=>{alive=false}},[]);
-  useEffect(()=>{if(!configReady||!siteKey)return;let alive=true,widgetId='';loadTurnstile().then(()=>{if(!alive||!container.current||!window.turnstile)return;widgetId=window.turnstile.render(container.current,{sitekey:siteKey,action,theme:'light',callback:(token:string)=>tokenCallback.current(token),'expired-callback':()=>tokenCallback.current(''),'error-callback':()=>{tokenCallback.current('');setError('Перевірка не пройшла. Оновіть її та спробуйте ще раз.')}});setError('')}).catch(()=>{if(alive)setError('Не вдалося завантажити антибот-перевірку.')});return()=>{alive=false;if(widgetId&&window.turnstile)window.turnstile.remove(widgetId)}},[action,configReady,resetVersion,siteKey]);
+  useEffect(()=>{if(!configReady||!siteKey)return;let alive=true,widgetId='';loadTurnstile().then(()=>{if(!alive||!container.current||!window.turnstile)return;widgetId=window.turnstile.render(container.current,{sitekey:siteKey,action,theme:'light',size:'flexible',appearance:'interaction-only',callback:(token:string)=>{if(!alive)return;setVerifiedVersion(token?resetVersion:null);tokenCallback.current(token)},'expired-callback':()=>{if(!alive)return;setVerifiedVersion(null);tokenCallback.current('')},'error-callback':()=>{if(!alive)return;setVerifiedVersion(null);tokenCallback.current('');setError('Перевірка не пройшла. Оновіть її та спробуйте ще раз.')}});setError('')}).catch(()=>{if(alive)setError('Не вдалося завантажити антибот-перевірку.')});return()=>{alive=false;if(widgetId&&window.turnstile)window.turnstile.remove(widgetId)}},[action,configReady,resetVersion,siteKey]);
   const visibleError=error||(configReady&&!siteKey?'Антибот-перевірка тимчасово недоступна.':'');
-  return <div className="turnstileField"><div ref={container} className="turnstileMount" role="group" aria-label="Антибот-перевірка"/>{visibleError?<small className="turnstileError" role="status">{visibleError}</small>:null}</div>;
+  return <div className="turnstileField">{!visibleError&&<div className={`turnstileStatus${verified?' isVerified':''}`} role="status" aria-live="polite"><span aria-hidden="true">{verified?<Check size={15}/>:<ShieldCheck size={15}/>}</span><span>{verified?'Антибот-перевірку пройдено':'Cloudflare захищає форму від автоматизованих запитів'}</span></div>}<div ref={container} className="turnstileMount" role="group" aria-label="Антибот-перевірка"/>{visibleError?<small className="turnstileError" role="status">{visibleError}</small>:null}</div>;
 }

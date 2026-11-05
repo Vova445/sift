@@ -64,3 +64,31 @@
 .savingsDrawerAction>button svg{width:17px;height:17px}
 @media(max-width:760px){.savingsBody{grid-template-columns:1fr}.savingsAside{min-height:210px}.savingsHeader{gap:12px}.savingsTrust{font-size:0;padding:10px}.savingsTrust svg{width:20px;height:20px}}
 @media(max-width:520px){.savingsTracker{margin:20px 0;padding:17px;border-radius:18px}.savingsHeader{align-items:flex-start}.savingsHeader h2{font-size:25px;line-height:1.12}.savingsHeader p{font-size:12px;line-height:1.5}.savingsTotals{gap:9px}.savingsTotals article{padding:15px 12px;border-radius:14px}.savingsTotals b{font-size:clamp(18px,5vw,24px);overflow-wrap:anywhere}.savingsTotals small{font-size:9px;letter-spacing:.08em}.savingsTotals span{font-size:10px}.savingsForm,.savingsAside,.savingsRecent{padding:16px;border-radius:15px}.savingsForm{grid-template-columns:1fr;gap:12px}.savingsForm>div:first-child,.savingsConfirm,.savingsSave,.savingsHint,.savingsMessage{grid-column:1}.savingsForm h3,.savingsRecent header h3{font-size:16px}.savingsRecent li{gap:9px}.savingsEntryInfo b{font-size:12px}.savingsRecent li>strong{font-size:12px}.savingsDrawerAction{margin:14px 0}}
+
+.savingsTotals article{position:relative;overflow:hidden;border-color:#30372d;background:#121610;box-shadow:0 10px 22px #11150f12}
+.savingsTotals article:first-child{border-color:#b0f35a;background:#121610}
+.savingsTotals article::after{position:absolute;right:-28px;bottom:-60px;width:150px;height:150px;border-radius:50%;background:#b0f35a0c;content:"";pointer-events:none}
+.savingsTotals small{color:#aab5a5}
+.savingsTotals b{position:relative;z-index:1;color:#b8f35f}
+.savingsTotals span{position:relative;z-index:1;color:#b1b9ac}
+.savingsBankNote{display:flex;align-items:center;gap:9px;margin:-4px 0 18px;padding:10px 12px;border:1px solid #e4e9e1;border-radius:10px;background:#f8faf6;color:#64705f;font-size:11px;line-height:1.45}
+.savingsBankNote svg{width:16px;height:16px;flex:none;color:#668e3e}
+.savingsBankNote b{color:#374332}
+.savingsEntryInfo{align-items:start}
+.savingsOutcomeChip{width:fit-content;max-width:100%;overflow:hidden;border-radius:999px;padding:4px 8px;background:#eef7e5;color:#4e762e;font-size:9px;font-weight:800;text-overflow:ellipsis;white-space:nowrap}
+.savingsOutcomeChip.canceled{background:#f0edff;color:#5c4dc7}
+.savingsOutcomeChip.refunded{background:#fff1dd;color:#8d5b16}
+.savingsEntryActions{display:flex;align-items:center;gap:5px;flex:none}
+.savingsEntryActions button{display:grid;place-items:center;width:44px;height:44px;border:1px solid #e2e7de;border-radius:10px;background:#fff;color:#737d6f;cursor:pointer}
+.savingsEntryActions button:hover{border-color:#cbd8c0;background:#f7faf3;color:#425735}
+.savingsEntryActions button:last-child:hover{border-color:#f2c8c3;background:#fff7f6;color:#b74338}
+.savingsEntryActions button:disabled{opacity:.5;cursor:not-allowed}
+.savingsEntryActions svg{width:16px;height:16px}
+.savingsEmpty{display:flex;align-items:center;justify-content:space-between;gap:16px;border:1px solid #e4e9e1;background:#f8faf6}
+.savingsEmpty b{display:block;margin-bottom:4px;color:#30392b;font-size:13px}
+.savingsEmpty p{margin:0;line-height:1.55}
+.savingsEmpty a{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:44px;flex:none;padding:10px 13px;border-radius:10px;background:#121610;color:#b8f35f;text-decoration:none;font-size:11px;font-weight:800}
+.savingsEmpty a svg{width:15px;height:15px}
+.savingsActions a,.savingsActions button{min-height:48px}
+.savingsActions a:focus-visible,.savingsActions button:focus-visible,.savingsEntryActions button:focus-visible,.savingsEmpty a:focus-visible,.savingsSave:focus-visible{outline:3px solid #7160f3;outline-offset:3px}
+@media(max-width:520px){.savingsBankNote{align-items:flex-start;font-size:10px}.savingsEmpty{align-items:stretch;flex-direction:column}.savingsEmpty a{width:100%}.savingsEntryActions{gap:3px}.savingsOutcomeChip{font-size:8px}}

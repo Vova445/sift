@@ -31,6 +31,18 @@ export function telegramBotConfig() {
   return { configured: Boolean(values.TELEGRAM_BOT_TOKEN && username && (values.TELEGRAM_WEBHOOK_SECRET || '').trim().length >= 32), username: username || null, startUrl: username ? `https://t.me/${username}` : null };
 }
 
+async function telegramGroupMemberCount(chatId: string) {
+  const token = runtime().TELEGRAM_BOT_TOKEN?.trim();
+  if (!token) throw new Error('Telegram bot is not configured');
+  const url = new URL(`https://api.telegram.org/bot${token}/getChatMemberCount`);
+  url.searchParams.set('chat_id', chatId);
+  const response = await fetch(url, { signal: AbortSignal.timeout(5000) });
+  if (!response.ok) throw new Error(`Telegram getChatMemberCount returned ${response.status}`);
+  const payload = await response.json() as { ok?: boolean; result?: unknown };
+  if (!payload.ok || typeof payload.result !== 'number' || !Number.isSafeInteger(payload.result) || payload.result < 1) throw new Error('Telegram returned an invalid group member count');
+  return payload.result;
+}
+
 export function telegramWebhookAuthorized(request: Request, secret: string) {
   const expected = secret.trim();
   const received = request.headers.get('x-telegram-bot-api-secret-token') || '';
@@ -136,8 +148,12 @@ async function handleMessage(request: Request, message: TelegramMessage, updateI
   if (command === '/allowgroup') {
     if (chat.type === 'private') { await reply('Додайте бота в групу, а потім надішліть там /allowgroup.'); return; }
     if (!ownAccount || !await linkedProUser(ownAccount.user_id)) { await reply('Спершу підключіть активний Sift Pro у приватному чаті з ботом.'); return; }
+    let memberCount: number;
+    try { memberCount = await telegramGroupMemberCount(chatId); }
+    catch { await reply('Не вдалося перевірити кількість учасників. Групу не підключено; перевірте, що бот доданий до неї, і повторіть /allowgroup.'); return; }
+    if (memberCount > 10) { await reply('Sift підтримує групи максимум із 10 учасниками. Зменште групу й повторіть /allowgroup.'); return; }
     await authorizeTelegramGroup({ chatId, userId: ownAccount.user_id, telegramUserId, title: chat.title || 'Telegram group' });
-    await reply('Групу підключено. Учасники групи можуть надсилати посилання; ліміт 30 аналізів за хвилину спільний з акаунтом власника. /disablegroup вимикає доступ.');
+    await reply('Групу підключено. Учасники можуть надсилати посилання; ліміт 30 аналізів за хвилину спільний з акаунтом власника. Sift повторно перевіряє розмір групи перед кожним аналізом. /disablegroup вимикає доступ.');
     return;
   }
 
@@ -162,6 +178,10 @@ async function handleMessage(request: Request, message: TelegramMessage, updateI
     if (!group) { await reply('Ця група ще не підключена. Власник Sift Pro має підключити Telegram у приватному чаті, а потім виконати тут /allowgroup.'); return; }
     const linkedOwner = await telegramAccount(group.linked_telegram_user_id);
     if (!linkedOwner || linkedOwner.user_id !== group.owner_user_id) { await revokeTelegramGroup(chatId, group.owner_user_id); await reply('Підключення групи більше неактивне. Власник має заново прив’язати Telegram.'); return; }
+    let memberCount: number;
+    try { memberCount = await telegramGroupMemberCount(chatId); }
+    catch { await reply('Не вдалося перевірити розмір групи. Перевірку не виконано; спробуйте ще раз пізніше.'); return; }
+    if (memberCount > 10) { await revokeTelegramGroup(chatId, group.owner_user_id); await reply('У групі стало більше ніж 10 учасників. Груповий доступ призупинено; зменште групу та попросіть власника повторити /allowgroup.'); return; }
     ownerId = group.owner_user_id;
     linkedTelegramId = group.linked_telegram_user_id;
   }
