@@ -100,8 +100,12 @@ export default function Home(){
    try{
      if(authMode==='signup')await trackFunnelVisit();
      const r=await fetch(`/api/auth/${authMode}`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({email:normalizedEmail,password,...(authMode==='signup'?{turnstileToken,legalConsent:{acceptTerms:signupLegalAccepted,acknowledgePrivacy:signupLegalAccepted},analyticsSessionId:funnelSessionId(),deviceId:deviceId(),referralToken:sessionStorage.getItem('sift-referral-token')||undefined}:{})})});
-     const data=await r.json();
+     const responseText=await r.text();
+     let data:{user?:User;error?:string;verification?:{sent?:boolean}};
+     try{data=JSON.parse(responseText) as typeof data}
+     catch{throw new Error(`Сервер повернув неочікувану відповідь (HTTP ${r.status}). Оновіть сторінку й спробуйте ще раз.`)}
      if(!r.ok)throw new Error(data.error||'Не вдалося авторизуватися');
+     if(!data.user)throw new Error('Сервер не повернув дані акаунта. Оновіть сторінку й спробуйте ще раз.');
      if(authMode==='signup')sessionStorage.removeItem('sift-referral-token');
      setUser(data.user);setPassword('');setSignup(authMode==='signup'?'done':'');setAuthFieldErrors({});
      setVerificationNotice(authMode==='signup'?(data.verification?.sent?`Лист надіслано на ${data.user.email}. Перевірте папку «Вхідні» та «Спам».`:'Лист поки не надіслано. Перевірте налаштування пошти сервера й спробуйте повторно.'):'');
