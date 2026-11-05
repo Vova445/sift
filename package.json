@@ -40,6 +40,7 @@
     "verify:backup-restore": "node scripts/verify-d1-backup-restore.mjs"
   },
   "dependencies": {
+    "@noble/hashes": "^2.4.0",
     "framer-motion": "^13.2.0",
     "lucide-react": "^1.41.0",
     "next": "16.2.6",

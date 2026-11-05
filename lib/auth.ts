@@ -1,14 +1,16 @@
 import {env} from 'cloudflare:workers';
+import {pbkdf2Async} from '@noble/hashes/pbkdf2.js';
+import {sha256} from '@noble/hashes/sha2.js';
 import {ensureEmailVerificationDb} from './email-verification';
 import {signupAcceptanceStatement} from './legal-acceptance';
 import {signupLegalConsent,type SignupLegalConsent} from './legal-consent-policy.js';
 
 const enc=new TextEncoder();
-const hex=(b:ArrayBuffer)=>[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');
+const hex=(b:ArrayBuffer|Uint8Array)=>Array.from(b instanceof Uint8Array?b:new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('');
 const PASSWORD_ITERATIONS=310000;
 const random=(n=32)=>{const b=new Uint8Array(n);crypto.getRandomValues(b);return btoa(String.fromCharCode(...b)).replaceAll('+','-').replaceAll('/','_').replaceAll('=','')};
 async function digest(value:string){return hex(await crypto.subtle.digest('SHA-256',enc.encode(value)))}
-async function passwordHash(password:string,salt:string,iterations=PASSWORD_ITERATIONS){const key=await crypto.subtle.importKey('raw',enc.encode(password),'PBKDF2',false,['deriveBits']);return hex(await crypto.subtle.deriveBits({name:'PBKDF2',salt:enc.encode(salt),iterations,hash:'SHA-256'},key,256))}
+async function passwordHash(password:string,salt:string,iterations=PASSWORD_ITERATIONS){if(!Number.isSafeInteger(iterations)||iterations<1||iterations>PASSWORD_ITERATIONS)throw new Error('Некоректні параметри захисту пароля');return hex(await pbkdf2Async(sha256,password,salt,{c:iterations,dkLen:32,asyncTick:10}))}
 
 export type AuthUser={id:string;email:string;emailVerified:boolean;emailVerifiedAt:string|null};
 export async function newPasswordCredentials(password:string){if(typeof password!=='string'||password.length<8||password.length>1024)throw new Error('Пароль має містити від 8 до 1024 символів');const salt=random(18);return{salt,passwordHash:await passwordHash(password,salt),passwordIterations:PASSWORD_ITERATIONS}}
