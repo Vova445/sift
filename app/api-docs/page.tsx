@@ -3,7 +3,7 @@ import { ArrowLeft, ArrowRight, Bot, Braces, Code2, ExternalLink, KeyRound, Shie
 import ApiCodeBlock from './ApiCodeBlock';
 import './api-docs.css';
 
-const production = 'https://sift-app.reviewradar-vova445.workers.dev';
+const production = 'https://sift-app.sift-vova445.workers.dev';
 const endpoint = `${production}/api/v1/analyze`;
 const curlExample = [
   'curl --request POST',

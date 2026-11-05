@@ -5,7 +5,7 @@ const spec = {
     version: '1.0.0',
     description: 'Analyze a public pricing, checkout, or terms page with the same Sift analyzer and Pro account limits as the web app. Requires an active, email-verified Sift Pro account.',
   },
-  servers: [{ url: 'https://sift-app.reviewradar-vova445.workers.dev' }],
+  servers: [{ url: 'https://sift-app.sift-vova445.workers.dev' }],
   security: [{ BearerApiKey: [] }],
   paths: {
     '/api/v1/analyze': {

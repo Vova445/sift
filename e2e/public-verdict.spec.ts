@@ -7,7 +7,7 @@ const report={
 };
 
 test('dashboard creates a minimal Telegram share card and lets its owner revoke the link',async({page})=>{
-  const token='A'.repeat(43),shareUrl=`https://sift-app.reviewradar-vova445.workers.dev/share/${token}`;
+  const token='A'.repeat(43),shareUrl=`https://sift-app.sift-vova445.workers.dev/share/${token}`;
   const operations:string[]=[];
   await page.route('**/api/**',async route=>{
     const request=route.request(),url=new URL(request.url());

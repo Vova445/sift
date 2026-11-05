@@ -8,7 +8,7 @@ Uncaught exceptions and HTTP 5xx responses are written as structured JSON with a
 
 ## Health endpoint and external downtime alerts
 
-`GET /health` returns `200` only when the Worker can query D1; otherwise it returns `503`. Configure an external HTTP uptime monitor to check `https://sift-app.reviewradar-vova445.workers.dev/health` and require HTTP 200. Configure that monitor's own Telegram contact for outages, because an unavailable Worker cannot send its own alert. External monitoring services send their alert after their configured interval and retry policy.
+`GET /health` returns `200` only when the Worker can query D1; otherwise it returns `503`. Configure an external HTTP uptime monitor to check `https://sift-app.sift-vova445.workers.dev/health` and require HTTP 200. Configure that monitor's own Telegram contact for outages, because an unavailable Worker cannot send its own alert. External monitoring services send their alert after their configured interval and retry policy.
 
 The Worker also runs a one-minute scheduled health check. Add a Healthchecks.io check with a one-minute period and grace time, then store its base ping URL as the `UPTIME_PING_URL` Worker secret. The scheduled handler pings only after `/health` succeeds and sends `/fail` if it does not. Enable Healthchecks.io's Telegram integration for dead-man-switch alerts if desired. Keep the ping URL private; it authorizes heartbeat signals.
 
@@ -31,7 +31,7 @@ The `POST /api/internal/monitoring/test-error` route is disabled unless `MONITOR
 
 ```powershell
 $headers = @{ 'x-monitoring-test-token' = '<MONITORING_TEST_TOKEN>' }
-Invoke-WebRequest -Method Post -Uri 'https://sift-app.reviewradar-vova445.workers.dev/api/internal/monitoring/test-error' -Headers $headers
+Invoke-WebRequest -Method Post -Uri 'https://sift-app.sift-vova445.workers.dev/api/internal/monitoring/test-error' -Headers $headers
 ```
 
 The endpoint returns 404 when the token is missing or invalid. The secret grants permission to generate an intentional Worker error, so keep it private and rotate it after a production alert drill.

@@ -46,7 +46,7 @@
         siteStatus.textContent = 'Браузер не дозволяє розширенням працювати на внутрішніх сторінках.';
         return;
       }
-      if (url.hostname === 'sift-app.reviewradar-vova445.workers.dev') {
+      if (url.hostname === 'sift-app.sift-vova445.workers.dev') {
         siteTitle.textContent = 'Ви вже у Sift';
         siteStatus.textContent = 'Поверніться на сторінку, де збираєтеся платити.';
         return;

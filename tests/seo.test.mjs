@@ -14,7 +14,7 @@ import {
 
 test('SEO metadata resolves canonical, Open Graph and Twitter URLs against production origin',()=>{
   const metadata=pageMetadata('/terms','Умови користування — Sift','Правила Sift.');
-  assert.equal(SITE_URL,'https://sift-app.reviewradar-vova445.workers.dev');
+  assert.equal(SITE_URL,'https://sift-app.sift-vova445.workers.dev');
   assert.equal(metadata.alternates.canonical,'/terms');
   assert.equal(metadata.openGraph.url,'/terms');
   assert.equal(metadata.openGraph.images[0].url,OG_IMAGE);

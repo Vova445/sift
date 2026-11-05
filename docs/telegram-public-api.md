@@ -33,7 +33,7 @@ Register the HTTPS webhook after deployment. Telegram will attach the secret hea
 ```sh
 curl --fail-with-body --request POST \
   "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/setWebhook" \
-  --data-urlencode "url=https://sift-app.reviewradar-vova445.workers.dev/api/telegram/webhook" \
+  --data-urlencode "url=https://sift-app.sift-vova445.workers.dev/api/telegram/webhook" \
   --data-urlencode "secret_token=${TELEGRAM_WEBHOOK_SECRET}" \
   --data-urlencode 'allowed_updates=["message"]'
 ```

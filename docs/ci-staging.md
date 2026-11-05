@@ -36,4 +36,4 @@ The repository's `master` branch should require the `CI / verify` status check, 
 
 ## Preview
 
-After a same-repository pull request passes `CI / verify`, Actions applies staging migrations and deploys `https://sift-app-preview.reviewradar-vova445.workers.dev`. This is one shared staging Worker and D1, so concurrent previews are serialized. It is not a production deployment.
+After a same-repository pull request passes `CI / verify`, Actions applies staging migrations and deploys `https://sift-app-preview.sift-vova445.workers.dev`. This is one shared staging Worker and D1, so concurrent previews are serialized. It is not a production deployment.

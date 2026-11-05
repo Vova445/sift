@@ -44,7 +44,7 @@ test('Sift handoff keeps the URL in a fragment and rejects untrusted app origins
   const link = detector.createSiftUrl('https://shop.example/checkout?email=buyer%40example.test&token=SECRET#payment');
   const parsed = new URL(link);
   const payload = new URLSearchParams(parsed.hash.slice(1)).get('sift-scan');
-  assert.equal(parsed.origin, 'https://sift-app.reviewradar-vova445.workers.dev');
+  assert.equal(parsed.origin, 'https://sift-app.sift-vova445.workers.dev');
   assert.equal(parsed.search, '');
   assert.equal(payload, 'https://shop.example/checkout');
   assert.doesNotMatch(link, /buyer|email|SECRET|payment/);

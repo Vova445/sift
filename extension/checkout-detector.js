@@ -1,7 +1,7 @@
 (() => {
   const CHECKOUT_PATH = /(?:^|\/)(?:checkouts?|checkoutnow|checkout[-_](?:external|now|flow|session|payment|review|confirm)|pay|payments?|billing|orders?|cart|bag|purchases?|subscribe|subscriptions?|confirm)(?:\/|$)/i;
   const CHECKOUT_TITLE = /\b(?:checkout|check out|payment|pay now|place (?:your )?order|complete (?:your )?(?:purchase|order)|confirm (?:and )?(?:pay|order)|subscribe)\b/i;
-  const SIFT_ORIGIN = 'https://sift-app.reviewradar-vova445.workers.dev';
+  const SIFT_ORIGIN = 'https://sift-app.sift-vova445.workers.dev';
 
   function isCheckoutPage(rawUrl, title = '') {
     let url;

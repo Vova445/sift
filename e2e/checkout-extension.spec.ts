@@ -20,7 +20,7 @@ test('checkout prompt is local-only, strips URL secrets, and ignores form values
   await expect(root).toBeAttached();
   const link=root.locator('a');
   const href=await link.getAttribute('href');
-  expect(href).toContain('https://sift-app.reviewradar-vova445.workers.dev/');
+  expect(href).toContain('https://sift-app.sift-vova445.workers.dev/');
   expect(href).not.toMatch(/buyer\.private|do-not-share|card-token|4111111111111111|never-share-this/);
   await expect(link).toHaveAttribute('rel',/noreferrer/);
   await expect(link).toHaveAttribute('referrerpolicy','no-referrer');
