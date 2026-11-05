@@ -67,7 +67,9 @@
         "EMAIL_REMINDER_DAYS_BEFORE": "1",
         "WAYFORPAY_MODE": "sandbox",
         "AI_TRANSLATION_ENABLED": "false",
-        "DARK_PATTERN_AI_ENABLED": "false"
+        "DARK_PATTERN_AI_ENABLED": "false",
+        "TURNSTILE_SITE_KEY": "1x00000000000000000000AA",
+        "TURNSTILE_TEST_MODE": "true"
       },
       "d1_databases": [
         {
