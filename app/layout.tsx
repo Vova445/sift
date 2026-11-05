@@ -4,6 +4,7 @@ import './globals.css';import './onboarding.css';import './mobile-modals.css';im
 import './product-tab-navigation.css';
 import './funnel-analytics.css';
 import './service-status.css';
+import './funnel-analytics-ph7.css';
 import FunnelAnalyticsConsent from './FunnelAnalyticsConsent';
 import ProductTabNavigation from './ProductTabNavigation';
 

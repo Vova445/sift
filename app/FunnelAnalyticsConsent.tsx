@@ -3,8 +3,6 @@
 import {useEffect,useState} from 'react';
 import {LockKeyhole,Settings2} from 'lucide-react';
 import {privacySignalPresent,setAnalyticsConsent,trackFunnelVisit} from '../lib/funnel-analytics-client';
-import './funnel-analytics.css';
-import './funnel-analytics-ph7.css';
 
 export default function FunnelAnalyticsConsent(){
   const[open,setOpen]=useState(false),[known,setKnown]=useState(false);
