@@ -10,7 +10,7 @@ export async function syncWayForPaySubscription(userId:string){
   if(!row?.recurring_order_reference||row.cancel_at_period_end||row.status==='canceled')return;
   if(row.last_provider_sync_at&&now.getTime()-Date.parse(row.last_provider_sync_at)<10*60*1000)return;
   try{
-    const response=await fetch('https://api.wayforpay.com/regularApi',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({requestType:'STATUS',merchantAccount:account,merchantPassword:password,orderReference:row.recurring_order_reference})});
+    const response=await fetch('https://api.wayforpay.com/regularApi',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({requestType:'STATUS',merchantAccount:account,merchantPassword:password,orderReference:row.recurring_order_reference}),signal:AbortSignal.timeout(5000)});
     if(!response.ok)return;
     const data=await response.json() as {reasonCode?:number|string;orderReference?:string;lastPayedDate?:number|string|null;lastPayedStatus?:string|null};
     if(Number(data.reasonCode)!==4100||data.orderReference!==row.recurring_order_reference)return;

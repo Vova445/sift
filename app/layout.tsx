@@ -1,6 +1,6 @@
 import type {Metadata,Viewport} from 'next';
 import {pageMetadata,serializeStructuredData,SITE_URL} from '../lib/seo';
-import './globals.css';import './mobile-modals.css';import './responsive-layout.css';import './verification.css';import './password.css';import './anti-abuse.css';import './legal-consent.css';
+import './globals.css';import './onboarding.css';import './mobile-modals.css';import './responsive-layout.css';import './verification.css';import './password.css';import './anti-abuse.css';import './legal-consent.css';
 
 const description='Перевірте ціну, автопродовження, повернення та умови скасування перед оплатою.';
 const jsonLdMarkup=serializeStructuredData();

@@ -7,6 +7,7 @@
   },
   "scripts": {
     "dev": "vinext dev",
+    "dev:local": "node scripts/dev-local.mjs",
     "build": "vinext build && node scripts/wrap-worker-entry.mjs",
     "start": "vinext start",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next --ignore-pattern .wrangler --ignore-pattern test-results --ignore-pattern playwright-report",
@@ -14,6 +15,8 @@
     "eval:analyzer": "node scripts/evaluate-analyzer.mjs",
     "test:integration": "node scripts/test-integration.mjs",
     "test:e2e": "playwright test",
+    "test:checkout-extension": "node --test tests/checkout-detector.test.mjs",
+    "test:e2e:checkout-extension": "playwright test checkout-extension.spec.ts",
     "test:e2e:install": "playwright install chromium && playwright install chromium-headless-shell",
     "test:e2e:update": "playwright test --update-snapshots",
     "test:billing": "node --test tests/subscription-lifecycle.test.mjs tests/billing-event-key.test.mjs tests/billing-security.test.mjs",
@@ -40,6 +43,7 @@
     "framer-motion": "^13.2.0",
     "lucide-react": "^1.41.0",
     "next": "16.2.6",
+    "postal-mime": "^4.2.0",
     "react": "19.2.6",
     "react-dom": "19.2.6"
   },

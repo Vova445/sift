@@ -113,6 +113,35 @@ export default {
       throw error;
     }
   },
+  async email(message, env, ctx) {
+    const secret = env.DUNNING_CRON_SECRET;
+    const reject = (reason) => { if (typeof message.setReject === 'function') message.setReject(reason); };
+    if (!secret) { reject('Subscription Radar is not configured.'); return; }
+    if (!Number.isFinite(message.rawSize) || message.rawSize <= 0 || message.rawSize > 1048576) {
+      reject('Email is empty or exceeds the 1 MiB Subscription Radar limit.');
+      return;
+    }
+    const authResults = message.headers?.get('Authentication-Results') || '';
+    try {
+      const request = new Request('https://sift.internal/api/internal/subscription-radar/email', {
+        method: 'POST',
+        headers: {
+          authorization: 'Bearer ' + secret,
+          'content-type': 'message/rfc822',
+          'content-length': String(message.rawSize),
+          'x-radar-recipient': message.to || '',
+          'x-radar-auth-results': authResults.slice(0, 4000),
+        },
+        body: message.raw,
+      });
+      const response = await app.fetch(request, env, ctx);
+      if (response.status >= 500) throw new Error('Subscription Radar temporarily failed with HTTP ' + response.status);
+      if (!response.ok) reject('Email could not be verified for Subscription Radar.');
+    } catch (error) {
+      console.error(JSON.stringify({ event: 'subscription_radar.email_failed', errorName: error instanceof Error ? error.name : 'Error' }));
+      throw error;
+    }
+  },
   async scheduled(controller, env, ctx) {
     if (controller.cron === '*/1 * * * *') {
       const requestId = crypto.randomUUID();
@@ -136,10 +165,24 @@ export default {
       return;
     }
 
+    if (controller.cron === '0 8 * * 1') {
+      const secret = env.DUNNING_CRON_SECRET;
+      if (!secret) throw new Error('DUNNING_CRON_SECRET is not configured');
+      const request = new Request('https://sift.internal/api/internal/tos-monitoring', {
+        method: 'POST',
+        headers: { authorization: 'Bearer ' + secret, 'x-scheduled-cron': controller.cron },
+      });
+      const response = await app.fetch(request, env, ctx);
+      if (!response.ok) throw new Error('terms monitoring returned HTTP ' + response.status);
+      return;
+    }
+
     const jobs = [
       ['guest report retention', '/api/internal/privacy-retention'],
       ['billing dunning', '/api/internal/billing-dunning'],
       ['email reminders', '/api/internal/email-reminders'],
+      ['subscription radar reminders', '/api/internal/subscription-radar'],
+      ['terms monitoring', '/api/internal/tos-monitoring'],
     ];
     try {
       const secret = env.DUNNING_CRON_SECRET;

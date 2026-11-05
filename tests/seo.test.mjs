@@ -32,6 +32,8 @@ test('sitemap contains only public, canonical marketing and policy routes',()=>{
     `${SITE_URL}/privacy`,
     `${SITE_URL}/terms`,
     `${SITE_URL}/refund`,
+    `${SITE_URL}/domains`,
+    `${SITE_URL}/domains/methodology`,
   ]);
   assert.equal(new Set(urls).size,urls.length);
   assert.ok(urls.every((url)=>url.startsWith('https://')));

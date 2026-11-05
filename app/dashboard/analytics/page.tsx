@@ -2,6 +2,7 @@
 
 import {useEffect,useMemo,useState} from 'react';
 import {ArrowLeft,ArrowRight,RefreshCw,ShieldCheck,Users,ScanSearch,UserRoundPlus,PanelTop,CreditCard} from 'lucide-react';
+import AchievementExperiments from './AchievementExperiments';
 import './analytics.css';
 
 type Funnel={visit:number;analyze:number;signup:number;paywall:number;pay:number};
@@ -21,6 +22,7 @@ export default function AnalyticsPage(){
   const conversions=useMemo(()=>steps.map((step,index)=>({key:step.key,percent:index===0?100:funnel&&funnel[steps[index-1]!.key]?Math.round(funnel[step.key]/funnel[steps[index-1]!.key]*100):0})),[funnel]);
   return <main className="funnelPage"><div className="funnelShell"><header className="funnelTop"><a href="/dashboard"><ArrowLeft/>До Dashboard</a><span><ShieldCheck/>ПРИВАТНА ВОРОНКА</span></header><section className="funnelIntro"><div><small>PRODUCT ANALYTICS · 30 ДНІВ</small><h1>Шлях від візиту<br/><em>до оплати.</em></h1><p>Лише агреговані етапи від користувачів, які дали згоду. Без email, URL сторінок і рекламних трекерів.</p></div><button className="funnelRefresh" onClick={()=>void load()} disabled={busy}><RefreshCw className={busy?'funnelSpin':''}/>Оновити</button></section>
     {error?<section className="funnelEmpty" role="alert"><ShieldCheck/><b>{error}</b><p>Перевірте адміністративний доступ та налаштування сервера.</p><button onClick={()=>void load()}>Спробувати знову <ArrowRight/></button></section>:<section className="funnelSteps" aria-label="Конверсійна воронка">{steps.map((step,index)=>{const value=funnel?.[step.key]||0,Icon=step.Icon;return <article className="funnelStep" key={step.key}><div className="funnelStepHead"><span className="funnelStepIcon"><Icon/></span><small>0{index+1}</small></div><div className="funnelStepValue">{busy?'—':value}</div><b>{step.label}</b><p>{step.hint}</p><div className="funnelBarTrack"><span style={{width:`${Math.max(value?8:0,Math.round(value/largest*100))}%`}}/></div><div className="funnelStepFoot"><span>{index?`${conversions[index]?.percent||0}% з попереднього`:data?.periodDays?`${data.periodDays} днів`:'Останні 30 днів'}</span>{index>0&&funnel&&funnel[steps[index-1]!.key]>value&&<span>−{funnel[steps[index-1]!.key]-value}</span>}</div></article>})}</section>}
+    <AchievementExperiments/>
     <footer className="funnelFoot"><span><ShieldCheck/>Псевдонімізовані сесії · автоматичне видалення через 90 днів</span>{data&&<span>Оновлено {new Date(data.generatedAt).toLocaleString('uk-UA')}</span>}</footer>
   </div></main>;
 }

@@ -1,0 +1,25 @@
+{
+  "manifest_version": 3,
+  "name": "Sift — Checkout Detector",
+  "short_name": "Sift",
+  "version": "1.0.0",
+  "description": "Підказує перевірити умови перед оплатою. Не читає й не надсилає дані форм.",
+  "icons": {
+    "128": "icons/sift-logo.png"
+  },
+  "permissions": [
+    "activeTab",
+    "scripting"
+  ],
+  "optional_host_permissions": [
+    "http://*/*",
+    "https://*/*"
+  ],
+  "action": {
+    "default_title": "Sift: перевірка перед оплатою",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "128": "icons/sift-logo.png"
+    }
+  }
+}

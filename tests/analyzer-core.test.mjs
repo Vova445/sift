@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { cleanPageHtml, evaluateClarity, extractPurchaseTerms } from '../lib/analyzer-core.js';
+import { cleanPageHtml, evaluateClarity, extractPurchaseTerms, unresolvedConditions } from '../lib/analyzer-core.js';
 
 const finding = (kind) => ({ kind, title: kind, summary: '', evidence: '', severity: 'medium' });
 const completeFindings = ['renewal', 'refund', 'cancellation'];
@@ -79,4 +79,69 @@ test('price parser caps evidence at eight distinct prices', () => {
   const { prices, findings } = extractPurchaseTerms(body);
   assert.equal(prices.length, 8);
   assert.equal(findings.filter(({ kind }) => kind === 'price').length, 8);
+});
+
+test('annual price details annualize only explicit billing periods and keep currencies separate', () => {
+  const { priceDetails } = extractPurchaseTerms('Pricing: $12.50 per month, €9 annually, 150 UAH monthly, £6 per year.');
+  assert.deepEqual(priceDetails, [
+    { amount: 12.5, currency: 'USD', cadence: 'monthly', annualAmount: 150, firstYearAmount: 150, introMonths: 0 },
+    { amount: 9, currency: 'EUR', cadence: 'yearly', annualAmount: 9, firstYearAmount: 9, introMonths: 0 },
+    { amount: 150, currency: 'UAH', cadence: 'monthly', annualAmount: 1800, firstYearAmount: 1800, introMonths: 0 },
+    { amount: 6, currency: 'GBP', cadence: 'yearly', annualAmount: 6, firstYearAmount: 6, introMonths: 0 },
+  ]);
+  const unknown = extractPurchaseTerms('Subscription price is $49.99.').priceDetails[0];
+  assert.equal(unknown.annualAmount, null);
+  assert.equal(unknown.cadence, null);
+});
+
+test('cancellation penalties surface as evidence without changing the clarity score formula', () => {
+  const { findings } = extractPurchaseTerms('The plan renews monthly. Early termination fee applies if you cancel before the end of the term.');
+  const penalty = findings.find(({ kind }) => kind === 'penalty');
+  assert.ok(penalty);
+  assert.match(penalty.evidence, /Early termination fee/i);
+  assert.equal(evaluateClarity(findings, ['$10']).score, evaluateClarity(findings.filter(item => item.kind !== 'penalty'), ['$10']).score);
+});
+
+test('trial extraction recognizes free month offers on subscription pricing pages',()=>{
+  const {findings}=extractPurchaseTerms('The Individual plan is $11.99/month, first month free for new subscribers.');
+  assert.match(findings.find(({kind})=>kind==='trial')?.evidence||'',/first month free/i);
+  const {priceDetails}=extractPurchaseTerms('The Individual plan is $11.99/month, first month free for new subscribers.');
+  assert.deepEqual(priceDetails[0],{amount:11.99,currency:'USD',cadence:'monthly',annualAmount:143.88,firstYearAmount:131.89,introMonths:1});
+  const spotify=extractPurchaseTerms('Premium Individual only. $0 for 1 month, then $12.99 per month after.').priceDetails[1];
+  assert.deepEqual(spotify,{amount:12.99,currency:'USD',cadence:'monthly',annualAmount:155.88,firstYearAmount:142.89,introMonths:1});
+});
+
+test('cancellation extraction recognizes cancel anytime wording',()=>{
+  const {findings}=extractPurchaseTerms('The service renews monthly. No commitment. Cancel anytime.');
+  assert.ok(findings.some(({kind})=>kind==='cancellation'));
+});
+
+test('ambiguous and conditional evidence is marked low confidence and cannot support a buy verdict',()=>{
+  const text='Pricing starts at $10 per month. The subscription may automatically renew depending on your region. Refunds may be available within 30 days, subject to local rules. Cancellation policy for this subscription may vary by country.';
+  const {findings,prices}=extractPurchaseTerms(text);
+  assert.equal(findings.find(item=>item.kind==='price').confidence,'low');
+  assert.equal(findings.find(item=>item.kind==='renewal').confidence,'low');
+  assert.equal(findings.find(item=>item.kind==='refund').confidence,'low');
+  assert.equal(findings.find(item=>item.kind==='cancellation').confidence,'low');
+  for(const item of findings)assert.ok(item.evidence.length>0);
+  const evaluation=evaluateClarity(findings,prices);
+  assert.notEqual(evaluation.decision,'buy');
+  assert.match(evaluation.verdict,/не вдалося впевнено визначити/);
+  assert.ok(evaluation.score<90);
+  const otherwiseComplete=completeFindings.map(finding).concat({kind:'trial',title:'Пробний період',summary:'Не вдалося впевнено визначити',evidence:'A trial may be offered in some regions.',confidence:'low'});
+  const conservative=evaluateClarity(otherwiseComplete,['$20']);
+  assert.equal(conservative.decision,'wait');
+  assert.match(conservative.verdict,/пробний період/);
+});
+
+test('missing conditions are explicitly unknown and point back to the source URL',()=>{
+  const sourceUrl='https://public.example/terms';
+  const unknowns=unresolvedConditions([],[],[],sourceUrl);
+  assert.deepEqual(unknowns.map(item=>item.kind),['price','renewal','cancellation','refund','trial','penalty']);
+  for(const item of unknowns){
+    assert.equal(item.confidence,'low');
+    assert.equal(item.sourceUrl,sourceUrl);
+    assert.equal(item.evidence,'');
+    assert.match(item.summary,/Не вдалося/);
+  }
 });

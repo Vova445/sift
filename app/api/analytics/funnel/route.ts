@@ -1,14 +1,10 @@
 import {env} from 'cloudflare:workers';
-import {currentUser} from '../../../../lib/auth';
+import {requireSupportAdmin} from '../../../../lib/support-admin';
 import {ensureFunnelAnalyticsDb} from '../../../../lib/funnel-analytics';
 
 export async function GET(req:Request){
-  const user=await currentUser(req);
-  if(!user)return Response.json({error:'Увійдіть в акаунт.'},{status:401});
-  if(!user.emailVerified)return Response.json({error:'Підтвердіть email.'},{status:403});
-  const adminEmail=(env as unknown as Record<string,string|undefined>).ANALYTICS_ADMIN_EMAIL?.trim().toLowerCase();
-  if(!adminEmail)return Response.json({error:'Адміністративний доступ до аналітики не налаштовано.'},{status:503});
-  if(user.email.toLowerCase()!==adminEmail)return Response.json({error:'Немає доступу.'},{status:403});
+  const auth=await requireSupportAdmin(req);
+  if('response'in auth)return auth.response;
   try{
     await ensureFunnelAnalyticsDb();
     const since=new Date(Date.now()-30*864e5).toISOString();

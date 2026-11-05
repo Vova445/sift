@@ -1,0 +1,5 @@
+.extensionPrefill{display:flex;align-items:center;gap:9px;margin:0 0 10px;padding:10px 12px;border:1px solid #cfe0b6;border-radius:9px;background:#f2f9e9;color:#334726;text-align:left;font-size:10px;line-height:1.45}
+.extensionPrefill>svg{flex:none}
+.extensionPrefill>span{min-width:0}
+.extensionPrefill button{width:28px;height:28px;flex:none;display:grid;place-items:center;border:0;border-radius:50%;background:transparent;color:#52604b}
+.extensionPrefill button:hover{background:#e3eed7}

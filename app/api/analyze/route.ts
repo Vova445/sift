@@ -5,6 +5,7 @@ import {can} from '../../../lib/entitlements';
 import {ANALYZE_REQUESTS_PER_MINUTE} from '../../../lib/request-rate-limit-policy.js';
 import {enforceRateLimit,rateLimitIdentities,rateLimitedResponse} from '../../../lib/request-rate-limit';
 import {recordFunnelEventSafely} from '../../../lib/funnel-analytics';
+import {recordDomainObservation} from '../../../lib/domain-index';
 
 export async function POST(req:Request){
  let ingressLimit:{allowed:boolean;retryAfter:number};
@@ -37,6 +38,7 @@ export async function POST(req:Request){
   const paidEvidence=await can(user,'full_evidence',{access,translationPlan:access.plan==='one'?'one':null});
   const translationPlan=paidEvidence?access.plan as 'one'|'pro':null;
   const id=await saveScan(body.deviceId,user?.id||null,result,translationPlan,oneReservation);
+  if(user?.emailVerified)await recordDomainObservation(user.id,result).catch(()=>false);
   await recordFunnelEventSafely(body.analyticsSessionId,'analyze');
   freeReservation=null;
   oneReservation=null;

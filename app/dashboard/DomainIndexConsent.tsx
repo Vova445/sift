@@ -1,0 +1,14 @@
+'use client';
+
+import {useEffect,useState} from 'react';
+import Link from 'next/link';
+import {ArrowRight,ChartNoAxesColumn,Check,LoaderCircle,ShieldCheck} from 'lucide-react';
+import './domain-index-consent.css';
+
+type Consent={enabled:boolean;agreedAt:string|null;updatedAt:string|null};
+export default function DomainIndexConsent({emailVerified}:{emailVerified:boolean}){
+  const [consent,setConsent]=useState<Consent|null>(null),[busy,setBusy]=useState(false),[notice,setNotice]=useState(''),[error,setError]=useState('');
+  useEffect(()=>{let active=true;fetch('/api/domain-index/consent',{cache:'no-store'}).then(async response=>{const body=await response.json();if(!response.ok)throw new Error(body.error||'Не вдалося завантажити налаштування');if(active)setConsent(body)}).catch(reason=>{if(active)setError(reason instanceof Error?reason.message:'Не вдалося завантажити налаштування')});return()=>{active=false}},[]);
+  async function toggle(){if(!consent||busy||!emailVerified)return;setBusy(true);setError('');setNotice('');try{const enabled=!consent.enabled,response=await fetch('/api/domain-index/consent',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({enabled})}),body=await response.json();if(!response.ok)throw new Error(body.error||'Не вдалося оновити згоду');setConsent(body);setNotice(enabled?`Участь увімкнено. Опрацьовано попередніх звітів: ${body.processedReports||0}.`:'Участь вимкнено, попередні внески видалено.')}catch(reason){setError(reason instanceof Error?reason.message:'Не вдалося оновити згоду. Спробуйте ще раз.')}finally{setBusy(false)}}
+  return <section className="domainConsentPanel" aria-labelledby="domain-consent-title"><header><span><ChartNoAxesColumn aria-hidden="true"/></span><div><small>ДОБРОВІЛЬНА УЧАСТЬ</small><h2 id="domain-consent-title">Допоможіть покращити індекс сервісів</h2></div>{consent&&<b className={consent.enabled?'domainConsentOn':'domainConsentOff'}>{consent.enabled?'УЧАСТЬ УВІМКНЕНО':'ВИМКНЕНО ЗА ЗАМОВЧУВАННЯМ'}</b>}</header><p>За згодою один останній сигнал від вашого акаунта допоможе оцінити, наскільки повно Sift знаходить ціну, продовження, скасування й повернення. Email, точний URL, цитати та текст звіту не показуються.</p><div className="domainConsentFoot"><Link href="/domains/methodology">Відкрита методологія <ArrowRight aria-hidden="true"/></Link>{!emailVerified?<span>Підтвердіть email, щоб змінювати налаштування.</span>:consent?<button type="button" onClick={()=>void toggle()} disabled={busy}>{busy?<LoaderCircle className="domainConsentSpin"/>:<ShieldCheck aria-hidden="true"/>}{consent.enabled?'Вимкнути та видалити внески':'Дозволити участь'}</button>:<span>Завантажуємо налаштування…</span>}</div>{notice&&<p className="domainConsentNotice" role="status"><Check aria-hidden="true"/>{notice}</p>}{error&&<p className="domainConsentError" role="alert">{error}</p>}</section>;
+}

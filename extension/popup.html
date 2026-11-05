@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sift Checkout Detector</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <main class="popup">
+    <header class="brand">
+      <img src="icons/sift-logo.png" alt="" width="38" height="38">
+      <div><strong>SIFT</strong><small>CHECKOUT DETECTOR</small></div>
+      <span class="liveDot" aria-hidden="true"></span>
+    </header>
+    <section class="intro">
+      <span class="eyebrow">BEFORE YOU PAY</span>
+      <h1>Перевірте умови до оплати.</h1>
+      <p>Sift помітить checkout-сторінку й запропонує перевірити її перед оплатою.</p>
+    </section>
+    <section class="siteCard" aria-labelledby="site-title">
+      <div class="siteIcon" aria-hidden="true">↗</div>
+      <div class="siteCopy"><small>ПОТОЧНИЙ САЙТ</small><b id="site-title">Перевіряємо вкладку…</b><span id="site-status" role="status" aria-live="polite">Вміст форм не читається і не передається.</span></div>
+    </section>
+    <button id="enable-site" class="primary" type="button" disabled>Увімкнути детектор тут <span aria-hidden="true">→</span></button>
+    <p id="feedback" class="feedback" role="status" aria-live="polite"></p>
+    <footer><span class="privacyMark" aria-hidden="true">✓</span><p>Дозвіл запитується лише для цього сайту. Відкрити Sift можна тільки кнопкою в підказці.</p></footer>
+  </main>
+  <script src="popup.js"></script>
+</body>
+</html>

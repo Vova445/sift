@@ -114,11 +114,35 @@ test('analyzer success path connects cleaned HTML, parsed price evidence and det
   assert.equal(first.title, 'Subscription Terms');
   assert.deepEqual(first.prices, ['$12']);
   assert.deepEqual(first.findings.map(({ kind }) => kind), ['renewal', 'refund', 'cancellation', 'price']);
+  for (const item of first.findings) {
+    assert.equal(item.sourceUrl, 'https://public.example/terms');
+    assert.ok(['high', 'medium', 'low'].includes(item.confidence));
+    assert.ok(item.evidence.length > 0);
+  }
+  assert.ok(first.unknowns.some(({ kind }) => kind === 'trial'));
+  assert.ok(first.unknowns.some(({ kind }) => kind === 'penalty'));
   assert.equal(first.score, 90);
   assert.equal(first.decision, 'buy');
   assert.equal(first.score, second.score);
   assert.equal(first.decision, second.decision);
   assert.deepEqual(first.prices, second.prices);
+});
+
+test('ambiguous live-page language stays unknown through the complete analyzer pipeline',async()=>{
+  const clauses='Pricing starts at $10 per month. The subscription may automatically renew depending on your region. Refunds may be available within 30 days, subject to local rules. Cancellation policy for this subscription may vary by country.';
+  const filler=Array.from({length:100},(_,index)=>`Additional terms clause ${index} describes general service information.`).join(' ');
+  const html=`<html><head><title>Subscription Conditions</title></head><body><main>${clauses} ${filler}</main></body></html>`;
+  const fetchImpl=request=>{const url=new URL(request);if(url.hostname==='cloudflare-dns.com')return dnsResponse(url);return new Response(html,{headers:{'content-type':'text/html; charset=utf-8'}})};
+  const result=await analyzeUrl('https://public.example/conditions',{fetchImpl});
+  for(const kind of ['price','renewal','refund','cancellation']){
+    const finding=result.findings.find(item=>item.kind===kind);
+    assert.equal(finding?.confidence,'low',kind);
+    assert.ok(finding?.evidence.length);
+    assert.equal(finding?.sourceUrl,'https://public.example/conditions');
+  }
+  assert.equal(result.decision,'wait');
+  assert.match(result.verdict,/не вдалося впевнено визначити/);
+  assert.ok(result.unknowns.some(item=>item.kind==='penalty'&&item.confidence==='low'));
 });
 
 test('8-second overall deadline aborts a hanging request', async () => {

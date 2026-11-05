@@ -1,6 +1,6 @@
 'use client';
 
-export type ClientFunnelStage='visit'|'paywall';
+export type ClientFunnelStage='visit'|'analyze'|'paywall';
 const CONSENT_KEY='sift-funnel-consent';
 const SESSION_KEY='sift-funnel-session';
 let visitPromise:Promise<void>|null=null;

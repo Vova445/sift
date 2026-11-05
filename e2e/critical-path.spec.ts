@@ -30,6 +30,13 @@ async function fulfillJson(route: Route, value: unknown, status = 200) {
   await route.fulfill({ status, contentType: 'application/json; charset=utf-8', body: JSON.stringify(value) });
 }
 
+async function waitForClientHydration(page: Page) {
+  await page.waitForFunction(() => {
+    const button = document.querySelector('.navright button.dark');
+    return Boolean(button && Object.keys(button).some(key => key.startsWith('__reactProps')));
+  }, null, { timeout: 20_000 });
+}
+
 async function installCriticalPathMocks(page: Page) {
   let report: ReturnType<typeof testReport> | null = null;
   let paid = false;
@@ -102,7 +109,10 @@ async function installCriticalPathMocks(page: Page) {
 
 test('signup → analyze → sandbox checkout → reopen saved report', async ({ page }) => {
   await installCriticalPathMocks(page);
+  const authBootstrap = page.waitForResponse(response => new URL(response.url()).pathname === '/api/auth/me');
   await page.goto('/');
+  await authBootstrap;
+  await waitForClientHydration(page);
   const analyticsConsent=page.getByRole('complementary',{name:'Налаштування аналітики'});
   if(await analyticsConsent.isVisible())await analyticsConsent.getByRole('button',{name:'Ні, дякую'}).click();
 

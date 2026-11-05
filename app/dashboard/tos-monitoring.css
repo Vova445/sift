@@ -1,0 +1,99 @@
+.tosMonitorCard {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 14px 20px;
+  align-items: start;
+  margin-top: 18px;
+  padding: 18px;
+  border: 1px solid #dce4d8;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #f7faef, #fff 72%);
+}
+
+.tosMonitorHeading > b {
+  display: block;
+  color: #151a14;
+  font-size: 14px;
+  font-weight: 750;
+}
+
+.tosMonitorHeading p {
+  max-width: 56ch;
+  margin: 6px 0 0;
+  color: #687166;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.tosMonitorHeading > small,
+.tosMonitorError {
+  display: block;
+  margin-top: 8px;
+  color: #737b70;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.tosMonitorError { color: #a64537; }
+
+.tosMonitorCard > button {
+  min-width: 110px;
+  min-height: 42px;
+  padding: 0 15px;
+  border: 1px solid #11150f;
+  border-radius: 9px;
+  background: #11150f;
+  color: #fff;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .16s ease, color .16s ease, border-color .16s ease, transform .16s ease;
+}
+
+.tosMonitorCard > button:hover:not(:disabled) { transform: translateY(-1px); }
+.tosMonitorCard > button:focus-visible { outline: 3px solid #8269ff; outline-offset: 3px; }
+.tosMonitorCard > button.enabled { border-color: #afd958; background: #b7f55f; color: #11150f; }
+.tosMonitorCard > button:disabled { cursor: not-allowed; opacity: .55; }
+
+.tosMonitorLatest {
+  grid-column: 1 / -1;
+  padding: 14px 16px;
+  border: 1px solid #e5e2fb;
+  border-radius: 11px;
+  background: #f6f4ff;
+}
+
+.tosMonitorLatest > small {
+  display: block;
+  color: #6556d7;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .09em;
+}
+
+.tosMonitorLatest p {
+  margin: 10px 0 0;
+  color: #51505e;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.tosMonitorLatest p b { color: #171625; }
+
+.tosMonitorLimit {
+  display: block;
+  margin: 16px 0 0;
+  color: #737b70;
+  font-size: 12px;
+}
+
+@media (max-width: 640px) {
+  .tosMonitorCard {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+    padding: 15px;
+  }
+
+  .tosMonitorCard > button { width: 100%; min-height: 46px; }
+}

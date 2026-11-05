@@ -1,0 +1,10 @@
+export const DOMAIN_INDEX_MIN_ACCOUNTS:number;
+export const DOMAIN_INDEX_MAX_AGE_DAYS:number;
+export const DOMAIN_INDICATORS:readonly {key:string;label:string}[];
+export function normalizeDomain(input:unknown):string|null;
+export type DomainObservation={clarity_score:number;indicators_json:string|Record<string,unknown>;last_seen_at:string};
+export type DomainIndicatorSummary={key:string;label:string;accountCount:number;sharePercent:number};
+export type DomainIndexSummary={clarityScore:number;sampleCount:number;confidence:'limited'|'moderate'|'higher';indicators:DomainIndicatorSummary[];updatedAt:string};
+export function summarizeDomainObservations(rows:DomainObservation[],now?:Date):DomainIndexSummary|null;
+export type DomainCorrectionInput={domain:string;contactName:string;contactEmail:string;organization:string;message:string;evidenceUrl:string|null;ownerAttests:true};
+export function validateDomainCorrection(input:unknown):{ok:true;value:DomainCorrectionInput}|{ok:false;error:string};

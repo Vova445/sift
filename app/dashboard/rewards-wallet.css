@@ -1,0 +1,25 @@
+.rewardWallet { margin: 0 0 24px; padding: 22px; border: 1px solid var(--line); border-radius: 18px; background: #fff; }
+.rewardWallet > header { display: flex; align-items: center; gap: 13px; margin-bottom: 16px; }
+.rewardWalletIcon { display: grid; width: 42px; height: 42px; flex: 0 0 42px; place-items: center; border-radius: 13px; background: #f0edff; color: #6254d3; }
+.rewardWalletIcon svg { width: 20px; height: 20px; }
+.rewardWallet header > div { min-width: 0; }
+.rewardWallet header small { color: #737b71; font-size: 8px; font-weight: 900; letter-spacing: .13em; }
+.rewardWallet h2 { margin: 4px 0 3px; font-size: 20px; letter-spacing: -.03em; }
+.rewardWallet header p { margin: 0; color: #687166; font-size: 10px; line-height: 1.5; }
+.rewardWalletGrid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 9px; }
+.rewardWalletCard { display: flex; min-width: 0; gap: 10px; padding: 13px; border: 1px solid #e5e9e1; border-radius: 12px; background: #fbfcfa; }
+.rewardWalletCard.available { border-color: #d7e9c0; background: #f6fbee; }
+.rewardWalletCard.capped,.rewardWalletCard.expired { opacity: .7; }
+.rewardWalletCard > span { display: grid; width: 34px; height: 34px; flex: 0 0 34px; place-items: center; border-radius: 10px; background: #edf0e9; color: #5d6558; }
+.rewardWalletCard.available > span { background: #e5f5d1; color: #4e7e20; }
+.rewardWalletCard > span svg { width: 17px; height: 17px; }
+.rewardWalletCard > div { min-width: 0; flex: 1; }
+.rewardWalletTitle { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+.rewardWalletTitle b { font-size: 11px; line-height: 1.4; }
+.rewardWalletTitle strong { flex: 0 0 auto; color: #5d6955; font-size: 8px; }
+.rewardWalletCard p { margin: 6px 0; color: #687166; font-size: 9px; line-height: 1.5; }
+.rewardWalletCard small { color: #727a6f; font-size: 8px; line-height: 1.4; }
+.rewardWalletFootnote { display: flex; align-items: flex-start; gap: 7px; margin: 14px 0 0; color: #747c72; font-size: 9px; line-height: 1.5; }
+.rewardWalletFootnote svg { width: 14px; height: 14px; flex: 0 0 14px; color: #5b8a2b; }
+.rewardWalletError { color: #a43c32; font-size: 11px; }
+@media(max-width:650px){.rewardWallet{padding:16px}.rewardWalletGrid{grid-template-columns:1fr}.rewardWalletCard{padding:12px}}

@@ -7,6 +7,7 @@ import {sessionCookie,verifyUser} from '../../../lib/auth';
 import {deleteAccountData} from '../../../lib/account-deletion';
 import {canonicalAppUrl,sameOriginBillingRequest} from '../../../lib/billing-security.js';
 import {wayForPayConfig} from '../../../lib/wayforpay';
+import {isSupportAdminEmail} from '../../../lib/support-admin';
 
 export async function GET(req:Request){
  const user=await currentUser(req);
@@ -16,8 +17,8 @@ export async function GET(req:Request){
  const history:Awaited<ReturnType<typeof scanHistory>>=await scanHistory(deviceId,user.id),subscription=await subscriptionFor(user.id);
  const payments=await env.DB.prepare(`SELECT order_reference,status,amount_uah,period_start,period_end,created_at,paid_at FROM subscription_payments WHERE user_id=? ORDER BY created_at DESC LIMIT 24`).bind(user.id).all();
  const visibleHistory=await Promise.all(history.map(async item=>await can(user,'full_evidence',{access,translationPlan:item.result.translationPlan})?item:limitHistory([item],'free')[0]));
- const analyticsAdmin=(env as unknown as Record<string,string|undefined>).ANALYTICS_ADMIN_EMAIL?.trim().toLowerCase();
- return Response.json({user,access,subscription,payments:payments.results||[],history:visibleHistory,canViewAnalytics:Boolean(user.emailVerified&&analyticsAdmin&&user.email.toLowerCase()===analyticsAdmin)});
+ const canAccessSupport=Boolean(user.emailVerified&&isSupportAdminEmail(user.email));
+ return Response.json({user,access,subscription,payments:payments.results||[],history:visibleHistory,canViewAnalytics:canAccessSupport,canAccessSupport});
 }
 
 export async function DELETE(req:Request){

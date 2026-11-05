@@ -5,12 +5,13 @@
   "compatibility_date": "2026-05-15",
   "compatibility_flags": ["nodejs_compat"],
   "no_bundle": true,
-  "triggers": { "crons": ["*/1 * * * *", "0 * * * *", "0 2 * * *"] },
+  "triggers": { "crons": ["*/1 * * * *", "0 * * * *", "0 2 * * *", "0 8 * * 1"] },
   "vars": {
     "RATE_LIMIT_EDGE_ENABLED": "true",
     "EMAIL_REMINDER_DAYS_BEFORE": "1",
     "CF_ACCOUNT_ID": "0cd622d5a5fb3204755a63d4f36df48f",
-    "D1_BACKUP_DATABASE_ID": "fa487f7a-ecfb-4968-8820-1214dd736e3c"
+    "D1_BACKUP_DATABASE_ID": "fa487f7a-ecfb-4968-8820-1214dd736e3c",
+    "DARK_PATTERN_AI_ENABLED": "true"
   },
   "assets": { "directory": "dist/client" },
   "d1_databases": [
@@ -63,7 +64,8 @@
         "RATE_LIMIT_EDGE_ENABLED": "false",
         "EMAIL_REMINDER_DAYS_BEFORE": "1",
         "WAYFORPAY_MODE": "sandbox",
-        "AI_TRANSLATION_ENABLED": "false"
+        "AI_TRANSLATION_ENABLED": "false",
+        "DARK_PATTERN_AI_ENABLED": "false"
       },
       "d1_databases": [
         {

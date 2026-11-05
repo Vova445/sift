@@ -12,6 +12,8 @@ export const SITEMAP_ROUTES=[
   {path:'/privacy',changeFrequency:'yearly',priority:0.4},
   {path:'/terms',changeFrequency:'yearly',priority:0.4},
   {path:'/refund',changeFrequency:'yearly',priority:0.4},
+  {path:'/domains',changeFrequency:'weekly',priority:0.7},
+  {path:'/domains/methodology',changeFrequency:'yearly',priority:0.5},
 ] as const;
 
 export function absoluteSiteUrl(path=''){

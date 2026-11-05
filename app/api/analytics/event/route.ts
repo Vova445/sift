@@ -10,7 +10,7 @@ export async function POST(req:Request){
   try{
     const raw=await req.text();if(raw.length>2048)return Response.json({error:'Запит завеликий.'},{status:413});
     const body=JSON.parse(raw) as {stage?:unknown;sessionId?:unknown};
-    if(body.stage!=='visit'&&body.stage!=='paywall')return Response.json({error:'Невідома подія.'},{status:400});
+    if(body.stage!=='visit'&&body.stage!=='analyze'&&body.stage!=='paywall')return Response.json({error:'Невідома подія.'},{status:400});
     if(typeof body.sessionId!=='string'||body.sessionId.length>64)return Response.json({error:'Некоректний ідентифікатор сесії.'},{status:400});
     await ensureFunnelAnalyticsDb();
     const accepted=await recordFunnelEvent(body.sessionId,body.stage);
