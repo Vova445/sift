@@ -9,7 +9,7 @@
   "vars": {
     "RATE_LIMIT_EDGE_ENABLED": "true",
     "EMAIL_REMINDER_DAYS_BEFORE": "1",
-    "APP_BASE_URL": "https://sift-app.reviewradar-vova445.workers.dev",
+    "APP_BASE_URL": "https://sift-app.sift-vova445.workers.dev",
     "WAYFORPAY_MODE": "live",
     "CF_ACCOUNT_ID": "0cd622d5a5fb3204755a63d4f36df48f",
     "D1_BACKUP_DATABASE_ID": "bfbef29e-ba0b-4b41-a7b2-14d34b382023",
@@ -62,7 +62,7 @@
     "preview": {
       "name": "sift-app-preview",
       "vars": {
-        "APP_BASE_URL": "https://sift-app-preview.reviewradar-vova445.workers.dev",
+        "APP_BASE_URL": "https://sift-app-preview.sift-vova445.workers.dev",
         "RATE_LIMIT_EDGE_ENABLED": "false",
         "EMAIL_REMINDER_DAYS_BEFORE": "1",
         "WAYFORPAY_MODE": "sandbox",

@@ -1,6 +1,6 @@
 import type {Metadata} from 'next';
 
-export const SITE_URL='https://sift-app.reviewradar-vova445.workers.dev';
+export const SITE_URL='https://sift-app.sift-vova445.workers.dev';
 export const SITE_NAME='Sift';
 export const OG_IMAGE='/og-image.png';
 export const OG_IMAGE_ALT='Sift допомагає перевірити ціну, автопродовження та повернення перед оплатою.';
