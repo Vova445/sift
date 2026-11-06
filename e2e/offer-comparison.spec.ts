@@ -5,6 +5,7 @@ const finding=(kind:string,title:string,evidence:string)=>({kind,title,summary:'
 
 async function fulfill(route:Route,value:unknown,status=200){await route.fulfill({status,contentType:'application/json; charset=utf-8',body:JSON.stringify(value)})}
 async function waitForHydration(page:import('@playwright/test').Page){await page.waitForFunction(()=>{const button=document.querySelector('.compareExamples button');return Boolean(button&&Object.keys(button).some(key=>key.startsWith('__reactProps')))},null,{timeout:20_000})}
+async function dismissConsent(page:import('@playwright/test').Page){const banner=page.getByRole('complementary',{name:'Налаштування аналітики'});if(await banner.isVisible())await banner.getByRole('button',{name:'Ні, дякую'}).click()}
 
 test('compares two real subscription URLs and keeps the comparison table within every viewport',async({page})=>{
   const sent:string[]=[];
@@ -21,7 +22,8 @@ test('compares two real subscription URLs and keeps the comparison table within 
   await page.goto('/compare');
   await waitForHydration(page);
   if((page.viewportSize()?.width||0)>900){await expect(page.locator('.productSidebar')).toBeVisible();await expect(page.locator('.productSidebarNav a')).toHaveCount(5)}
-  else{await expect(page.locator('.productTabNav')).toBeVisible();await expect(page.locator('.productTabNav a')).toHaveCount(5)}
+  else{await expect(page.locator('.productTabNav')).toBeVisible();await expect(page.locator('.productTabNav a')).toHaveCount(6)}
+  await dismissConsent(page);
   await page.getByRole('button',{name:'Spotify Premium'}).click();
   await expect(page.getByLabel(/Перша пропозиція/)).toHaveValue(urls.left);
   await expect(page.getByLabel(/Друга пропозиція/)).toHaveValue(urls.right);
@@ -42,6 +44,7 @@ test('free plan blocks a comparison when fewer than two scans remain',async({pag
   await page.route('**/api/history**',route=>fulfill(route,{items:[],access:{plan:'free',credits:0,used:2,limit:3}}));
   await page.route('**/api/analyze',async route=>{analyzeCalls++;return fulfill(route,{})});
   await page.goto('/compare');
+  await dismissConsent(page);
   await expect(page.getByText(/потрібно 2 перевірки/i)).toBeVisible();
   await expect(page.getByRole('link',{name:/Тарифи/})).toHaveAttribute('href','/#pricing');
   await expect(page.getByRole('button',{name:/Порівняти · спише 2 перевірки/})).toBeDisabled();
@@ -52,7 +55,7 @@ test('the same URL is rejected before either analysis starts',async({page})=>{
   let analyzeCalls=0;
   await page.route('**/api/history**',route=>fulfill(route,{items:[],access:{plan:'free',credits:0,used:0,limit:3}}));
   await page.route('**/api/analyze',async route=>{analyzeCalls++;return fulfill(route,{})});
-  await page.goto('/compare');await waitForHydration(page);
+  await page.goto('/compare');await waitForHydration(page);await dismissConsent(page);
   await page.getByRole('button',{name:'Spotify Premium'}).click();
   await page.getByLabel(/Друга пропозиція/).fill(urls.left);
   await page.getByRole('button',{name:/Порівняти · спише 2 перевірки/}).click();
@@ -67,7 +70,7 @@ test('mixed currencies stay visible without declaring a winner',async({page})=>{
     const terms=['renewal','cancellation','refund','trial','penalty'].map(kind=>finding(kind,kind,'Terms are listed on the page.'));
     await fulfill(route,{id:left?'spotify-usd':'apple-eur',url,host:left?'spotify.com':'apple.com',title:left?'Spotify Premium':'Apple Music',score:left?74:79,decision:'wait',verdict:'Звірте умови.',prices:[left?'$12':'€10'],priceDetails:[{amount:left?12:10,currency:left?'USD':'EUR',cadence:'monthly',annualAmount:left?144:120}],findings:terms,access:{plan:'pro',credits:0,used:1,limit:0}});
   });
-  await page.goto('/compare');await waitForHydration(page);
+  await page.goto('/compare');await waitForHydration(page);await dismissConsent(page);
   await page.getByRole('button',{name:'Spotify Premium'}).click();
   await page.getByRole('button',{name:/Порівняти · спише 2 перевірки/}).click();
   await expect(page.getByRole('heading',{name:'Поруч, за однаковими критеріями'})).toBeVisible();

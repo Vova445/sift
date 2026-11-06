@@ -8,21 +8,22 @@ import './subscription-radar.css';
 type RadarItem={id:string;service_name:string;amount_minor:number;currency:string;next_charge_date:string;source_count:number};
 type RadarState={configured:boolean;address:string|null;addressEnabled:boolean;items:RadarItem[];receiptSummary:Record<string,number>;remindersEnabled:boolean;reminderConfigured:boolean;rawEmailStorage:'never';metadataRetentionDays:number;notice?:string;error?:string};
 type PendingAction={itemId?:string;action?:'purge_data'|'disable'|'rotate';title:string;description:string;confirmLabel:string}|null;
+function normalizeRadar(value:Partial<RadarState>):RadarState{return{...value,configured:value.configured===true,address:typeof value.address==='string'?value.address:null,addressEnabled:value.addressEnabled===true,items:Array.isArray(value.items)?value.items:[],receiptSummary:value.receiptSummary&&typeof value.receiptSummary==='object'?value.receiptSummary:{},remindersEnabled:value.remindersEnabled===true,reminderConfigured:value.reminderConfigured===true,rawEmailStorage:'never',metadataRetentionDays:Number.isFinite(value.metadataRetentionDays)?Number(value.metadataRetentionDays):7}}
 
 const money=(minor:number,currency:string)=>new Intl.NumberFormat('uk-UA',{style:'currency',currency,maximumFractionDigits:currency==='JPY'?0:2}).format(minor/(currency==='JPY'?1:100));
 const dateLabel=(value:string)=>new Date(`${value}T12:00:00.000Z`).toLocaleDateString('uk-UA',{weekday:'short',day:'numeric',month:'long',year:'numeric',timeZone:'Europe/Kyiv'});
 
 export default function SubscriptionRadar(){
   const[state,setState]=useState<RadarState|null>(null),[busy,setBusy]=useState(false),[message,setMessage]=useState(''),[pendingAction,setPendingAction]=useState<PendingAction>(null);
-  useEffect(()=>{let active=true;fetch('/api/subscription-radar',{cache:'no-store'}).then(async response=>{const body=await response.json() as RadarState;if(!response.ok)throw new Error(body.error||'Не вдалося завантажити Subscription Radar');if(active)setState(body)}).catch(error=>{if(active)setMessage(error instanceof Error?error.message:'Не вдалося завантажити дані')});return()=>{active=false}},[]);
+  useEffect(()=>{let active=true;fetch('/api/subscription-radar',{cache:'no-store'}).then(async response=>{const body=await response.json() as Partial<RadarState>&{error?:string};if(!response.ok)throw new Error(body.error||'Не вдалося завантажити Subscription Radar');if(active)setState(normalizeRadar(body))}).catch(error=>{if(active)setMessage(error instanceof Error?error.message:'Не вдалося завантажити дані')});return()=>{active=false}},[]);
 
-  async function post(action:string,extra:Record<string,unknown>={}){if(busy)return;setBusy(true);setMessage('');try{const response=await fetch('/api/subscription-radar',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({action,...extra})}),body=await response.json() as RadarState;if(!response.ok)throw new Error(body.error||'Дію не виконано');setState(body);if(body.notice)setMessage(body.notice)}catch(error){setMessage(error instanceof Error?error.message:'Не вдалося виконати дію. Спробуйте ще раз.')}finally{setBusy(false)}}
+  async function post(action:string,extra:Record<string,unknown>={}){if(busy)return;setBusy(true);setMessage('');try{const response=await fetch('/api/subscription-radar',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({action,...extra})}),body=await response.json() as Partial<RadarState>&{error?:string;notice?:string};if(!response.ok)throw new Error(body.error||'Дію не виконано');setState(normalizeRadar(body));if(body.notice)setMessage(body.notice)}catch(error){setMessage(error instanceof Error?error.message:'Не вдалося виконати дію. Спробуйте ще раз.')}finally{setBusy(false)}}
   async function confirmDelete(){
     if(!pendingAction||busy)return;setBusy(true);setMessage('');
     try{
-      const response=await fetch('/api/subscription-radar',{method:'DELETE',headers:{'content-type':'application/json'},body:JSON.stringify(pendingAction.itemId?{itemId:pendingAction.itemId}:{action:pendingAction.action})}),body=await response.json() as RadarState;
+      const response=await fetch('/api/subscription-radar',{method:'DELETE',headers:{'content-type':'application/json'},body:JSON.stringify(pendingAction.itemId?{itemId:pendingAction.itemId}:{action:pendingAction.action})}),body=await response.json() as Partial<RadarState>&{error?:string};
       if(!response.ok)throw new Error(body.error||'Не вдалося виконати дію');
-      setState(body);setPendingAction(null);
+      setState(normalizeRadar(body));setPendingAction(null);
       setMessage(pendingAction.itemId?'Запис підписки видалено.':pendingAction.action==='disable'?'Адресу вимкнено. Імпортовані записи залишилися у вашому календарі.':'Усі імпортовані дані видалено. Адреса пересилання залишилася активною.');
     }catch(error){setMessage(error instanceof Error?error.message:'Не вдалося виконати дію. Спробуйте ще раз.')}
     finally{setBusy(false)}

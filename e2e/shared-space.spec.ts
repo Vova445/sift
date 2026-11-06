@@ -3,6 +3,7 @@ import { expect, test } from '@playwright/test';
 type TestItem = { id: string; space_id: string; title: string; service_url: string | null; amount_minor: number | null; currency: 'UAH' | 'USD' | 'EUR' | 'GBP'; next_charge_date: string | null; status: 'active' | 'canceling' | 'canceled'; note: string; assigned_to_user_id: string | null; assigned_email: string | null; created_by_user_id: string; created_by_email: string; created_at: string; updated_at: string };
 
 test('shared family space shows common calendar and lets an authorized owner add a subscription', async ({ page }) => {
+  await page.addInitScript(()=>localStorage.setItem('sift-funnel-consent','denied'));
   const owner = { user_id: 'owner-1', email: 'owner@example.test', role: 'owner', joined_at: '2026-11-01T12:00:00.000Z' } as const;
   const member = { user_id: 'member-1', email: 'member@example.test', role: 'member', joined_at: '2026-11-02T12:00:00.000Z' } as const;
   const space = {
@@ -22,6 +23,8 @@ test('shared family space shows common calendar and lets an authorized owner add
   });
 
   await page.goto('/dashboard/space');
+  const consent=page.getByRole('complementary',{name:'Налаштування аналітики'});
+  if(await consent.isVisible())await consent.getByRole('button',{name:'Ні, дякую'}).click();
   await expect(page.getByRole('heading', { name: 'Ваші підписки. Спільна ясність.' })).toBeVisible();
   await expect(page.locator('.spaceMemberList b').filter({ hasText: 'owner@example.test' })).toBeVisible();
   await expect(page.locator('.spaceMemberList b').filter({ hasText: 'member@example.test' })).toBeVisible();
@@ -52,7 +55,7 @@ test('guest sign-in preserves the shared-space invitation', async ({ page }) => 
   await page.route('**/api/spaces/invites/accept', (route) => route.fulfill({ status: 401, contentType: 'application/json', body: JSON.stringify({ error: 'Увійдіть, щоб прийняти запрошення.' }) }));
   await page.goto('/dashboard/space?invite=one-time-invite-token');
 
-  await expect(page.getByRole('heading', { name: /Спільний простір/ })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Вас запросили до спільного простору.' })).toBeVisible();
   const loginHref = await page.getByRole('link', { name: 'Увійти до простору' }).getAttribute('href');
   expect(new URL(loginHref!, page.url()).searchParams.get('next')).toBe('/dashboard/space?invite=one-time-invite-token');
 });

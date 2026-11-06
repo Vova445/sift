@@ -13,12 +13,12 @@ const baseReport={id:'report-panel-test',url:scanUrl,host:'shop.example.test',ti
 async function hydrate(page:Page){
   await page.waitForFunction(()=>{const button=document.querySelector('button.exampleButton');return Boolean(button&&Object.keys(button).some(key=>key.startsWith('__reactProps')))});
 }
-async function prepare(page:Page,reportHandler:(url:string)=>unknown){
+async function prepare(page:Page,reportHandler:(url:string)=>unknown,historyAccess={plan:'free',credits:0,used:0,limit:3}){
   await page.addInitScript(()=>localStorage.setItem('sift-funnel-consent','granted'));
   await page.route('**/api/**',async route=>{
     const request=route.request(),path=new URL(request.url()).pathname;
     if(path==='/api/auth/me')return route.fulfill({json:{user:null}});
-    if(path==='/api/history')return route.fulfill({json:{items:[],access:{plan:'free',credits:0,used:0,limit:3}}});
+    if(path==='/api/history')return route.fulfill({json:{items:[],access:historyAccess}});
     if(path==='/api/analytics/event')return route.fulfill({json:{ok:true}});
     if(path==='/api/translate')return route.fulfill({json:{translation:'Ваш план автоматично поновлюється щомісяця.'}});
     if(path==='/api/analyze'){
@@ -93,7 +93,7 @@ test('report verdict, evidence, unknowns and Free locks are explicit and respons
 });
 
 test('Pro evidence switches language per finding and retains source attribution',async({page})=>{
-  await prepare(page,()=>({...baseReport,access:{plan:'pro',credits:0,used:1,limit:999}}));
+  await prepare(page,()=>({...baseReport,access:{plan:'pro',credits:0,used:1,limit:999}}),{plan:'pro',credits:0,used:1,limit:999});
   await submit(page,scanUrl);
   await expect(page.getByText('The plan costs $9.99 per month.').first()).toBeVisible();
   const evidenceCard=page.locator('.reportFindings article').filter({hasText:'Ціна'}).first();

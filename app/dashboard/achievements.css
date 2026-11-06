@@ -196,3 +196,9 @@
   .achievementReferral { grid-template-columns:minmax(0,1fr) 74px; }
   .achievementReferralCount { padding:6px; }
 }
+
+.achievementHeading > div:first-child > small,
+.achievementReferral small,
+.achievementWeekHead > span,
+.achievementReferralCount > small,
+.achievementNote { color: #596354; }

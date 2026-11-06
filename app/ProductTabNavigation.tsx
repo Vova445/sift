@@ -81,7 +81,7 @@ export default function ProductTabNavigation() {
   return (
     <>
       <aside className={`productSidebar${isAdmin ? ' hasAdmin' : ''}`} aria-label="Навігація Sift">
-        <Link className="productSidebarBrand" href="/" aria-label="Sift — на головну"><span>S</span><b>SIFT</b></Link>
+        <Link className="productSidebarBrand" href="/"><span aria-hidden="true">S</span><b>SIFT</b></Link>
         <small className="productSidebarLabel">РОЗДІЛИ SIFT</small>
         <nav className="productSidebarNav">
           {visibleTabs.map(({ key, label, href, Icon }) => <a key={key} href={href} aria-current={activeTab === key ? 'page' : undefined}>

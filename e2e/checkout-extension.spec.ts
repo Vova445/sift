@@ -86,7 +86,7 @@ test('Sift pre-fills from an extension fragment and waits for explicit scan conf
   await waitForClientHydration(page);
   const input=page.getByRole('textbox',{name:'Посилання для перевірки'});
   await expect(input).toHaveValue(expectedUrl);
-  await expect(page.getByText(/підставило очищене посилання/)).toBeVisible();
+  await expect(page.getByRole('status')).toContainText(/Посилання підставлено/);
   expect(analyzeRequests).toHaveLength(0);
   expect(documentRequests.some(url=>/buyer|private-session|card-token/.test(url))).toBe(false);
 

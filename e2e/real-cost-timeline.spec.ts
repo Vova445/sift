@@ -34,7 +34,7 @@ test('the 12-month cost chart fits mobile widths and labels its evidence-backed 
   await expect(page.getByRole('heading',{name:'Часова шкала реальної вартості'})).toBeVisible();
   await expect(page.locator('.realCostTotal')).toContainText('105');
   await expect(page.locator('time[datetime="2027-02-04"]')).toBeVisible();
-  await expect(page.getByText(/14 днів/)).toBeVisible();
+  await expect(page.getByText(/14 днів/).first()).toBeVisible();
 
   for(const width of [360,390,430]){
     await page.setViewportSize({width,height:844});

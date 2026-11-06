@@ -15,6 +15,9 @@
  .scenarioTickerGroup[aria-hidden="true"]{display:none}
 }
 
+.hero h1{color:#f7f8f5}
+.hero h1 span{color:#b8f35f}
+
 .insight .bigstat.hasDeviceStats{display:grid;grid-template-columns:minmax(210px,.8fr) minmax(0,1.2fr);gap:22px;align-items:stretch;margin-top:46px;padding-top:22px}
 .insight .bigstat .deviceStatsIntro{display:grid;align-content:center;gap:8px;grid-template-columns:minmax(0,1fr);min-width:0}
 .deviceStatsIntro>span{color:#747d71;font-size:9px;font-weight:900;letter-spacing:.13em}
@@ -96,6 +99,11 @@
 .siteFooter .footerBottom .floatingTopButton>span svg{width:17px;height:17px}
 .siteFooter .footerBottom .floatingTopButton>b{color:#10130f!important;font-size:11px;font-weight:900;letter-spacing:.025em;line-height:1}
 .siteFooter .footerBottom .floatingTopButton:hover>span{transform:translateY(-2px)}
+.hero .privacy{color:#d1d8cd!important}
+.scenarioTickerItem>span{color:#626a60}
+.plans .popular{color:#fff!important}
+.plans.three .pro .popular{background:#b9f353!important;color:#10130f!important}
+.siteFooter .footerColumnLinks>a{display:flex;min-height:24px;align-items:center}
 
 @media(max-width:900px){
  .insight .bigstat.hasDeviceStats{grid-template-columns:1fr;gap:14px}

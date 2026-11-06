@@ -6,7 +6,7 @@ export const metadata:Metadata={title:'Сторінку не знайдено �
 
 export default function NotFound(){
   return <main className="siftStatusPage">
-    <Link className="siftStatusBrand" href="/" aria-label="Sift — на головну"><span>S</span>SIFT</Link>
+    <Link className="siftStatusBrand" href="/" aria-label="S SIFT — на головну"><span>S</span>SIFT</Link>
     <section className="siftStatusCard" aria-labelledby="sift-404-title">
       <small className="siftStatusEyebrow">ПОМИЛКА 404</small>
       <h1 id="sift-404-title">Цієї сторінки немає</h1>

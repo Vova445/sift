@@ -18,6 +18,12 @@ type Summary = {
   generatedAt: string;
 };
 type MetricKey = 'earned' | 'd7' | 'd30' | 'pro30';
+const emptyMetric:Metric={eligible:0,rate:null,interval95:null,mature:false,minimumSample:50};
+function normalizeSummary(value:Partial<Summary>):Summary|null{
+  if(!value.experiment||!value.badgeDistribution)return null;
+  const experiment=value.experiment,badges=value.badgeDistribution;
+  return {...value,experiment:{...experiment,maturity:experiment.maturity??{mature:false,observations:0,minimumObservations:100,observedDays:0,minimumDays:14}},badgeDistribution:{...badges,maturity:badges.maturity??{mature:false,observations:0,minimumObservations:50},badges:Array.isArray(badges.badges)?badges.badges:[]},groups:Array.isArray(value.groups)?value.groups.map(group=>({...group,d7:group.d7??emptyMetric,d30:group.d30??emptyMetric,pro30:group.pro30??emptyMetric})):[],comparisons:Array.isArray(value.comparisons)?value.comparisons:[],generatedAt:value.generatedAt||new Date().toISOString()} as Summary;
+}
 
 const formatRate = (value: number | null) => value === null ? '—' : `${new Intl.NumberFormat('uk-UA', { maximumFractionDigits: 1 }).format(value)}%`;
 const formatInterval = (value: Metric['interval95']) => value ? `${formatRate(value.low)}–${formatRate(value.high)}` : 'поки немає інтервалу';
@@ -51,9 +57,11 @@ export default function AchievementExperiments() {
     setBusy(true); setError('');
     try {
       const response = await fetch('/api/analytics/achievements', { cache: 'no-store' });
-      const body = await response.json() as Summary & { error?: string };
+      const body = await response.json() as Partial<Summary> & { error?: string };
       if (!response.ok) throw new Error(body.error || 'Аналітика досягнень недоступна.');
-      setData(body);
+      const summary=normalizeSummary(body);
+      if(!summary)throw new Error('Аналітика повернула неповні дані. Оновіть сторінку пізніше.');
+      setData(summary);
     } catch (reason) { setError(reason instanceof Error ? reason.message : 'Не вдалося завантажити метрики.'); }
     finally { setBusy(false); }
   }
@@ -63,9 +71,11 @@ export default function AchievementExperiments() {
     setSaving(true); setError('');
     try {
       const response = await fetch('/api/analytics/achievements', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ enabled: !data.experiment.enabled }) });
-      const body = await response.json() as Summary & { error?: string };
+      const body = await response.json() as Partial<Summary> & { error?: string };
       if (!response.ok) throw new Error(body.error || 'Не вдалося змінити стан експерименту.');
-      setData(body);
+      const summary=normalizeSummary(body);
+      if(!summary)throw new Error('Аналітика повернула неповні дані. Оновіть сторінку пізніше.');
+      setData(summary);
     } catch (reason) { setError(reason instanceof Error ? reason.message : 'Не вдалося змінити стан експерименту.'); }
     finally { setSaving(false); }
   }

@@ -48,11 +48,12 @@ export default function Achievements() {
       try {
         const consent = analyticsConsentGranted() ? 'granted' : 'denied';
         const response = await fetch(`/api/achievements?experimentConsent=${consent}`, { cache: 'no-store' });
-        const body = await response.json() as Collection & { error?: string };
+        const body = await response.json() as Partial<Collection> & { error?: string };
         if (!response.ok) throw new Error(body.error || 'Досягнення тимчасово недоступні.');
         if (!active || requestId !== requestSequence.current) return;
 
-        const userId = body.userId || 'current-account';
+        const collectionBody:Collection={userId:body.userId,badges:Array.isArray(body.badges)?body.badges:[],analysisCount:Number.isFinite(body.analysisCount)?Number(body.analysisCount):0,longestStreak:Number.isFinite(body.longestStreak)?Number(body.longestStreak):0,recentStreak:Array.isArray(body.recentStreak)?body.recentStreak:[],confirmedReferrals:Number.isFinite(body.confirmedReferrals)?Number(body.confirmedReferrals):0,experiment:body.experiment};
+        const userId = collectionBody.userId || 'current-account';
         const storageKey = `sift:achievement-notices:v1:${userId}`;
         let previous: Record<string, string> | null = null;
         if (notices.current?.userId === userId) previous = notices.current.seen;
@@ -68,7 +69,7 @@ export default function Achievements() {
 
         const unlockEventAt = pendingUnlockEventAt.current;
         const baseline = previous === null && unlockEventAt === null;
-        const snapshot = reconcileAchievementNotifications(baseline ? null : (previous || {}), body.badges);
+        const snapshot = reconcileAchievementNotifications(baseline ? null : (previous || {}), collectionBody.badges);
         const newlyEarned = unlockEventAt !== null && previous === null
           ? snapshot.newlyEarned.filter((badge) => badge.earnedAt && Date.parse(badge.earnedAt) >= unlockEventAt - 60_000)
           : snapshot.newlyEarned;
@@ -85,7 +86,7 @@ export default function Achievements() {
             return additions.length ? [...current, ...additions] : current;
           });
         }
-        setCollection(body);
+        setCollection(collectionBody);
         setError('');
       } catch (reason) {
         if (active && requestId === requestSequence.current) setError(reason instanceof Error ? reason.message : 'Досягнення тимчасово недоступні.');
@@ -162,7 +163,7 @@ export default function Achievements() {
         <div className="achievementWeekDots">{collection.recentStreak.map((day) => <span className={`achievementWeekDay${day.active ? ' isActive' : ''}`} key={day.date} aria-label={`${formatWeekday(day.date)} ${day.date}: ${day.active ? 'була перевірка' : 'без перевірок'}`} title={`${day.date} · ${day.active ? 'була перевірка' : 'без перевірок'}`}><i aria-hidden="true"/><small aria-hidden="true">{formatWeekday(day.date)}</small></span>)}</div>
       </section>
     </div>}
-    <div className="achievementGrid" aria-busy={!collection} aria-label="Колекція досягнень">
+    <div className="achievementGrid" role="region" aria-busy={!collection} aria-label="Колекція досягнень">
       {(collection?.badges || []).map((badge) => {
         const Icon = icons[badge.icon as keyof typeof icons] || BadgeCheck;
         const earned = Boolean(badge.earnedAt);

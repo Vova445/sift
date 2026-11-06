@@ -4,7 +4,7 @@ import Link from 'next/link';
 
 export default function ErrorStatus({reset,digest}:{reset?:()=>void;digest?:string}){
   return <main className="siftStatusPage">
-    <Link className="siftStatusBrand" href="/" aria-label="Sift — на головну"><span>S</span>SIFT</Link>
+    <Link className="siftStatusBrand" href="/" aria-label="S SIFT — на головну"><span>S</span>SIFT</Link>
     <section className="siftStatusCard" aria-labelledby="sift-500-title" role="alert">
       <small className="siftStatusEyebrow">ПОМИЛКА 500</small>
       <h1 id="sift-500-title">Щось пішло не так</h1>

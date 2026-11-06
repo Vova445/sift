@@ -55,3 +55,10 @@
 .rewardWalletEmpty a:focus-visible{outline:3px solid #7160f3;outline-offset:3px}
 @media(max-width:650px){.rewardWalletQuota{padding:13px}.rewardWalletEmpty{align-items:flex-start}.rewardWalletEmpty>span{width:38px;height:38px;flex-basis:38px}.rewardWalletCard{min-height:0}}
 @media(max-width:420px){.rewardWalletEmpty{flex-direction:column}.rewardWalletQuota>div{align-items:flex-start}.rewardWalletQuota>div>small{max-width:100px;line-height:1.4}}
+
+.rewardWallet header small,
+.rewardWalletQuota > div > span > small,
+.rewardWalletQuota > div > span > b em,
+.rewardWalletQuota > div > small,
+.rewardWalletQuota > p,
+.rewardWalletFootnote { color: #596354; }

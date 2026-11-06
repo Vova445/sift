@@ -72,9 +72,9 @@ test('achievement experiment is toggled live and shows badge, retention, and Pro
   await page.goto('/dashboard/analytics');
   await expect(page.getByRole('heading',{name:'Досягнення у цифрах'})).toBeVisible();
   await expect(page.getByText('35 із 100 акаунтів')).toBeVisible();
-  await expect(page.locator('dt',{hasText:'D7 повернення'}).first()).toBeVisible();
+  await expect(page.getByRole('row').filter({hasText:'D7 повернення'}).first()).toBeVisible();
   await expect(page.getByText(/95% ДІ 21,5%–78,5%/).first()).toBeVisible();
-  await expect(page.locator('dt',{hasText:'Оплата Pro за 30 днів'}).first()).toBeVisible();
+  await expect(page.getByRole('row').filter({hasText:'Оплата Pro за 30 днів'}).first()).toBeVisible();
   await page.getByRole('button',{name:'Увімкнути тест'}).click();
   await expect(page.getByText('Тест активний')).toBeVisible();
   expect(updateCount).toBe(1);
@@ -88,7 +88,7 @@ test('only the authenticated admin account receives the Dashboard funnel link',a
   let isAdmin=true;
   await page.route('**/api/account**',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({user:{id:'admin-user',email:'admin@example.test',emailVerified:true},access:{plan:'free',credits:0,used:0,limit:3},subscription:null,payments:[],history:[],canViewAnalytics:isAdmin})}));
   await page.goto('/dashboard');
-  const link=page.getByRole('link',{name:'Воронка'});
+  const link=page.getByRole('link',{name:'Аналітика'});
   await expect(link).toHaveAttribute('href','/dashboard/analytics');
   isAdmin=false;
   await page.reload();

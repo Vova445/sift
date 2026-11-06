@@ -49,6 +49,24 @@ body:has(.accessGateRoot) .funnelConsent{display:none!important}
 .accessGateRoot.isCompact .accessGateSecondary{min-height:36px;margin-top:2px;font-size:11px}
 .accessGateRoot.isCompact .accessGateTrust{font-size:11px;margin-top:12px;padding-top:10px}
 .accessGateRoot.isCompact .accessGateTeaser{display:none}
+@media(min-width:900px){
+ .accessGateRoot.isCompact{display:grid;grid-template-columns:minmax(0,1fr) minmax(360px,440px);align-items:center;gap:clamp(32px,5vw,76px);padding:34px clamp(28px,4vw,58px);}
+ .accessGateRoot.isCompact .accessGateHero{min-height:0;padding:10px 0;background:transparent;border-radius:0;overflow:visible}
+ .accessGateRoot.isCompact .accessGateHeroInner{max-width:none}
+ .accessGateRoot.isCompact .accessGateCopy{max-width:680px;margin:0}
+ .accessGateRoot.isCompact .accessGateEyebrow{font-size:10px}
+ .accessGateRoot.isCompact .accessGateCopy h1{max-width:700px;margin:14px 0 12px;font-size:clamp(36px,3.3vw,48px);line-height:1.02}
+ .accessGateRoot.isCompact .accessGateCopy>p{max-width:560px;font-size:15px;line-height:1.55}
+ .accessGateRoot.isCompact .accessGatePills{display:flex;gap:8px;margin-top:20px}
+ .accessGateRoot.isCompact .accessGatePills>span{min-height:34px;padding:0 11px;font-size:11px}
+ .accessGateRoot.isCompact .accessGateCard{width:100%;max-width:440px;margin:0;padding:28px 30px;border-radius:22px;box-shadow:0 24px 70px #0003}
+ .accessGateRoot.isCompact .accessGateLock{width:46px;height:46px;margin-bottom:16px;border-radius:14px}
+ .accessGateRoot.isCompact .accessGateCard h2{margin:10px 0 8px;font-size:clamp(25px,2vw,29px);line-height:1.08}
+ .accessGateRoot.isCompact .accessGateCard>p{font-size:14px;line-height:1.55}
+ .accessGateRoot.isCompact .accessGatePrimary{width:100%;min-height:50px;margin-top:18px;font-size:13px}
+ .accessGateRoot.isCompact .accessGateSecondary{min-height:40px;margin-top:4px;font-size:12px}
+ .accessGateRoot.isCompact .accessGateTrust{margin-top:14px;padding-top:13px;font-size:12px}
+}
 @keyframes accessGateGlow{0%{transform:translate3d(0,0,0) scale(.96)}100%{transform:translate3d(-24px,24px,0) scale(1.05)}}
 @media(max-width:600px){
  .accessGateRoot{min-height:calc(100svh - 118px);padding-bottom:14px}

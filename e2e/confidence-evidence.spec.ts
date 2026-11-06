@@ -20,6 +20,6 @@ test('low-confidence clauses stay cautious and each visible condition links to i
   await expect(page.getByText(/не вдалося впевнено визначити/i).first()).toBeVisible();
   await expect(page.getByText(/Цитату не знайдено у доступному тексті/)).toBeVisible();
   await expect(page.getByRole('link',{name:'Джерело: example.com ↗'}).first()).toHaveAttribute('href',url);
-  await expect(page.getByText('ПОЧЕКАТИ',{exact:true})).toBeVisible();
+  await expect(page.getByText('Почекати',{exact:true})).toBeVisible();
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);
 });

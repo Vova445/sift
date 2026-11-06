@@ -51,8 +51,7 @@ test('achievement collection is responsive, accessible, persistent, and announce
   await expect(rewards).toContainText('Пріоритетні нагадування');
   const collection = page.locator('#achievements');
   await expect(collection.getByRole('heading', { name: 'Ваші досягнення' })).toBeVisible();
-  await page.getByRole('link', { name: 'Досягнення' }).click();
-  await expect(page).toHaveURL(/#achievements$/);
+  await collection.scrollIntoViewIfNeeded();
   const card = collection.getByRole('button', { name: /Скептик/ });
   await expect(card).toBeVisible();
 

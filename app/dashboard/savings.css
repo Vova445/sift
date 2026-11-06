@@ -92,3 +92,4 @@
 .savingsActions a,.savingsActions button{min-height:48px}
 .savingsActions a:focus-visible,.savingsActions button:focus-visible,.savingsEntryActions button:focus-visible,.savingsEmpty a:focus-visible,.savingsSave:focus-visible{outline:3px solid #7160f3;outline-offset:3px}
 @media(max-width:520px){.savingsBankNote{align-items:flex-start;font-size:10px}.savingsEmpty{align-items:stretch;flex-direction:column}.savingsEmpty a{width:100%}.savingsEntryActions{gap:3px}.savingsOutcomeChip{font-size:8px}}
+.savingsForm>div>small,.savingsRecent header small,.savingsRecent header>span,.savingsEmpty p{color:#596354}

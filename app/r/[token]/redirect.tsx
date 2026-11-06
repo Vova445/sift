@@ -14,7 +14,7 @@ export default function ReferralRedirect({token}:{token:string}){
   },[destination]);
 
   return <main className="siftReferralRedirect" aria-live="polite">
-    <Link className="siftStatusBrand" href="/" aria-label="Sift — на головну"><span>S</span>SIFT</Link>
+    <Link className="siftStatusBrand" href="/" aria-label="S SIFT — на головну"><span>S</span>SIFT</Link>
     <section className="siftRedirectMessage">
       <span className="siftRedirectSpinner" aria-hidden="true"/>
       <h1>Перенаправляємо на Sift…</h1>

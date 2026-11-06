@@ -228,7 +228,8 @@ try {
       await db.prepare(`INSERT INTO user_achievements(user_id,badge_key,issued_at,details_json) VALUES(?,'renewal_spotted',?,?)`).bind(migrationProbeUser, seededAt, JSON.stringify({ sourceId: migrationProbeScan })).run();
     }
     const sql = await readFile(join(migrationDir, migration), 'utf8');
-    for (const statement of sql.split(';').map((item) => item.trim()).filter(Boolean)) await db.prepare(statement).run();
+    if (migration === '0035_account_deletion_cascade.sql') await db.prepare(sql).run();
+    else for (const statement of sql.split(';').map((item) => item.trim()).filter(Boolean)) await db.prepare(statement).run();
   }
   const eventColumns = await db.prepare(`PRAGMA table_info(events)`).all();
   assert.ok(eventColumns.results.some((column) => column.name === 'payload'));
@@ -239,6 +240,22 @@ try {
     assert.equal((await db.prepare(`SELECT COUNT(*) AS count FROM events WHERE user_id=? AND type=?`).bind(migrationProbeUser, eventType).first()).count, 1, `migration preserves existing ${eventType} history`);
   }
   assert.ok(await db.prepare(`SELECT key,unlocked_at,progress FROM user_achievements WHERE user_id=? AND key='renewal_spotted'`).bind(migrationProbeUser).first());
+
+  // Account deletion trigger removes legacy rows without a long Worker-side D1 batch.
+  const probeEmail = `${migrationProbeUser}@example.test`;
+  await db.prepare(`INSERT INTO signups(email,created_at) VALUES(?,?)`).bind(probeEmail, new Date().toISOString()).run();
+  await db.prepare(`INSERT INTO sessions(token_hash,user_id,expires_at,created_at) VALUES(?,?,?,?)`).bind(`session-${migrationProbeUser}`, migrationProbeUser, new Date(Date.now()+60_000).toISOString(), new Date().toISOString()).run();
+  await db.prepare(`INSERT INTO email_verification_status(user_id,verified_at) VALUES(?,?)`).bind(migrationProbeUser, new Date().toISOString()).run();
+  await db.prepare(`INSERT INTO email_verification_tokens(token_hash,user_id,expires_at,created_at) VALUES(?,?,?,?)`).bind(`verify-${migrationProbeUser}`, migrationProbeUser, new Date(Date.now()+60_000).toISOString(), new Date().toISOString()).run();
+  const probeWatchlistId = `watch-${migrationProbeUser}`;
+  await db.prepare(`INSERT INTO watchlist(id,user_id,scan_id,status,note,created_at,updated_at) VALUES(?,?,?,'considering','',?,?)`).bind(probeWatchlistId, migrationProbeUser, migrationProbeScan, new Date().toISOString(), new Date().toISOString()).run();
+  await db.prepare(`DELETE FROM users WHERE id=?`).bind(migrationProbeUser).run();
+  for (const [table, column, value] of [
+    ['users','id',migrationProbeUser], ['scans','id',migrationProbeScan], ['watchlist','id',probeWatchlistId],
+    ['sessions','user_id',migrationProbeUser], ['email_verification_status','user_id',migrationProbeUser],
+    ['email_verification_tokens','user_id',migrationProbeUser], ['events','user_id',migrationProbeUser],
+    ['user_achievements','user_id',migrationProbeUser], ['signups','email',probeEmail],
+  ]) assert.equal((await db.prepare(`SELECT COUNT(*) AS count FROM ${table} WHERE ${column}=?`).bind(value).first()).count, 0, `account deletion removes ${table}`);
 
   // Signup: happy path creates D1 user, acceptance record, verification token, and session.
   const health = await responseFor('/health');

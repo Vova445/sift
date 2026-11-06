@@ -1,6 +1,6 @@
 'use client';
 
-import {useEffect} from 'react';
+import {useEffect,useSyncExternalStore,type MouseEvent as ReactMouseEvent} from 'react';
 import Link from 'next/link';
 import {ArrowRight,Check,LockKeyhole,ShieldCheck,UnlockKeyhole} from 'lucide-react';
 import './access-gate.css';
@@ -17,19 +17,22 @@ const copy:Record<AccessGateVariant,GateCopy>={
 };
 
 const paths:Record<AccessGateVariant,string>={dashboard:'/dashboard',integrations:'/dashboard/integrations',space:'/dashboard/space',restricted:'/',pro:'/dashboard#planner'};
+const subscribeToLocation=(callback:()=>void)=>{window.addEventListener('popstate',callback);window.addEventListener('hashchange',callback);return()=>{window.removeEventListener('popstate',callback);window.removeEventListener('hashchange',callback)}};
+const getCurrentPath=()=>`${window.location.pathname}${window.location.search}`;
 
 export default function AccessGate({variant,compact=false}:{variant:AccessGateVariant;compact?:boolean}){
-  const content=copy[variant];
+  const currentPath=useSyncExternalStore(subscribeToLocation,getCurrentPath,()=>paths[variant]);
+  const spaceInvite=variant==='space'&&new URLSearchParams(currentPath.split('?')[1]||'').has('invite');
+  const content=variant==='space'&&spaceInvite?{...copy.space,title:'Вас запросили до',accent:'спільного простору.',cardTitle:'Прийміть запрошення.',cardDescription:'Увійдіть або створіть акаунт, щоб перейти до спільного простору.'}:copy[variant];
   useEffect(()=>{
     if(variant==='space'){
-      const path=`${window.location.pathname}${window.location.search}`;
-      sessionStorage.setItem('sift-auth-next',path);
+      sessionStorage.setItem('sift-auth-next',currentPath);
     }
-  },[variant]);
-  const returnPath=paths[variant];
+  },[variant,currentPath]);
+  const returnPath=variant==='space'?currentPath:paths[variant];
   const loginHref=`/?login=1&next=${encodeURIComponent(returnPath)}`;
   const signupHref=`/?signup=1&next=${encodeURIComponent(returnPath)}`;
-  const rememberSpace=()=>{if(variant==='space')sessionStorage.setItem('sift-auth-next',`${window.location.pathname}${window.location.search}`)};
+  const continueAuth=(mode:'login'|'signup')=>(event:ReactMouseEvent<HTMLAnchorElement>)=>{if(variant!=='space')return;event.preventDefault();const path=`${window.location.pathname}${window.location.search}`;sessionStorage.setItem('sift-auth-next',path);window.location.assign(`/?${mode}=1&next=${encodeURIComponent(path)}`)};
   return <main id={compact?'planner':undefined} className={`accessGateRoot${compact?' isCompact':''}${content.restricted?' isRestricted':''}${content.pro?' isPro':''}`}>
     <section className="accessGateHero"><div className="accessGateHeroInner">
       <Link className="accessGateBrand" href="/" aria-label="Sift — на головну"><span>S</span><b>SIFT</b><small>KNOW BEFORE YOU PAY</small></Link>
@@ -38,7 +41,7 @@ export default function AccessGate({variant,compact=false}:{variant:AccessGateVa
     <section className="accessGateCard" aria-labelledby="access-gate-title">
       <span className="accessGateLock" aria-hidden="true"><LockKeyhole className="accessGateLockClosed"/><UnlockKeyhole className="accessGateLockOpen"/></span>
       <small className="accessGateCardEyebrow">{content.cardEyebrow}</small><h2 id="access-gate-title">{content.cardTitle}</h2><p>{content.cardDescription}</p>
-      {content.restricted?<Link className="accessGatePrimary" href="/">На головну <ArrowRight aria-hidden="true"/></Link>:content.pro?<><Link className="accessGatePrimary" href="/#pricing">Відкрити Pro <ArrowRight aria-hidden="true"/></Link><Link className="accessGateSecondary" href="/#pricing">Порівняти тарифи</Link></>:<><Link className="accessGatePrimary" href={variant==='space'?'/?login=1':loginHref} onClick={rememberSpace}>Увійти до Sift <ArrowRight aria-hidden="true"/></Link><Link className="accessGateSecondary" href={variant==='space'?'/?signup=1':signupHref} onClick={rememberSpace}>Створити безкоштовний акаунт</Link></>}
+      {content.restricted?<Link className="accessGatePrimary" href="/">На головну <ArrowRight aria-hidden="true"/></Link>:content.pro?<><Link className="accessGatePrimary" href="/#pricing">Відкрити Pro <ArrowRight aria-hidden="true"/></Link><Link className="accessGateSecondary" href="/#pricing">Порівняти тарифи</Link></>:<><Link className="accessGatePrimary" href={loginHref} onClick={continueAuth('login')}>{variant==='space'?'Увійти до простору':'Увійти до Sift'} <ArrowRight aria-hidden="true"/></Link><Link className="accessGateSecondary" href={signupHref} onClick={continueAuth('signup')}>Створити безкоштовний акаунт</Link></>}
       <footer className="accessGateTrust"><ShieldCheck aria-hidden="true"/><span>{content.trust}</span></footer>
     </section>
     {!compact&&<section className="accessGateTeaser" aria-label="Приклад інтерфейсу Sift"><div className="accessGateTeaserHead"><span>ПРИКЛАД ІНТЕРФЕЙСУ</span><small>Дані прикладу, не з вашого акаунта</small></div><div className="accessGateStats"><article><small>ЗВІТИ</small><b>—</b></article><article><small>СЕРЕДНІЙ SCORE</small><b>—<em>/100</em></b></article></div><div className="accessGateRows"><div><i/><span><b>Звіт про підписку</b><small>Домен · дата перевірки</small></span><em>—</em></div><div><i/><span><b>Перевірка умов</b><small>Домен · дата перевірки</small></span><em>—</em></div><div><i/><span><b>Історія покупок</b><small>Домен · дата перевірки</small></span><em>—</em></div></div></section>}

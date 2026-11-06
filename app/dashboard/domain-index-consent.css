@@ -30,3 +30,4 @@
 .domainConsentNotice,.domainConsentError{display:flex;align-items:flex-start;gap:7px;margin:11px 0 0;padding:10px 12px;border-radius:9px;font-size:10px;line-height:1.5}
 .domainConsentNotice{border:1px solid #cfe5bd;background:#eef8e6;color:#456d26}.domainConsentError{border:1px solid #f0c8c0;background:#fff0ed;color:#9c392e}.domainConsentNotice svg{width:14px;height:14px;flex:0 0 14px}
 @media(max-width:680px){.domainConsentPanel{padding:17px 14px;border-radius:17px}.domainConsentPanel>header{align-items:flex-start;flex-wrap:wrap}.domainConsentPanel>header>div{flex:1 1 calc(100% - 62px)}.domainConsentPanel>header>b{margin-left:56px}.domainConsentDataGrid{grid-template-columns:1fr}.domainConsentActions{align-items:stretch;flex-direction:column}.domainConsentActions>a{margin:0;justify-content:flex-start;min-height:36px}.domainConsentActions>button{width:100%;min-height:44px}.domainConsentToggleRow b{font-size:10px}}
+.domainConsentToggleRow small{color:#596354}

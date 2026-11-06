@@ -88,6 +88,8 @@
   font-size: 12px;
 }
 
+.tosMonitorLimit { color: #c2cbbd; }
+
 @media (max-width: 640px) {
   .tosMonitorCard {
     grid-template-columns: minmax(0, 1fr);

@@ -10,6 +10,7 @@
 
 /* Screenshot geometry stays tied to the image's real aspect ratio so the overlay never stretches away from its evidence. */
 .darkPatternDrop.dragging{border-color:#7dac3d;background:#f1f9e6;box-shadow:0 0 0 4px #b8f35f35}
+.darkPatternHeader>div>small,.darkPatternDrop>small,.darkPatternDrop>em,.darkPatternPrivacy>span,.darkPatternEmpty>p{color:#596354}
 .darkPatternDrop:focus-visible,.darkPatternAnalyze:focus-visible,.darkPatternFileActions button:focus-visible,.darkPatternFindingCard:focus-visible,.darkPatternOverlay g:focus-visible{outline:3px solid #7160f3;outline-offset:3px}
 .darkPatternPreviewToolbar>span{flex:1;display:grid;grid-template-columns:16px minmax(0,1fr);grid-template-rows:auto auto;column-gap:8px;row-gap:3px;white-space:normal}
 .darkPatternPreviewToolbar>span>svg{grid-row:1/3}

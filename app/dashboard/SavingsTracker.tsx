@@ -37,10 +37,12 @@ export default function SavingsTracker({ reports }: { reports: ReportOption[] })
   const refresh = useCallback(async () => {
     try {
       const response = await fetch('/api/savings', { cache: 'no-store' });
-      const body = await response.json() as Data & { error?: string };
+      const body = await response.json() as Partial<Data> & { error?: string };
       if (!response.ok) throw new Error(body.error || 'Не вдалося оновити трекер.');
-      entriesRef.current = body.entries;
-      setData(body);
+      const entries=Array.isArray(body.entries)?body.entries:[];
+      const summary=body.summary&&Number.isFinite(body.summary.monthMinor)&&Number.isFinite(body.summary.yearMinor)&&Number.isFinite(body.summary.entryCount)?body.summary:{monthMinor:0,yearMinor:0,entryCount:entries.length,currency:'UAH' as const};
+      entriesRef.current = entries;
+      setData({entries,summary});
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'Не вдалося завантажити Savings Tracker.');
     }
@@ -129,7 +131,7 @@ export default function SavingsTracker({ reports }: { reports: ReportOption[] })
       <button className="savingsSave" type="submit" disabled={busy || !reports.length}>{busy ? 'Зберігаємо…' : existing ? 'Оновити запис' : 'Підтвердити дію'} <Check aria-hidden="true"/></button>
       {!reports.length && <p className="savingsHint">Спершу збережіть звіт після аналізу сторінки.</p>}
       {error && <p className="savingsMessage error" role="alert">{error}</p>}{notice && <p className="savingsMessage" role="status">{notice}</p>}
-    </form><aside className="savingsAside"><div><CircleDollarSign aria-hidden="true"/><h3>Суми рахуються лише після підтвердження</h3><p>Для одного звіту доступний один запис, який можна відредагувати. Так одна покупка не дублюється кількома діями.</p></div><div className="savingsActions"><a href="/api/savings/export" aria-label="Завантажити Savings Tracker у форматі CSV"><FileSpreadsheet/>Експортувати CSV <ArrowDownToLine/></a><button type="button" onClick={()=>void shareCard()} aria-label="Створити та поширити картку PNG"><Share2/>Картка PNG <ArrowUpRight/></button></div></aside></div>
+    </form><aside className="savingsAside"><div><CircleDollarSign aria-hidden="true"/><h3>Суми рахуються лише після підтвердження</h3><p>Для одного звіту доступний один запис, який можна відредагувати. Так одна покупка не дублюється кількома діями.</p></div><div className="savingsActions"><a href="/api/savings/export" aria-label="Експортувати CSV — завантажити Savings Tracker у форматі CSV"><FileSpreadsheet/>Експортувати CSV <ArrowDownToLine/></a><button type="button" onClick={()=>void shareCard()} aria-label="Картка PNG — створити та поширити картку"><Share2/>Картка PNG <ArrowUpRight/></button></div></aside></div>
     <div className="savingsRecent"><header><div><small>ІСТОРІЯ ДІЙ</small><h3>Ваші зафіксовані результати</h3></div><span>{data.summary.entryCount} записів</span></header>{data.entries.length ? <><ul>{data.entries.slice(0, showAll ? data.entries.length : 5).map((entry) => <li key={entry.id}><span className="savingsCheck"><Check aria-hidden="true"/></span><span className="savingsEntryInfo"><b>{entry.title}</b><span className={`savingsOutcomeChip ${entry.outcome}`}>{outcomeLabels[entry.outcome]}</span><small>{new Date(`${entry.confirmedDate}T12:00:00`).toLocaleDateString('uk-UA')}</small></span><strong>{money(entry.amountMinor)}</strong><span className="savingsEntryActions"><button type="button" aria-label={`Редагувати запис ${entry.title}`} onClick={()=>edit(entry)} disabled={busy}><Pencil aria-hidden="true"/></button><button type="button" aria-label={`Видалити запис ${entry.title}`} onClick={()=>void remove(entry.id)} disabled={busy}><Trash2 aria-hidden="true"/></button></span></li>)}</ul>{data.summary.entryCount>data.entries.length&&<p className="savingsHint">У дашборді показано останні {data.entries.length} записів. Повний список є у CSV.</p>}{data.entries.length>5&&<button className="savingsShowAll" type="button" onClick={()=>setShowAll(!showAll)}>{showAll?'Згорнути історію':'Показати всі записи'}</button>}</> : <div className="savingsEmpty"><div><b>Ще немає підтверджених дій</b><p>Оберіть збережений звіт, додайте результат і підтвердіть суму — вона з’явиться тут.</p></div><a href={reports.length ? '#savings-form' : '/#top'}>{reports.length ? 'Додати перший результат' : 'Перевірити сторінку'} <ArrowUpRight aria-hidden="true"/></a></div>}</div>
     <footer>Це ваші власні оцінки або суми з квитанцій, які ви підтвердили вручну. Sift не перевіряє операції у банку. Для одного звіту зараховується лише одна дія.</footer>
   </section>;

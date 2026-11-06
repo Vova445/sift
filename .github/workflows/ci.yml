@@ -103,4 +103,4 @@ jobs:
 
       - name: Publish preview URL
         run: |
-          echo "Preview: https://sift-app-preview.reviewradar-vova445.workers.dev" >> "$GITHUB_STEP_SUMMARY"
+          echo "Preview: https://sift-app-preview.sift-vova445.workers.dev" >> "$GITHUB_STEP_SUMMARY"

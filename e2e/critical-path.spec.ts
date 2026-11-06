@@ -58,6 +58,7 @@ async function installCriticalPathMocks(page: Page) {
       const items = report ? [{ result: testReport(paid) }] : [];
       return fulfillJson(route, { items, access: paid ? paidAccess : freeAccess });
     }
+    if (url.pathname === '/api/translate' && method === 'POST') return fulfillJson(route, { translation: 'Український переклад доказу.' });
     if (url.pathname === '/api/security/turnstile') return fulfillJson(route, { siteKey: 'e2e-site-key' });
     if (url.pathname === '/api/auth/signup' && method === 'POST') {
       const body = request.postDataJSON() as { email?: string; turnstileToken?: string; legalConsent?: { acceptTerms?: boolean } };
@@ -122,39 +123,44 @@ test('signup → analyze → sandbox checkout → reopen saved report', async ({
   await page.locator('.signupLegalCheckbox input').check();
   await expect(page.getByRole('button', { name: 'Створити акаунт' })).toBeEnabled();
   await page.getByRole('button', { name: 'Створити акаунт' }).click();
-  await expect(page.getByRole('heading', { name: /Ви увійшли як/ })).toBeVisible();
+  await page.waitForURL(url=>url.pathname==='/dashboard');
   await expect(page.getByText('Email ще не підтверджено')).toBeVisible();
-  await page.getByRole('button', { name: 'Закрити' }).click();
 
   // Open the one-time link that the signup email would contain.
   await page.goto('/verify-email#token=e2e-test-verification-token');
-  await page.getByRole('button', { name: 'Підтвердити адресу' }).click();
-  await expect(page.getByRole('heading', { name: 'Адресу підтверджено.' })).toBeVisible();
-  await expect(page.getByRole('link', { name: 'Увійти до Sift' })).toHaveAttribute('href', '/?login=1');
-  await page.goto('/?login=1');
-  await expect(page.getByRole('heading', { name: /Ви увійшли як/ })).toBeVisible();
-  await page.getByRole('button', { name: 'Закрити' }).click();
+  await page.getByRole('button', { name: 'Підтвердити email' }).click();
+  await expect(page.getByRole('heading', { name: 'Email підтверджено' })).toBeVisible();
+  await page.getByRole('link', { name: 'Перейти до входу' }).click();
+  await page.waitForURL(url=>url.pathname==='/dashboard');
+  await page.goto('/#top');
+  await waitForClientHydration(page);
 
-  await page.getByRole('textbox', { name: 'Посилання для перевірки' }).fill('https://www.coursera.org/learn/test-terms');
-  await page.getByRole('button', { name: 'Перевірити', exact: true }).click();
+  const analyzeInput = page.getByRole('textbox', { name: 'Посилання для перевірки' });
+  await analyzeInput.fill('https://www.coursera.org/learn/test-terms');
+  await expect(analyzeInput).toHaveValue('https://www.coursera.org/learn/test-terms');
+  const analyzeButton = page.getByRole('button', { name: 'Перевірити', exact: true });
+  await expect(analyzeButton).toBeEnabled();
+  await analyzeButton.click();
   await expect(page.getByRole('heading', { name: 'Terms of Use | Coursera' })).toBeVisible();
   await expect(page.getByText('Потребує уваги до оплати')).toBeVisible();
 
-  await page.getByRole('button', { name: 'Купити · ₴59' }).click();
-  await expect(page.getByRole('heading', { name: 'One Sift — $1.49 · ₴59' })).toBeVisible();
-  await page.locator('.checkoutLegalChecks input').nth(0).check();
-  await page.locator('.checkoutLegalChecks input').nth(1).check();
-  await page.getByRole('button', { name: 'Перейти до оплати' }).click();
+  await page.getByRole('button', { name: 'Купити · $1.49' }).click();
+  await expect(page.getByRole('heading', { name: 'One Sift' })).toBeVisible();
+  for (const checkbox of await page.locator('.checkoutLegalChecks input').all()) await checkbox.check();
+  await page.getByRole('button', { name: 'Перейти до WayForPay' }).click();
 
   await expect(page.getByRole('heading', { name: 'Тестовий платіж' })).toBeVisible();
   await page.getByRole('link', { name: 'Підтвердити тестову оплату' }).click();
-  await expect(page.getByText('Оплату підтверджено WayForPay. Ваш тариф активовано.')).toBeVisible({ timeout: 10_000 });
+  await expect(page.getByText('Оплату підтверджено WayForPay.')).toBeVisible({ timeout: 10_000 });
   await page.getByRole('button', { name: 'Закрити' }).click();
 
   await page.locator('.purchaseRow').filter({ hasText: 'Terms of Use | Coursera' }).click();
   const reportSection = page.locator('#report');
   await expect(reportSection.getByRole('heading', { name: 'Terms of Use | Coursera' })).toBeVisible();
-  await expect(reportSection.getByRole('button', { name: 'Показати переклад' }).first()).toBeEnabled();
+  const ukrainianTranslation = reportSection.getByRole('button', { name: 'Українська' }).first();
+  await expect(ukrainianTranslation).toBeEnabled();
+  await ukrainianTranslation.click();
+  await expect(reportSection.getByText('Український переклад доказу.')).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   await page.mouse.move(-1, -1);
   await expect(reportSection).toHaveScreenshot('paid-purchase-report.png');

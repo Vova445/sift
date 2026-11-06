@@ -27,6 +27,20 @@ export function useAccessibleDialog<T extends HTMLElement>(open: boolean, onClos
     const dialog = dialogRef.current;
     if (!dialog) return;
 
+    // A modal must also remove the page behind it from mouse and assistive-tech navigation.
+    // Inert the backdrop's siblings all the way up to body, then restore their previous state.
+    const inerted = new Map<HTMLElement, boolean>();
+    let branch: HTMLElement = dialog;
+    while (branch.parentElement && branch.parentElement !== document.body) {
+      const parent = branch.parentElement;
+      for (const sibling of Array.from(parent.children)) {
+        if (sibling === branch || !(sibling instanceof HTMLElement)) continue;
+        if (!inerted.has(sibling)) inerted.set(sibling, sibling.inert);
+        sibling.inert = true;
+      }
+      branch = parent;
+    }
+
     const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const focusableElements = () => Array.from(dialog.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR))
       .filter(element => element.getAttribute('aria-hidden') !== 'true' && element.getClientRects().length > 0);
@@ -76,6 +90,8 @@ export function useAccessibleDialog<T extends HTMLElement>(open: boolean, onClos
       window.cancelAnimationFrame(initialFocus);
       document.removeEventListener('keydown', onKeyDown);
       document.removeEventListener('focusin', onFocusIn);
+      for (const [element, wasInert] of inerted) element.inert = wasInert;
+      inerted.clear();
       if (previousFocus?.isConnected) previousFocus.focus();
     };
   }, [open]);

@@ -37,6 +37,11 @@ test('landing, auth, and checkout dialogs pass Axe and contain keyboard focus', 
   }));
 
   await page.goto('/');
+  await page.waitForFunction(() => {
+    const button = document.querySelector('.navright button.dark');
+    return Boolean(button && Object.keys(button).some(key => key.startsWith('__reactProps')));
+  }, null, { timeout: 20_000 });
+  await expect(page.locator('.hero h1')).toHaveCSS('opacity', '1');
   await audit(page, 'landing');
 
   const register = page.getByRole('button', { name: 'Реєстрація' });
@@ -61,9 +66,9 @@ test('landing, auth, and checkout dialogs pass Axe and contain keyboard focus', 
   await expect(authDialog).toBeHidden();
   await expect(register).toBeFocused();
 
-  const oneSift = page.getByRole('button', { name: 'Купити · ₴59' });
+  const oneSift = page.getByRole('button', { name: 'Купити · $1.49' });
   await oneSift.click();
-  const checkoutDialog = page.getByRole('dialog', { name: 'One Sift — $1.49 · ₴59' });
+  const checkoutDialog = page.getByRole('dialog', { name: 'One Sift' });
   await expect(checkoutDialog).toBeVisible();
   await expect(page.locator('.overlay')).toHaveCSS('opacity', '1');
   await audit(page, 'checkout dialog');
@@ -100,6 +105,8 @@ test('dashboard, saved report, billing, and account deletion dialogs pass Axe an
 
   await page.goto('/dashboard');
   await expect(page.getByRole('heading', { name: 'Покупки без неприємних сюрпризів.' })).toBeVisible();
+  const consent=page.getByRole('complementary',{name:'Налаштування аналітики'});
+  if(await consent.isVisible())await consent.getByRole('button',{name:'Ні, дякую'}).click();
   await audit(page, 'dashboard');
 
   await page.locator('.billingCancel').click();

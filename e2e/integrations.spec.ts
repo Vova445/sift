@@ -45,8 +45,9 @@ async function setup(page:Page,{plan='pro',guest=false}:{plan?:'free'|'one'|'pro
 test('guest is gated and Free sees a clear Pro upgrade path',async({page})=>{
   const session=await setup(page,{guest:true});
   await page.goto('/dashboard/integrations');
-  await expect(page.getByRole('heading',{name:'Інтеграції Sift'})).toBeVisible();
-  await expect(page.getByRole('link',{name:'Увійти'})).toHaveAttribute('href','/?login=1');
+  await expect(page.locator('.accessGateRoot')).toBeVisible();
+  await expect(page.getByRole('heading',{name:'Підключіть Sift до Telegram і API.'})).toBeVisible();
+  await expect(page.getByRole('link',{name:'Увійти до Sift'})).toHaveAttribute('href','/?login=1&next=%2Fdashboard%2Fintegrations');
   session.setGuest(false);session.setPlan('free');
   await page.reload();
   await expect(page.getByText('FREE',{exact:true})).toBeVisible();
@@ -56,6 +57,7 @@ test('guest is gated and Free sees a clear Pro upgrade path',async({page})=>{
 });
 
 test('API key is shown once and can be revoked',async({page})=>{
+  await page.addInitScript(()=>localStorage.setItem('sift-funnel-consent','denied'));
   await setup(page);
   await page.goto('/dashboard/integrations');
   await page.getByLabel('Назва ключа').fill('CI backend');
@@ -67,9 +69,15 @@ test('API key is shown once and can be revoked',async({page})=>{
   await secretDialog.getByRole('button',{name:'Готово, я зберіг ключ'}).click();
   await expect(secretDialog).toBeHidden();
   await expect(page.getByText(secret,{exact:true})).toHaveCount(0);
-  await expect(page.getByRole('columnheader',{name:'Створено'})).toBeVisible();
-  await expect(page.getByRole('columnheader',{name:'Остання активність'})).toBeVisible();
-  await expect(page.getByRole('cell').nth(1)).toContainText(/лист/);
+  if((page.viewportSize()?.width??1440)<=680){
+    await expect(page.locator('.apiKeyTable tbody tr')).toHaveCount(1);
+    await expect(page.locator('.apiKeyTable time')).toBeVisible();
+    await expect(page.getByText('Ще не використовувався')).toBeVisible();
+  }else{
+    await expect(page.getByRole('columnheader',{name:'Створено'})).toBeVisible();
+    await expect(page.getByRole('columnheader',{name:'Остання активність'})).toBeVisible();
+    await expect(page.getByRole('cell').nth(1)).toContainText(/лист/);
+  }
   await page.getByRole('button',{name:'Відкликати ключ CI backend'}).click();
   const revoke=page.getByRole('dialog',{name:'Відкликати API-ключ?'});
   await revoke.getByRole('button',{name:'Відкликати ключ'}).click();
