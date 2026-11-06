@@ -16,6 +16,7 @@ import './pricing-alignment.css';
 import './auth-modal.css';
 import './checkout-modal.css';
 import {funnelSessionId,trackFunnelStage,trackFunnelVisit} from '../lib/funnel-analytics-client';
+import {createPasswordCredentials,createPasswordProof} from '../lib/password-client';
 import {ArrowRight,ArrowUp,BadgeCheck,BellRing,BookmarkPlus,Check,ChevronRight,CircleAlert,CircleDollarSign,Clock3,Eye,EyeOff,FileSearch,Link2,LockKeyhole,Mail,Menu,ScanSearch,Search,ShieldCheck,Sparkles,X,Zap} from 'lucide-react';
 
 type Finding={kind:string;title:string;summary:string;evidence:string;severity?:'good'|'medium'|'high';confidence?:'high'|'medium'|'low';sourceUrl?:string;unresolved?:boolean};
@@ -99,7 +100,9 @@ export default function Home(){
    setSignup('loading');
    try{
      if(authMode==='signup')await trackFunnelVisit();
-     const r=await fetch(`/api/auth/${authMode}`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({email:normalizedEmail,password,...(authMode==='signup'?{turnstileToken,legalConsent:{acceptTerms:signupLegalAccepted,acknowledgePrivacy:signupLegalAccepted},analyticsSessionId:funnelSessionId(),deviceId:deviceId(),referralToken:sessionStorage.getItem('sift-referral-token')||undefined}:{})})});
+     const credentials=authMode==='signup'?await createPasswordCredentials(password):undefined;
+     const proof=authMode==='login'?await createPasswordProof(normalizedEmail,password,'login'):undefined;
+     const r=await fetch(`/api/auth/${authMode}`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({email:normalizedEmail,...(credentials?{passwordCredentials:credentials}:{}),...(proof?{challengeId:proof.challengeId,proof:proof.proof,upgrade:proof.upgrade,upgradeProof:proof.upgradeProof}:{}),...(authMode==='signup'?{turnstileToken,legalConsent:{acceptTerms:signupLegalAccepted,acknowledgePrivacy:signupLegalAccepted},analyticsSessionId:funnelSessionId(),deviceId:deviceId(),referralToken:sessionStorage.getItem('sift-referral-token')||undefined}:{})})});
      const responseText=await r.text();
      let data:{user?:User;error?:string;verification?:{sent?:boolean}};
      try{data=JSON.parse(responseText) as typeof data}

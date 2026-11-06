@@ -1,5 +1,6 @@
 import {env} from 'cloudflare:workers';
-import {currentUser,newPasswordCredentials,sessionCookie,verifyUser} from '../../../../../lib/auth';
+import {currentUser,sessionCookie} from '../../../../../lib/auth';
+import {storePasswordCredentials,verifyPasswordProofForEmail,type ClientPasswordCredentials} from '../../../../../lib/password-protocol';
 import {clearAccountLoginFailures,loginIsThrottled,recordLoginFailure} from '../../../../../lib/auth-rate-limit';
 import {canonicalAppUrl,sameOriginBillingRequest} from '../../../../../lib/billing-security.js';
 import {wayForPayConfig} from '../../../../../lib/wayforpay';
@@ -12,15 +13,14 @@ export async function POST(req:Request){
   const config=wayForPayConfig(),app=canonicalAppUrl(config.appBaseUrl,config.mode==='sandbox');
   if(!app)return Response.json({error:'Керування паролем тимчасово недоступне: серверний APP_BASE_URL не налаштовано.'},{status:503});
   if(!sameOriginBillingRequest(req,app))return Response.json({error:'Запит відхилено.'},{status:403});
-  let body:{currentPassword?:unknown;newPassword?:unknown};
-  try{body=await req.json() as {currentPassword?:unknown;newPassword?:unknown}}catch{return Response.json({error:'Некоректний запит.'},{status:400})}
-  if(typeof body.currentPassword!=='string'||typeof body.newPassword!=='string'||body.newPassword.length<8||body.newPassword.length>1024)return Response.json({error:'Введіть поточний пароль і новий пароль від 8 до 1024 символів.'},{status:400});
-  if(body.currentPassword===body.newPassword)return Response.json({error:'Новий пароль має відрізнятися від поточного.'},{status:400});
+  let body:{currentChallengeId?:unknown;currentProof?:unknown;currentUpgrade?:ClientPasswordCredentials;currentUpgradeProof?:unknown;newPasswordCredentials?:ClientPasswordCredentials};
+  try{body=await req.json() as {currentChallengeId?:unknown;currentProof?:unknown;currentUpgrade?:ClientPasswordCredentials;currentUpgradeProof?:unknown;newPasswordCredentials?:ClientPasswordCredentials}}catch{return Response.json({error:'Некоректний запит.'},{status:400})}
+  if(typeof body.currentChallengeId!=='string'||typeof body.currentProof!=='string'||!body.newPasswordCredentials)return Response.json({error:'Оновіть сторінку й повторіть зміну пароля.'},{status:400});
   if(await loginIsThrottled(req,user.email))return rateLimitedResponse('Забагато невдалих спроб. Спробуйте через 15 хвилин.',900);
-  try{await verifyUser(user.email,body.currentPassword)}catch{await recordLoginFailure(req,user.email);return Response.json({error:'Поточний пароль неправильний.'},{status:401})}
+  try{await verifyPasswordProofForEmail(user.email,'change',body.currentChallengeId,body.currentProof,body.currentUpgrade,body.currentUpgradeProof)}catch{await recordLoginFailure(req,user.email);return Response.json({error:'Поточний пароль неправильний.'},{status:401})}
   const current=await env.DB.prepare(`SELECT password_hash FROM users WHERE id=?`).bind(user.id).first<{password_hash:string}>();
   if(!current)return Response.json({error:'Акаунт не знайдено.'},{status:404});
-  const credentials=await newPasswordCredentials(body.newPassword);
+  let credentials;try{credentials=await storePasswordCredentials(body.newPasswordCredentials)}catch(error){return Response.json({error:error instanceof Error?error.message:'Некоректні дані нового пароля.'},{status:400})}
   const results=await env.DB.batch([
     env.DB.prepare(`UPDATE users SET password_hash=?,salt=?,password_iterations=? WHERE id=? AND password_hash=?`).bind(credentials.passwordHash,credentials.salt,credentials.passwordIterations,user.id,current.password_hash),
     env.DB.prepare(`DELETE FROM sessions WHERE user_id=? AND EXISTS(SELECT 1 FROM users WHERE id=? AND password_hash=?)`).bind(user.id,user.id,credentials.passwordHash)

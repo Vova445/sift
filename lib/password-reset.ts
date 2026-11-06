@@ -1,6 +1,6 @@
 import {env} from 'cloudflare:workers';
 import {ensureEmailVerificationDb} from './email-verification';
-import {newPasswordCredentials} from './auth';
+import {storePasswordCredentials,type ClientPasswordCredentials} from './password-protocol';
 import {allowPasswordResetRequest,ensurePasswordSecurityDb} from './auth-rate-limit';
 import {canonicalAppUrl} from './billing-security.js';
 import {wayForPayConfig} from './wayforpay';
@@ -31,17 +31,16 @@ export async function requestPasswordReset(req:Request,email:string):Promise<boo
   return true;
 }
 
-export async function resetPasswordWithToken(token:unknown,password:unknown){
+export async function resetPasswordWithToken(token:unknown,passwordCredentials:ClientPasswordCredentials){
   await ensureEmailVerificationDb();
   await ensurePasswordSecurityDb();
   if(typeof token!=='string'||token.length<32||token.length>200)return{ok:false as const,reason:'invalid' as const};
-  if(typeof password!=='string'||password.length<8||password.length>1024)return{ok:false as const,reason:'password' as const};
   const tokenHash=await digest(token),row=await env.DB.prepare(`SELECT user_id,expires_at,used_at FROM password_reset_tokens WHERE token_hash=?`).bind(tokenHash).first<{user_id:string;expires_at:string;used_at:string|null}>();
   if(!row)return{ok:false as const,reason:'invalid' as const};
   if(row.used_at)return{ok:false as const,reason:'used' as const};
   const now=new Date(),nowIso=now.toISOString(),consumedAt=`${nowIso}:${crypto.randomUUID()}`;
   if(Date.parse(row.expires_at)<=now.getTime())return{ok:false as const,reason:'expired' as const};
-  const credentials=await newPasswordCredentials(password);
+  let credentials;try{credentials=await storePasswordCredentials(passwordCredentials)}catch{return{ok:false as const,reason:'password' as const}}
   const results=await env.DB.batch([
     env.DB.prepare(`UPDATE password_reset_tokens SET used_at=? WHERE token_hash=? AND user_id=? AND used_at IS NULL AND expires_at>?`).bind(consumedAt,tokenHash,row.user_id,nowIso),
     env.DB.prepare(`UPDATE users SET password_hash=?,salt=?,password_iterations=? WHERE id=? AND EXISTS(SELECT 1 FROM password_reset_tokens WHERE token_hash=? AND user_id=? AND used_at=?)`).bind(credentials.passwordHash,credentials.salt,credentials.passwordIterations,row.user_id,tokenHash,row.user_id,consumedAt),

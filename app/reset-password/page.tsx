@@ -4,6 +4,7 @@ import {FormEvent,useState,useSyncExternalStore} from 'react';
 import {ArrowRight,Check,CheckCircle2,CircleAlert,Eye,EyeOff,KeyRound,ScanSearch,ShieldCheck} from 'lucide-react';
 import Link from 'next/link';
 import TurnstileWidget from '../TurnstileWidget';
+import {createPasswordCredentials} from '../../lib/password-client';
 
 const subscribe=(callback:()=>void)=>{window.addEventListener('hashchange',callback);const timer=window.setTimeout(callback,0);return()=>{window.clearTimeout(timer);window.removeEventListener('hashchange',callback)}};
 const getToken=()=>new URLSearchParams(window.location.hash.slice(1)).get('token')||'';
@@ -35,7 +36,7 @@ export default function ResetPasswordPage(){
       const response=await fetch('/api/auth/password/reset',{
         method:'POST',
         headers:{'content-type':'application/json'},
-        body:JSON.stringify({token,password,turnstileToken}),
+        body:JSON.stringify({token,passwordCredentials:await createPasswordCredentials(password),turnstileToken}),
       });
       const body=await response.json() as {error?:string;message?:string};
       if(!response.ok){

@@ -4,6 +4,7 @@ import {FormEvent,useState} from 'react';
 import {AlertTriangle,Download,FileJson,FileSpreadsheet,Trash2,X} from 'lucide-react';
 import {useBodyScrollLock} from './useBodyScrollLock';
 import {useAccessibleDialog} from './useAccessibleDialog';
+import {createPasswordProof} from '../lib/password-client';
 
 export default function AccountDataControls({email,hasActiveSubscription=false}:{email:string;hasActiveSubscription?:boolean}){
   const[exporting,setExporting]=useState<'json'|'csv'|null>(null),[exportError,setExportError]=useState(''),[open,setOpen]=useState(false),[password,setPassword]=useState(''),[confirmation,setConfirmation]=useState(''),[deleteBusy,setDeleteBusy]=useState(false),[deleteError,setDeleteError]=useState('');
@@ -16,7 +17,7 @@ export default function AccountDataControls({email,hasActiveSubscription=false}:
   }
   async function deleteAccount(event:FormEvent){
     event.preventDefault();setDeleteError('');setDeleteBusy(true);
-    try{const response=await fetch('/api/account',{method:'DELETE',headers:{'content-type':'application/json'},body:JSON.stringify({password,confirmation})}),body=await response.json();if(!response.ok)throw new Error(body.error||'Не вдалося видалити акаунт.');location.assign('/');}
+    try{const proof=await createPasswordProof(email,password,'delete');const response=await fetch('/api/account',{method:'DELETE',headers:{'content-type':'application/json'},body:JSON.stringify({challengeId:proof.challengeId,proof:proof.proof,upgrade:proof.upgrade,upgradeProof:proof.upgradeProof,confirmation})}),body=await response.json();if(!response.ok)throw new Error(body.error||'Не вдалося видалити акаунт.');location.assign('/');}
     catch(error){setDeleteError(error instanceof Error?error.message:'Не вдалося видалити акаунт. Спробуйте ще раз.')}finally{setDeleteBusy(false)}
   }
   return <>

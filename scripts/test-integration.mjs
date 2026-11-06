@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { createHash, createHmac, randomUUID } from 'node:crypto';
+import { createHash, createHmac, pbkdf2Sync, randomBytes, randomUUID } from 'node:crypto';
 import { mkdir, mkdtemp, readFile, readdir, rm } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -102,6 +102,25 @@ async function mockOutbound(request) {
 }
 
 async function responseFor(path, { method = 'GET', body, rawBody, cookie, origin = false, ip, authorization, scheduledCron, telegramSecret } = {}) {
+  if(path==='/api/auth/signup'&&typeof body?.password==='string'){
+    const salt=randomBytes(24).toString('base64url');
+    body={...body,password:undefined,passwordCredentials:{salt,passwordVerifier:pbkdf2Sync(body.password,salt,310000,32,'sha256').toString('hex'),passwordIterations:310000}};
+  }else if(path==='/api/auth/password/reset'&&typeof body?.password==='string'){
+    const salt=randomBytes(24).toString('base64url');
+    body={...body,password:undefined,passwordCredentials:{salt,passwordVerifier:pbkdf2Sync(body.password,salt,310000,32,'sha256').toString('hex'),passwordIterations:310000}};
+  }else if(path==='/api/auth/login'&&typeof body?.password==='string'){
+    const password=body.password,email=String(body.email||'').trim().toLowerCase();
+    const issued=await responseFor('/api/auth/password/challenge',{method:'POST',body:{email,purpose:'login'}});
+    if(issued.response.ok){const c=issued.data,verifier=pbkdf2Sync(password,c.salt,c.iterations,32,'sha256'),message=`sift-password-v1|login|${email}|${c.challengeId}|${c.nonce}`,proof=createHmac('sha256',verifier).update(message).digest('hex');body={email,challengeId:c.challengeId,proof};}
+  }else if(path==='/api/auth/password/change'&&typeof body?.currentPassword==='string'){
+    const password=body.currentPassword,email=String((await responseFor('/api/auth/me',{cookie})).data?.user?.email||'').toLowerCase();
+    const issued=await responseFor('/api/auth/password/challenge',{method:'POST',body:{email,purpose:'change'}});
+    if(issued.response.ok){const c=issued.data,verifier=pbkdf2Sync(password,c.salt,c.iterations,32,'sha256'),message=`sift-password-v1|change|${email}|${c.challengeId}|${c.nonce}`,proof=createHmac('sha256',verifier).update(message).digest('hex'),salt=randomBytes(24).toString('base64url');body={currentChallengeId:c.challengeId,currentProof:proof,newPasswordCredentials:{salt,passwordVerifier:pbkdf2Sync(body.newPassword,salt,310000,32,'sha256').toString('hex'),passwordIterations:310000}};}
+  }else if(path==='/api/account'&&method==='DELETE'&&typeof body?.password==='string'){
+    const password=body.password,email=String((await responseFor('/api/auth/me',{cookie})).data?.user?.email||'').toLowerCase();
+    const issued=await responseFor('/api/auth/password/challenge',{method:'POST',body:{email,purpose:'delete'}});
+    if(issued.response.ok){const c=issued.data,verifier=pbkdf2Sync(password,c.salt,c.iterations,32,'sha256'),message=`sift-password-v1|delete|${email}|${c.challengeId}|${c.nonce}`,proof=createHmac('sha256',verifier).update(message).digest('hex');body={confirmation:body.confirmation,challengeId:c.challengeId,proof};}
+  }
   const headers = new Headers();
   if (body !== undefined || rawBody !== undefined) headers.set('content-type', 'application/json');
   if (cookie) headers.set('cookie', cookie);
@@ -194,6 +213,7 @@ try {
       WAYFORPAY_SANDBOX_ALLOWLIST: email,
       TURNSTILE_SITE_KEY: 'integration-site-key',
       TURNSTILE_SECRET_KEY: 'integration-secret-key',
+      PASSWORD_PEPPER: 'integration-password-pepper-never-use-in-production-32chars',
       REFERRAL_ABUSE_SECRET: 'integration-referral-abuse-secret',
       RESEND_API_KEY: 'integration-resend-key',
       AUTH_EMAIL_FROM: 'Sift Integration <no-reply@example.com>',
@@ -228,7 +248,7 @@ try {
       await db.prepare(`INSERT INTO user_achievements(user_id,badge_key,issued_at,details_json) VALUES(?,'renewal_spotted',?,?)`).bind(migrationProbeUser, seededAt, JSON.stringify({ sourceId: migrationProbeScan })).run();
     }
     const sql = await readFile(join(migrationDir, migration), 'utf8');
-    if (migration === '0035_account_deletion_cascade.sql') await db.prepare(sql).run();
+    if (migration === '0035_account_deletion_cascade.sql' || migration === '0037_password_challenge_cleanup.sql') await db.prepare(sql).run();
     else for (const statement of sql.split(';').map((item) => item.trim()).filter(Boolean)) await db.prepare(statement).run();
   }
   const eventColumns = await db.prepare(`PRAGMA table_info(events)`).all();
@@ -288,6 +308,10 @@ try {
   assert.equal(signup.response.status, 201, JSON.stringify(signup.data));
   assert.equal(signup.data.user.email, email);
   assert.equal(signup.data.verification.sent, true);
+  const storedPassword=(await db.prepare('SELECT password_hash,salt,password_iterations FROM users WHERE id=?').bind(signup.data.user.id).first());
+  assert.match(storedPassword.password_hash,/^enc:v1:/,'database stores an encrypted PBKDF2 verifier, not a reusable browser verifier');
+  assert.equal(storedPassword.password_iterations,310000);
+  assert.equal(storedPassword.salt.length,32);
   const session = sessionFrom(signup.response);
   const unverifiedMe = await responseFor('/api/auth/me', { cookie: session });
   assert.equal(unverifiedMe.response.status, 200);

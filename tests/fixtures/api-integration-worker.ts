@@ -1,5 +1,6 @@
 import { POST as signup } from '../../app/api/auth/signup/route';
 import { POST as login } from '../../app/api/auth/login/route';
+import { POST as passwordChallenge } from '../../app/api/auth/password/challenge/route';
 import { POST as logout } from '../../app/api/auth/logout/route';
 import { GET as me } from '../../app/api/auth/me/route';
 import { POST as verifyEmail } from '../../app/api/auth/verify-email/route';
@@ -60,6 +61,7 @@ import { GET as openApiDocument } from '../../app/api/v1/openapi.json/route';
 const routes: Record<string, (request: Request) => Promise<Response>> = {
   'POST /api/auth/signup': signup,
   'POST /api/auth/login': login,
+  'POST /api/auth/password/challenge': passwordChallenge,
   'POST /api/auth/logout': logout,
   'GET /api/auth/me': me,
   'POST /api/auth/verify-email': verifyEmail,
