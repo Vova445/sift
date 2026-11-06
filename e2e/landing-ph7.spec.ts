@@ -61,6 +61,11 @@ test('device history shows at most five reports with their actual score, domain 
   await expect(page.locator('.purchaseRow').first()).toContainText('service-1.example.test');
   await expect(page.locator('.purchaseRow').first().locator('.purchaseScore')).toContainText('50');
   await expect(page.locator('.purchaseDate').first()).not.toBeEmpty();
+  const scoreBox=await page.locator('.purchaseRow').first().locator('.purchaseScore').boundingBox();
+  const titleBox=await page.locator('.purchaseRow').first().locator('.purchaseInfo>b').boundingBox();
+  expect(scoreBox).not.toBeNull();
+  expect(titleBox).not.toBeNull();
+  expect(scoreBox!.x+scoreBox!.width).toBeLessThanOrEqual(titleBox!.x);
   await expect(page.locator('.deviceStats article')).toHaveCount(3);
   await expect(page.locator('.deviceStats article').first()).toContainText('6');
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);
