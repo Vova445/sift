@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import Link from 'next/link';
+import Link from '../../NativeLink';
 import { ArrowLeft, ArrowRight, Bot, Check, Copy, ExternalLink, KeyRound, LockKeyhole, Plus, ShieldCheck, Trash2, Unplug, X } from 'lucide-react';
 import { useAccessibleDialog } from '../../useAccessibleDialog';
 import { useBodyScrollLock } from '../../useBodyScrollLock';

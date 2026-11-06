@@ -1,6 +1,6 @@
 'use client';
 import {useEffect,useRef,useState} from 'react';
-import Link from 'next/link';
+import Link from './NativeLink';
 import {motion,AnimatePresence} from 'framer-motion';
 import EmailVerificationNotice from './EmailVerificationNotice';
 import TurnstileWidget from './TurnstileWidget';

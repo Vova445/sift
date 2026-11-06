@@ -2,7 +2,7 @@
 
 import {useState,useSyncExternalStore} from 'react';
 import {ArrowRight,CheckCircle2,CircleAlert,LoaderCircle,Mail,ScanSearch,ShieldCheck} from 'lucide-react';
-import Link from 'next/link';
+import Link from '../NativeLink';
 
 const subscribe=(callback:()=>void)=>{window.addEventListener('hashchange',callback);const timer=window.setTimeout(callback,0);return()=>{window.clearTimeout(timer);window.removeEventListener('hashchange',callback)}};
 const getToken=()=>new URLSearchParams(window.location.hash.slice(1)).get('token')||'';

@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import Link from '../NativeLink';
 import { ArrowLeft, ArrowRight, Bot, Braces, Code2, ExternalLink, KeyRound, ShieldCheck, Timer, Unplug } from 'lucide-react';
 import ApiCodeBlock from './ApiCodeBlock';
 import './api-docs.css';

@@ -1,5 +1,5 @@
 import type {Metadata} from 'next';
-import Link from 'next/link';
+import Link from '../NativeLink';
 import {ArrowLeft,ArrowRight,ChartNoAxesColumn,Info,ShieldCheck} from 'lucide-react';
 import {publicDomainProfiles} from '../../lib/domain-index';
 import {pageMetadata} from '../../lib/seo';

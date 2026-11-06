@@ -1,5 +1,5 @@
 import type {Metadata} from 'next';
-import Link from 'next/link';
+import Link from '../../NativeLink';
 import './share.css';
 
 export const metadata:Metadata={title:'Картка недоступна — Sift',robots:{index:false,follow:false},referrer:'no-referrer'};

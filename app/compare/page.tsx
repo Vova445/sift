@@ -1,7 +1,7 @@
 'use client';
 
 import {useEffect,useMemo,useState,type FormEvent} from 'react';
-import Link from 'next/link';
+import Link from '../NativeLink';
 import {ArrowLeft,ArrowRight,BadgeCheck,ExternalLink,RefreshCw,ScanSearch,ShieldAlert,ShieldCheck} from 'lucide-react';
 import {compareOfferReports,type PriceDetail} from '../../lib/offer-comparison.js';
 import './compare.css';

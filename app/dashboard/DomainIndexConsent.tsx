@@ -1,7 +1,7 @@
 'use client';
 
 import {useEffect,useState} from 'react';
-import Link from 'next/link';
+import Link from '../NativeLink';
 import {ArrowRight,ChartNoAxesColumn,Check,LockKeyhole,ShieldCheck,Trash2} from 'lucide-react';
 import ConfirmActionDialog from './ConfirmActionDialog';
 import './domain-index-consent.css';

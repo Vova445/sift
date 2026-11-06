@@ -1,5 +1,5 @@
 import type {Metadata} from 'next';
-import Link from 'next/link';
+import Link from './NativeLink';
 import './service-status.css';
 
 export const metadata:Metadata={title:'Сторінку не знайдено — Sift',robots:{index:false,follow:false}};

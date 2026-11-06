@@ -1,5 +1,5 @@
 import type {Metadata} from 'next';
-import Link from 'next/link';
+import Link from '../../NativeLink';
 import {notFound} from 'next/navigation';
 import {getPublicVerdict,publicVerdictOrigin} from '../../../lib/public-verdict';
 import {publicVerdictLabel} from '../../../lib/public-verdict-policy.js';

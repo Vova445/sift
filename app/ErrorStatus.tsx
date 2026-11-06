@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import Link from './NativeLink';
 
 export default function ErrorStatus({reset,digest}:{reset?:()=>void;digest?:string}){
   return <main className="siftStatusPage">

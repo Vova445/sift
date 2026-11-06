@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
-import Link from 'next/link';
+import Link from './NativeLink';
 import { ChartNoAxesColumn, Code2, FileSearch, Home, ShieldCheck, UsersRound } from 'lucide-react';
 
 type Tab = 'dashboard' | 'account' | 'integrations' | 'space' | 'domains' | 'analytics' | 'admin';

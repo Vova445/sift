@@ -2,7 +2,7 @@
 
 import {FormEvent,useState,useSyncExternalStore} from 'react';
 import {ArrowRight,Check,CheckCircle2,CircleAlert,Eye,EyeOff,KeyRound,ScanSearch,ShieldCheck} from 'lucide-react';
-import Link from 'next/link';
+import Link from '../NativeLink';
 import TurnstileWidget from '../TurnstileWidget';
 import {createPasswordCredentials} from '../../lib/password-client';
 

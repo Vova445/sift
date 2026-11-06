@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
+import Link from '../../NativeLink';
 import { ArrowLeft, ArrowRight, CalendarDays, Check, Copy, CreditCard, Link2, LogOut, Plus, ShieldCheck, Trash2, UsersRound, X } from 'lucide-react';
 import './space.css';
 import AccessGate from '../AccessGate';

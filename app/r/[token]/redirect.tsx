@@ -1,7 +1,7 @@
 'use client';
 
 import {useEffect} from 'react';
-import Link from 'next/link';
+import Link from '../../NativeLink';
 
 const tokenPattern=/^[A-Za-z0-9_-]{43}$/;
 

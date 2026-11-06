@@ -1,7 +1,7 @@
 'use client';
 
 import {useEffect,useSyncExternalStore,type MouseEvent as ReactMouseEvent} from 'react';
-import Link from 'next/link';
+import Link from '../NativeLink';
 import {ArrowRight,Check,LockKeyhole,ShieldCheck,UnlockKeyhole} from 'lucide-react';
 import './access-gate.css';
 

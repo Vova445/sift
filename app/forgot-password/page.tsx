@@ -2,7 +2,7 @@
 
 import {FormEvent,useState} from 'react';
 import {ArrowRight,Check,CircleAlert,Clock3,Mail,ScanSearch,ShieldCheck} from 'lucide-react';
-import Link from 'next/link';
+import Link from '../NativeLink';
 import TurnstileWidget from '../TurnstileWidget';
 
 export default function ForgotPasswordPage(){

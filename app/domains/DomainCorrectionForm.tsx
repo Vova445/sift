@@ -1,7 +1,7 @@
 'use client';
 
 import {useState} from 'react';
-import Link from 'next/link';
+import Link from '../NativeLink';
 import {ArrowRight,Check,LoaderCircle,Send} from 'lucide-react';
 
 type FieldName='domain'|'contactName'|'contactEmail'|'organization'|'message'|'evidenceUrl'|'ownerAttests';

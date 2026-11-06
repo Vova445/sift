@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import Link from '../../NativeLink';
 import {ArrowLeft,ArrowRight,ChartNoAxesColumn,Info} from 'lucide-react';
 import '../domain-index.css';
 
