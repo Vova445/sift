@@ -30,7 +30,7 @@
 .insight .bigstat.isEmpty{display:block;margin-top:46px;padding-top:12px}
 .insight .bigstat.isEmpty>.historyPrompt{max-width:760px;margin:0 auto}
 
-.purchases>.purchaseRow{position:relative;grid-template-columns:42px minmax(0,1fr) 16px;gap:12px;min-height:74px;margin:9px 0;padding:11px 12px;border:1px solid #e7ebe4;border-radius:13px;background:linear-gradient(115deg,#fff 0%,#fbfcfa 100%);box-shadow:0 2px 8px #18211205;transition:border-color .18s ease,box-shadow .18s ease,transform .18s ease}
+.purchases>.purchaseRow{position:relative;display:grid;width:100%;grid-template-columns:42px minmax(0,1fr) 16px;align-items:center;gap:12px;min-height:74px;margin:9px 0;padding:11px 12px;border:1px solid #e7ebe4;border-radius:13px;background:linear-gradient(115deg,#fff 0%,#fbfcfa 100%);box-shadow:0 2px 8px #18211205;transition:border-color .18s ease,box-shadow .18s ease,transform .18s ease;text-align:left}
 .purchaseScore{display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:conic-gradient(#67a52d 72%,#e7ebe3 0);color:#4f8120;box-shadow:0 0 0 3px #f3f6ef}
 .purchases>.purchaseRow>.purchaseScore>b{display:grid;place-items:center;width:32px;height:32px;margin:0;padding:0;border-radius:50%;background:#fff;color:inherit;font-size:10px;line-height:1;font-variant-numeric:tabular-nums}
 .purchaseScore.low{color:#bb493d}
