@@ -1,0 +1,4 @@
+.plans.three>article>ul>li{display:grid;grid-template-columns:14px minmax(0,1fr);align-items:start;column-gap:9px;min-width:0;line-height:1.5}
+.plans.three>article>ul>li>svg{width:14px;height:14px;flex:none;margin:2px 0 0;color:#5f9228;stroke-width:2}
+.plans.three>article.freePlan>ul>li>svg[data-lucide="x"]{color:#91988f}
+.plans.three>article>ul>li::first-letter{vertical-align:baseline}

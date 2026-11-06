@@ -2,6 +2,7 @@ import {env} from 'cloudflare:workers';
 import {ensureDb,accessFor} from './db';
 import {canonicalAppUrl} from './billing-security.js';
 import {kyivDate,reminderDaysBefore,validUnsubscribeToken} from './email-reminder-policy.js';
+import {ensureRewardsDb} from './rewards';
 
 const encoder=new TextEncoder();
 const RETRY_MS=60*60*1000;
@@ -14,6 +15,7 @@ const htmlEscape=(value:string)=>value.replaceAll('&','&amp;').replaceAll('<','&
 
 export async function ensureEmailReminderDb(){
   await ensureDb();
+  await ensureRewardsDb();
   if(!schemaReady)schemaReady=(async()=>{
     await env.DB.prepare(`CREATE TABLE IF NOT EXISTS email_reminder_preferences(user_id TEXT PRIMARY KEY,enabled INTEGER NOT NULL DEFAULT 1 CHECK(enabled IN (0,1)),updated_at TEXT NOT NULL)`).run();
     await env.DB.prepare(`CREATE TABLE IF NOT EXISTS email_reminder_unsubscribe_tokens(token_hash TEXT PRIMARY KEY,user_id TEXT NOT NULL,created_at TEXT NOT NULL,used_at TEXT)`).run();
@@ -81,7 +83,7 @@ export async function processEmailReminders(now=new Date()){
   await ensureEmailReminderDb();
   const values=config(),daysBefore=reminderDaysBefore(values.EMAIL_REMINDER_DAYS_BEFORE),today=kyivDate(now);
   const lastDate=new Date(Date.parse(`${today}T00:00:00.000Z`)+daysBefore*86_400_000).toISOString().slice(0,10);
-  const due=await env.DB.prepare(`SELECT w.id,w.user_id,w.review_at,s.title,u.email FROM watchlist w JOIN scans s ON s.id=w.scan_id JOIN users u ON u.id=w.user_id JOIN email_verification_status v ON v.user_id=u.id LEFT JOIN email_reminder_preferences p ON p.user_id=w.user_id WHERE w.review_at>=? AND w.review_at<=? AND w.status!='rejected' AND COALESCE(p.enabled,1)=1 ORDER BY w.review_at,w.updated_at LIMIT 100`).bind(today,lastDate).all<ReminderRow>();
+  const due=await env.DB.prepare(`SELECT w.id,w.user_id,w.review_at,s.title,u.email FROM watchlist w JOIN scans s ON s.id=w.scan_id JOIN users u ON u.id=w.user_id JOIN email_verification_status v ON v.user_id=u.id LEFT JOIN email_reminder_preferences p ON p.user_id=w.user_id WHERE w.review_at>=? AND w.review_at<=? AND w.status!='rejected' AND COALESCE(p.enabled,1)=1 ORDER BY CASE WHEN EXISTS(SELECT 1 FROM rewards r WHERE r.user_id=w.user_id AND r.reward_type='priority_alerts' AND r.status='available' AND (r.expires_at IS NULL OR r.expires_at>?)) THEN 0 ELSE 1 END,w.review_at,w.updated_at LIMIT 100`).bind(today,lastDate,new Date().toISOString()).all<ReminderRow>();
   const rows=due.results||[];
   if(!rows.length)return{due:0,sent:0,failed:0,skipped:0,email:'no_due_reminders'};
   const {apiKey,from,app}=deliveryConfig();

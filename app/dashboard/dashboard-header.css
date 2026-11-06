@@ -6,9 +6,13 @@
 .dashTopbar svg{width:14px}
 .dashTopbar>div{display:flex;align-items:center;gap:10px}
 .dashTopbar button{border:1px solid var(--line);background:white;border-radius:8px;padding:8px 11px;display:flex;align-items:center;gap:7px;font-size:8px;font-weight:800}
-.topPlan{border-radius:99px;padding:8px 11px;font-size:7px;font-weight:900;letter-spacing:.1em;background:#e8f9c9;color:#426c18;border:1px solid #cce9a0}
+.topPlan{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:36px;border-radius:99px;padding:0 13px;font-size:10px;font-weight:850;letter-spacing:.025em;line-height:1;white-space:nowrap;background:#e8f9c9;color:#385e16;border:1px solid #cce9a0;box-shadow:0 2px 6px #507b1b0d}
+.topPlan::before{content:"";width:7px;height:7px;flex:0 0 7px;border-radius:50%;background:#73ae36;box-shadow:0 0 0 3px #72ad3622}
 .topPlan.pro{background:var(--ink);color:var(--green);border-color:var(--ink)}
-.topPlan.one{background:#eeeaff;color:#594acb;border-color:#d8d1ff}
+.topPlan.pro::before{background:var(--green);box-shadow:0 0 0 3px #b9f35322}
+.topPlan.one{background:#eeeaff;color:#4e42be;border-color:#d8d1ff}
+.topPlan.one::before{background:#7665f5;box-shadow:0 0 0 3px #7665f522}
+.analyticsDashLink{display:flex;align-items:center;gap:5px;text-decoration:none;color:#5147b7;font-size:9px;font-weight:850}.analyticsDashLink svg{width:13px}.integrationsDashLink{display:flex;align-items:center;justify-content:center;gap:5px;min-height:34px;padding:7px 9px;border:1px solid var(--line);border-radius:9px;background:#fff;color:#263020;text-decoration:none;font-size:9px;font-weight:850}.integrationsDashLink svg{width:13px;height:13px;flex:none}
 .dashGate{grid-column:1/-1;width:100%}
 .reportDrawer{padding:14px}
 .reportDrawer>section{width:min(720px,100%);height:calc(100% - 28px);margin:auto 0;border-radius:20px;padding:30px}
@@ -22,4 +26,82 @@
 .drawerFindings h3{font-size:16px;line-height:1.3}
 .drawerFindings p{font-size:11px;line-height:1.65;max-height:none;overflow:visible}
 .drawerFindings article>span{flex:0 0 8px}
-@media(max-width:600px){.dashTopbar{margin-bottom:30px}.dashTopbar>a{max-width:112px;line-height:1.35}.dashTopbar>div{gap:6px}.dashTopbar button{padding:8px}.dashTopbar button svg{display:none}.topPlan{padding:8px}.reportDrawer{padding:0}.reportDrawer>section{width:100%;height:100%;border-radius:0;padding:20px 14px}.reportDrawer>section>header{top:-20px;padding:20px 0 16px}.reportDrawer h2{font-size:22px;padding-right:35px}.drawerScore{padding:18px;gap:14px}.drawerScore>b{font-size:38px}.drawerScore span{padding-left:14px}.drawerScore strong{font-size:10px}.drawerPrices{padding:14px}.drawerFindings article{padding:16px 14px}.drawerFindings h3{font-size:14px}.drawerFindings p{font-size:11px;line-height:1.6}}
+.reportDrawer .reportFindings{grid-template-columns:1fr;gap:10px;margin-top:20px}.reportDrawer .reportFindings article{padding:17px 18px}.reportDrawer .reportFindings blockquote{max-height:none;overflow:visible;font-size:11px}
+@media(max-width:600px){.dashTopbar{min-width:0;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:30px;padding-bottom:10px}.dashTopbar>a{max-width:112px;flex:0 0 auto;line-height:1.35}.dashTopbar>div{min-width:0;max-width:100%;flex:1 1 210px;flex-wrap:wrap;justify-content:flex-end;gap:6px}.dashTopbar>div>*{min-height:34px}.dashTopbar .analyticsDashLink{padding:6px 4px;line-height:1.25}.dashTopbar button{padding:8px}.dashTopbar button svg{display:none}.topPlan{min-height:36px;padding:0 11px;font-size:10px}.reportDrawer{padding:0}.reportDrawer>section{width:100%;height:100%;border-radius:0;padding:20px 14px}.reportDrawer>section>header{top:-20px;padding:20px 0 16px}.reportDrawer h2{font-size:22px;padding-right:35px}.drawerScore{padding:18px;gap:14px}.drawerScore>b{font-size:38px}.drawerScore span{padding-left:14px}.drawerScore strong{font-size:10px}.drawerPrices{padding:14px}.drawerFindings article{padding:16px 14px}.drawerFindings h3{font-size:14px}.drawerFindings p{font-size:11px;line-height:1.6}}
+
+/* Keep the saved report inside the phone viewport and give both header actions
+   their own space. The report content scrolls inside this fixed-height panel. */
+@media(max-width:600px){
+  .reportDrawer{
+    position:fixed;
+    inset:0;
+    display:flex;
+    align-items:stretch;
+    justify-content:stretch;
+    padding:0!important;
+    overflow:hidden;
+  }
+  .reportDrawer>section{
+    box-sizing:border-box;
+    flex:1 1 0!important;
+    width:100%!important;
+    min-width:0!important;
+    min-height:0!important;
+    height:100vh!important;
+    height:100svh!important;
+    height:100dvh!important;
+    max-height:100dvh!important;
+    margin:0!important;
+    padding:max(12px,env(safe-area-inset-top)) 14px calc(20px + env(safe-area-inset-bottom))!important;
+    border:0!important;
+    border-radius:0!important;
+    overflow-x:hidden!important;
+    overflow-y:auto!important;
+    overscroll-behavior:contain!important;
+    -webkit-overflow-scrolling:touch;
+  }
+  .reportDrawer>section>header{
+    position:sticky;
+    top:calc(-1 * max(12px,env(safe-area-inset-top)));
+    display:grid;
+    grid-template-columns:minmax(0,1fr) 40px;
+    grid-template-areas:"back close" "info info";
+    align-items:center;
+    gap:12px 10px;
+    margin:calc(-1 * max(12px,env(safe-area-inset-top))) -14px 0;
+    padding:12px 14px 15px;
+    background:#f7f8f5f5;
+    backdrop-filter:blur(12px);
+  }
+  .reportDrawer>section>header>button.reportBack{
+    grid-area:back;
+    display:inline-flex;
+    box-sizing:border-box;
+    justify-self:start;
+    width:max-content!important;
+    max-width:calc(100vw - 82px)!important;
+    min-width:0!important;
+    min-height:40px!important;
+    height:auto!important;
+    flex:0 0 auto!important;
+    align-items:center;
+    justify-content:center;
+    padding:0 12px!important;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .reportDrawer>section>header>button:not(.reportBack){
+    grid-area:close;
+    justify-self:end;
+    width:40px;
+    height:40px;
+    flex:0 0 40px;
+  }
+  .reportDrawer>section>header>div{grid-area:info;min-width:0}
+  .reportDrawer h2{padding-right:0;font-size:clamp(20px,5.3vw,24px);line-height:1.2;overflow-wrap:anywhere}
+  .reportDrawer .reportSummary{grid-template-columns:minmax(0,1fr);gap:10px;margin-top:14px}
+  .reportDrawer .clarityScoreCard{min-width:0;grid-template-columns:86px minmax(0,1fr);gap:12px;padding:12px 14px}
+  .reportDrawer .clarityRing{width:80px}
+  .reportDrawer .clarityRing b{font-size:36px}
+}

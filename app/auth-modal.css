@@ -1,0 +1,91 @@
+.overlay.authOverlay{background:rgba(16,19,15,.6)!important}
+.modal.authModal{position:relative;width:min(420px,100%);max-height:90dvh;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;border-radius:18px;padding:32px;-webkit-overflow-scrolling:touch;scroll-padding-block:20px 70px}
+.modal.authModal .close{position:absolute;top:16px;right:16px;z-index:3;width:40px;height:40px;margin:0;float:none;background:#f0f2ee}
+.authModal>.modalIcon,.authAccountCard>.modalIcon{margin-bottom:20px}
+.authModal .authEyebrow{display:block;margin:0 44px 10px 0;color:#687264;font-size:8px;font-weight:900;letter-spacing:.15em}
+.authModal h2{margin:0 42px 9px 0;font-size:30px;line-height:1.08;letter-spacing:-.045em;overflow-wrap:anywhere}
+.authModal .authLead,.authAccountCard>p{margin:0 0 18px;color:#697168;font-size:12px;line-height:1.6}
+.authSegment{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;margin:0 0 17px;padding:4px;border:1px solid #e1e5df;border-radius:11px;background:#f3f5f1}
+.authSegment>button{min-width:0;min-height:40px;border:0;border-radius:8px;background:transparent;color:#626b5f;font-size:11px;font-weight:800;cursor:pointer}
+.authSegment>button.active{background:#fff;color:#171b15;box-shadow:0 2px 7px #141a100f}
+.authSegment>button:focus-visible,.authPasswordToggle:focus-visible,.authModal .close:focus-visible{outline:3px solid #7969f880;outline-offset:2px}
+.authForm{display:grid;gap:0}
+.authModal .authForm>label:not(.legalCheckbox){display:block;margin:12px 0 7px;color:#252a23;font-size:10px;font-weight:850;line-height:1.35}
+.authModal .authForm>.authInput,.authPasswordField>.authInput{width:100%;height:50px;min-height:50px;padding:0 13px;border:1px solid #d8ded5;border-radius:10px;background:#fff;color:#171b15;font-size:14px;outline:0}
+.authModal .authForm>.authInput:focus,.authPasswordField>.authInput:focus{border-color:#7969f8;box-shadow:0 0 0 3px #7969f81a}
+.authModal .authForm>.authInput[aria-invalid="true"],.authPasswordField>.authInput[aria-invalid="true"]{border-color:#d56359;background:#fffdfc}
+.authPasswordField{position:relative;min-width:0}
+.authPasswordField>.authInput{padding-right:50px}
+.authPasswordToggle{position:absolute;top:5px;right:5px;display:grid;place-items:center;width:40px;height:40px;border:0;border-radius:8px;background:transparent;color:#70786d;cursor:pointer}
+.authPasswordToggle:hover{background:#f1f3ee;color:#252a23}
+.authHint{display:block;margin-top:6px;color:#687264;font-size:10px;line-height:1.4}
+.authFieldError{display:flex;align-items:flex-start;gap:7px;margin-top:6px;color:#b42318;font-size:10px;font-weight:650;line-height:1.45}
+.authFieldError svg,.authFormError svg{flex:none;margin-top:1px}
+.authChallengeRow{min-width:0;margin:12px 0 3px;padding:9px 10px;border:1px solid #e2e6df;border-radius:10px;background:#fafbf9}
+.authModal .authChallengeRow .turnstileField{margin:0}
+.authModal .signupLegalCheckbox{margin:10px 0 0;padding:11px;border:1px solid #dce2d8;border-radius:10px;background:#f8faf6;font-size:10px;line-height:1.5}
+.authModal .signupLegalCheckbox input{margin-top:1px}
+.authFormError{display:flex;align-items:flex-start;gap:8px;margin-top:10px;padding:10px 11px;border:1px solid #ffd1cb;border-radius:9px;background:#fff2ef;color:#a83227;font-size:10px;line-height:1.45}
+.authModal .authSubmit{position:sticky;bottom:0;z-index:2;width:100%;min-height:50px;height:auto;margin:16px 0 0;padding:10px 14px;border-radius:10px;background:#10130f;color:#fff;font-size:11px;font-weight:900;box-shadow:0 -7px 0 7px #fff;cursor:pointer}
+.authModal .authSubmit:disabled{opacity:.65;cursor:wait}
+.forgotPasswordLink{display:flex;min-height:42px;align-items:center;justify-content:center;margin:7px 0 0;color:#5e52d7;font-size:10px;font-weight:800;text-decoration:none}
+.forgotPasswordLink:hover{text-decoration:underline;text-underline-offset:3px}
+.authModal .authSecurity{display:flex;align-items:center;gap:8px;margin-top:17px;color:#798175;font-size:9px;line-height:1.5}
+.authSecurity svg{flex:none;margin:0;color:#74836c}
+.authAccountCard>.authIdentity{display:grid;grid-template-columns:22px minmax(0,1fr) auto;align-items:center;gap:10px;margin:18px 0 14px;padding:12px;border:1px solid #dce2d8;border-radius:11px;background:#f9faf8}
+.authIdentity>svg{width:18px;color:#6d62dc}
+.authIdentity>span{display:grid;gap:4px;min-width:0}
+.authIdentity>span>small{color:#7b8378;font-size:9px}
+.authIdentity>span>b{overflow-wrap:anywhere;color:#20251e;font-size:12px}
+.authIdentity>strong{padding:6px 8px;border-radius:999px;background:#fff2dc;color:#8a5a0b;font-size:8px;white-space:nowrap}
+.authIdentity>strong.verified{background:#eaf7db;color:#426b1d}
+.authPlanCard{display:grid;gap:5px;margin:0 0 14px;padding:13px;border-radius:11px;background:#10130f;color:#fff}
+.authPlanCard>small{color:#b9c1b5;font-size:8px;font-weight:900;letter-spacing:.12em}
+.authPlanCard>b{font-size:16px}
+.authPlanCard>span{color:#d4dbd0;font-size:10px;line-height:1.45}
+.authAccountCard .verificationNotice{margin:12px 0;padding:13px}
+.authAccountCard .verificationNotice>b{font-size:11px}
+.authAccountCard .verificationNotice>p{font-size:10px}
+.authAccountCard .verificationNotice>button{min-height:44px;font-size:10px}
+.authAccountCard .accountLogout{min-height:48px;height:auto;margin-top:14px;font-size:11px}
+.authAccountCard .accountLogout:disabled{cursor:wait;opacity:.65}
+@media(max-width:600px){
+ .overlay.authOverlay{place-items:center!important;padding:max(12px,env(safe-area-inset-top)) 12px max(12px,env(safe-area-inset-bottom))!important}
+ .modal.authModal{width:min(420px,100%)!important;height:auto!important;max-height:90dvh!important;padding:24px 20px calc(22px + env(safe-area-inset-bottom))!important;border-radius:18px!important}
+ .modal.authModal .close{position:absolute!important;top:12px!important;right:12px!important;width:40px;height:40px;margin:0}
+ .authModal>.modalIcon,.authAccountCard>.modalIcon{width:46px;height:46px;margin-bottom:16px}
+ .authModal h2{font-size:clamp(25px,7vw,31px)}
+ .authModal .authLead,.authAccountCard>p{font-size:11px}
+ .authModal .authForm>label:not(.legalCheckbox){margin-top:11px}
+ .authModal .authSubmit{min-height:50px;margin-top:13px}
+}
+@media(max-width:360px){
+ .modal.authModal{padding-inline:16px!important}
+ .authAccountCard>.authIdentity{grid-template-columns:20px minmax(0,1fr);gap:8px}
+ .authIdentity>strong{grid-column:2;width:max-content}
+}
+
+/* Registration form refinements: keep third-party verification and consent aligned. */
+.authModal .authChallengeRow{display:grid;justify-items:center;gap:7px;margin:12px 0 3px;padding:11px 12px;overflow:hidden}
+.authModal .authChallengeRow .turnstileField{display:flex;justify-content:center;width:100%;min-width:0;margin:0}
+.authModal .authChallengeRow .turnstileMount{display:flex;justify-content:center;align-items:center;width:100%;max-width:none;min-height:65px;overflow:visible;transform:none!important}
+.authModal .authChallengeRow .turnstileMount iframe{display:block;max-width:100%!important}
+.authModal .authChallengeRow:has(.turnstileStatus){min-height:66px;padding:9px 12px}
+.turnstileStatus{display:flex;align-items:center;gap:9px;min-height:44px;color:#657064;font-size:11px;font-weight:700;line-height:1.4}
+.turnstileStatus>span:first-child{display:grid;place-items:center;flex:none;width:30px;height:30px;border-radius:9px;background:#edf1eb;color:#657064}
+.turnstileStatus.isVerified{color:#3d6022}
+.turnstileStatus.isVerified>span:first-child{background:#e8f8d5;color:#4d8124}
+.turnstileStatus+ .turnstileMount{height:0!important;min-height:0!important;overflow:hidden}
+.authChallengeRow:has(.turnstileStatus) .turnstileField{flex-direction:column;align-items:stretch}
+.authChallengeRow:has(.turnstileStatus) .turnstileField>.turnstileMount:has(iframe){height:auto!important;min-height:65px!important;overflow:visible}
+.authModal .signupLegalCheckbox{display:grid;grid-template-columns:19px minmax(0,1fr);align-items:start;gap:10px;margin:10px 0 0;padding:12px;font-size:11px;line-height:1.55}
+.authModal .signupLegalCheckbox input{width:18px;height:18px;margin:3px 0 0;align-self:start}
+.authModal .signupLegalCheckbox span{min-width:0;overflow-wrap:anywhere}
+.authModal .signupLegalCheckbox a{font-weight:750;text-decoration-thickness:1px;text-underline-offset:2px}
+.authModal .authForm>.authInput:-webkit-autofill,.authModal .authPasswordField>.authInput:-webkit-autofill{-webkit-text-fill-color:#171b15;-webkit-box-shadow:0 0 0 1000px #f4f7f1 inset;transition:background-color 9999s ease-out}
+.authModal .authSubmit:focus-visible{outline:3px solid #7969f880;outline-offset:3px}
+@media(max-width:600px){
+ .modal.authModal{min-height:0!important;max-height:90dvh!important;align-self:center!important;}
+ .authModal .authChallengeRow{padding:10px}
+ .authModal .authSubmit{position:sticky;bottom:0}
+}

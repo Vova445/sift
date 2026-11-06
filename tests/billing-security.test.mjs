@@ -19,6 +19,13 @@ test('mutating billing requests require the exact configured Origin',()=>{
   assert.equal(sameOriginBillingRequest(new Request('https://sift.example/api/billing/checkout',{method:'POST'}),app),false);
 });
 
+test('local sandbox accepts only loopback aliases on the same port',()=>{
+  const local=canonicalAppUrl('http://127.0.0.1:8788/',true);
+  assert.equal(sameOriginBillingRequest(new Request('http://127.0.0.1:8788/api/space',{headers:{origin:'http://localhost:8788'}}),local),true);
+  assert.equal(sameOriginBillingRequest(new Request('http://127.0.0.1:8788/api/space',{headers:{origin:'http://localhost:3000'}}),local),false);
+  assert.equal(sameOriginBillingRequest(new Request('http://127.0.0.1:8788/api/space',{headers:{origin:'https://localhost:8788'}}),local),false);
+});
+
 test('checkout ignores client user, amount and redirect and uses server prices',()=>{
   const app=canonicalAppUrl('https://sift.example/');
   const descriptor=checkoutDescriptor({plan:'one',userId:'victim',amount:1,returnUrl:'https://evil.example'},'authenticated-user','sift_abc',123,app);

@@ -1,13 +1,16 @@
-import { cleanPageHtml, evaluateClarity, extractPurchaseTerms } from './analyzer-core.js';
+import { cleanPageHtml, evaluateClarity, extractPurchaseTerms, unresolvedConditions } from './analyzer-core.js';
 import { resolvePublicTarget, SsrfPolicyError, validateTarget } from './ssrf-policy.js';
 
 export type Finding = {
-  kind: 'renewal' | 'refund' | 'cancellation' | 'trial' | 'price' | 'warning';
+  kind: 'renewal' | 'refund' | 'cancellation' | 'trial' | 'price' | 'penalty' | 'warning';
   title: string;
   summary: string;
   evidence: string;
   severity: 'good' | 'medium' | 'high';
+  confidence: 'high' | 'medium' | 'low';
+  sourceUrl: string;
 };
+export type UnresolvedCondition = { kind: string; title: string; confidence: 'low'; summary: string; evidence: ''; sourceUrl: string; unresolved: true };
 export type PurchaseDecision = 'buy' | 'wait' | 'close';
 export { evaluateClarity };
 
@@ -142,16 +145,20 @@ export async function analyzeUrl(raw: string, dependencies: AnalyzeDependencies 
       throw new AnalyzerError('Сайт повернув загальну або не ту сторінку замість запитаної. Відкрийте умови/тариф у звичайному браузері й скопіюйте кінцеве посилання.', 422);
     }
 
-    const { findings, prices } = extractPurchaseTerms(text);
-    const evaluation = evaluateClarity(findings, prices);
+    const extracted = extractPurchaseTerms(text);
+    const findings = extracted.findings.map((finding) => ({ ...finding, confidence: finding.confidence || 'medium' as const, sourceUrl: current.toString() }));
+    const unknowns = unresolvedConditions(findings, extracted.prices, extracted.priceDetails, current.toString());
+    const evaluation = evaluateClarity(findings, extracted.prices);
     return {
       url: current.toString(),
       host: current.hostname,
       title: title.slice(0, 140),
       checkedAt: new Date().toISOString(),
       ...evaluation,
-      prices,
+      prices: extracted.prices,
+      priceDetails: extracted.priceDetails,
       findings,
+      unknowns,
       wordCount,
     };
   } catch (error) {

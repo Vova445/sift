@@ -21,6 +21,16 @@ test('valid token is checked server-side for endpoint, action and hostname', asy
   assert.deepEqual(result,{ok:true,kind:'valid'});assert.equal(called,1);
 });
 
+test('Cloudflare testing-key responses are accepted only when local test mode is explicitly enabled', async () => {
+  const testingResponse=()=>Response.json({success:true,hostname:'example.com',metadata:{result_with_testing_key:true}});
+  const local=await verifyTurnstileToken({secret:'published-testing-secret',token,expectedAction:'signup',expectedHostname:'localhost',allowTestingKeyResponse:true,fetchImpl:async()=>testingResponse()});
+  assert.deepEqual(local,{ok:true,kind:'valid'});
+  const production=await verifyTurnstileToken({secret:'published-testing-secret',token,expectedAction:'signup',expectedHostname:'localhost',fetchImpl:async()=>testingResponse()});
+  assert.deepEqual(production,{ok:false,kind:'invalid'});
+  const notTesting=await verifyTurnstileToken({secret:'published-testing-secret',token,expectedAction:'signup',expectedHostname:'localhost',allowTestingKeyResponse:true,fetchImpl:async()=>Response.json({success:true,hostname:'attacker.example'})});
+  assert.deepEqual(notTesting,{ok:false,kind:'invalid'});
+});
+
 test('invalid, replayed, wrong-action and wrong-host tokens are rejected', async () => {
   for(const response of [Response.json({success:false,'error-codes':['timeout-or-duplicate']}),accepted({action:'password_reset'}),accepted({hostname:'attacker.example'})]){
     const result=await verifyTurnstileToken({secret:'secret',token,expectedAction:'signup',expectedHostname:'localhost',fetchImpl:async()=>response});

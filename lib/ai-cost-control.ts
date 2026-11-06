@@ -25,12 +25,12 @@ export async function reserveAiCall(tokens:number){
   return(result.meta?.changes||0)>0?{day,reservedTokens:tokens}:null;
 }
 
-export async function finishAiCall(input:{reservation:{day:string;reservedTokens:number};scanId:string;userId:string;sourceHash:string;inputTokens:number;outputTokens:number;status:'completed'|'failed'}){
+export async function finishAiCall(input:{reservation:{day:string;reservedTokens:number};scanId:string;userId:string;sourceHash:string;inputTokens:number;outputTokens:number;status:'completed'|'failed';model?:string;estimatedCostMicros?:number}){
   await ensureTranslationDb();
-  const now=new Date().toISOString(),total=input.inputTokens+input.outputTokens,cost=estimateCostMicros(input.inputTokens,input.outputTokens);
+  const now=new Date().toISOString(),total=input.inputTokens+input.outputTokens,cost=input.estimatedCostMicros??estimateCostMicros(input.inputTokens,input.outputTokens);
   await env.DB.batch([
     env.DB.prepare(`UPDATE ai_daily_usage SET reserved_tokens=MAX(0,reserved_tokens-?),actual_tokens=actual_tokens+?,estimated_cost_micros=estimated_cost_micros+?,updated_at=? WHERE day=?`).bind(input.reservation.reservedTokens,total,cost,now,input.reservation.day),
-    env.DB.prepare(`INSERT INTO ai_usage_events(id,scan_id,user_id,source_hash,model,status,input_tokens,output_tokens,total_tokens,estimated_cost_micros,created_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)`).bind(crypto.randomUUID(),input.scanId,input.userId,input.sourceHash,MODEL,input.status,input.inputTokens,input.outputTokens,total,cost,now)
+    env.DB.prepare(`INSERT INTO ai_usage_events(id,scan_id,user_id,source_hash,model,status,input_tokens,output_tokens,total_tokens,estimated_cost_micros,created_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)`).bind(crypto.randomUUID(),input.scanId,input.userId,input.sourceHash,input.model||MODEL,input.status,input.inputTokens,input.outputTokens,total,cost,now)
   ]);
 }
 

@@ -5,18 +5,51 @@
   "compatibility_date": "2026-05-15",
   "compatibility_flags": ["nodejs_compat"],
   "no_bundle": true,
-  "triggers": { "crons": ["0 * * * *"] },
-  "vars": { "RATE_LIMIT_EDGE_ENABLED": "true", "EMAIL_REMINDER_DAYS_BEFORE": "1" },
+  "triggers": { "crons": ["*/1 * * * *", "0 * * * *", "0 2 * * *", "0 8 * * 1"] },
+  "vars": {
+    "RATE_LIMIT_EDGE_ENABLED": "true",
+    "EMAIL_REMINDER_DAYS_BEFORE": "1",
+    "APP_BASE_URL": "https://sift-app.sift-vova445.workers.dev",
+    "WAYFORPAY_MODE": "live",
+    "CF_ACCOUNT_ID": "0cd622d5a5fb3204755a63d4f36df48f",
+    "D1_BACKUP_DATABASE_ID": "bfbef29e-ba0b-4b41-a7b2-14d34b382023",
+    "DARK_PATTERN_AI_ENABLED": "true"
+  },
   "assets": { "directory": "dist/client" },
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "sift-production",
-      "database_id": "fa487f7a-ecfb-4968-8820-1214dd736e3c",
+      "database_id": "bfbef29e-ba0b-4b41-a7b2-14d34b382023",
       "migrations_dir": "migrations"
     }
   ],
-  "observability": { "enabled": true },
+  "r2_buckets": [
+    { "binding": "BACKUP_BUCKET", "bucket_name": "sift-app-d1-backups" }
+  ],
+  "workflows": [
+    {
+      "binding": "D1_BACKUP_WORKFLOW",
+      "name": "sift-d1-backup",
+      "class_name": "D1BackupWorkflow",
+      "limits": { "steps": 600 }
+    }
+  ],
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1,
+    "logs": {
+      "enabled": true,
+      "invocation_logs": true,
+      "head_sampling_rate": 1,
+      "persist": true
+    },
+    "traces": {
+      "enabled": true,
+      "head_sampling_rate": 0.1,
+      "persist": true
+    }
+  },
   "ai": { "binding": "AI" },
   "ratelimits": [
     { "name": "AUTH_EDGE_LIMITER", "namespace_id": "128001", "simple": { "limit": 120, "period": 60 } },
@@ -24,5 +57,32 @@
   ],
   "rules": [
     { "type": "ESModule", "globs": ["**/*.js", "**/*.mjs"] }
-  ]
+  ],
+  "env": {
+    "preview": {
+      "name": "sift-app-preview",
+      "vars": {
+        "APP_BASE_URL": "https://sift-app-preview.sift-vova445.workers.dev",
+        "RATE_LIMIT_EDGE_ENABLED": "false",
+        "EMAIL_REMINDER_DAYS_BEFORE": "1",
+        "WAYFORPAY_MODE": "sandbox",
+        "AI_TRANSLATION_ENABLED": "false",
+        "DARK_PATTERN_AI_ENABLED": "false",
+        "TURNSTILE_SITE_KEY": "1x00000000000000000000AA",
+        "TURNSTILE_TEST_MODE": "true"
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "sift-staging",
+          "database_id": "bf805e2d-ea71-4ca0-a653-b60e074c5ad3",
+          "migrations_dir": "migrations"
+        }
+      ],
+      "r2_buckets": [],
+      "workflows": [],
+      "ratelimits": [],
+      "triggers": { "crons": [] }
+    }
+  }
 }

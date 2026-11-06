@@ -1,0 +1,95 @@
+.savingsTracker{margin:28px 0;padding:clamp(20px,3vw,34px);border:1px solid #d8e0d4;border-radius:24px;background:linear-gradient(145deg,#fff 0%,#fbfcf8 100%);box-shadow:0 14px 40px rgba(24,36,20,.045);scroll-margin:28px}
+.savingsHeader{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;margin-bottom:24px}
+.savingsHeader>div>small,.savingsForm>div>small,.savingsRecent header small{font-size:10px;letter-spacing:.16em;font-weight:800;color:#788272}
+.savingsHeader h2{margin:8px 0 6px;font-size:clamp(24px,3vw,34px);line-height:1.1;letter-spacing:-.045em;color:#11150f}
+.savingsHeader p{margin:0;color:#6d7668;font-size:14px}
+.savingsTrust{display:inline-flex;align-items:center;gap:8px;padding:10px 13px;border-radius:999px;background:#eef9df;color:#426f20;font-size:12px;font-weight:750;white-space:nowrap}
+.savingsTrust svg{width:17px;height:17px}
+.savingsTotals{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-bottom:18px}
+.savingsTotals article{display:grid;gap:7px;padding:20px 22px;border:1px solid #e1e7dd;border-radius:18px;background:#f7f9f4}
+.savingsTotals article:first-child{background:#f2f9e9;border-color:#deedca}
+.savingsTotals small{color:#727c6e;font-size:10px;font-weight:800;letter-spacing:.12em}
+.savingsTotals b{color:#121610;font-size:clamp(25px,3.4vw,36px);line-height:1;letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+.savingsTotals span{font-size:12px;color:#74806f}
+.savingsBody{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(260px,.8fr);gap:16px;align-items:stretch}
+.savingsForm,.savingsAside{padding:22px;border:1px solid #e1e7dd;border-radius:18px;background:white}
+.savingsForm{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.savingsForm>div:first-child{grid-column:1/-1}
+.savingsForm h3,.savingsAside h3{margin:5px 0 0;font-size:18px;letter-spacing:-.025em;color:#161a14}
+.savingsForm>label{display:grid;gap:7px;color:#414a3f;font-size:12px;font-weight:700}
+.savingsForm select,.savingsAmount{width:100%;min-height:46px;border:1px solid #d8e0d4;border-radius:11px;background:#fbfcf9;color:#171b15;font:inherit}
+.savingsForm select{padding:0 12px}
+.savingsAmount{display:flex;align-items:center;gap:8px;padding:0 12px}
+.savingsAmount span{font-weight:800;color:#6a7564}
+.savingsAmount input{width:100%;min-width:0;border:0;outline:0;background:transparent;color:#171b15;font:inherit;font-variant-numeric:tabular-nums}
+.savingsConfirm{grid-column:1/-1;display:flex!important;align-items:flex-start;gap:10px!important;line-height:1.45}
+.savingsConfirm input{width:18px;height:18px;flex:none;margin:1px 0 0;accent-color:#8bcf35}
+.savingsSave{grid-column:1/-1;display:flex;justify-content:center;align-items:center;gap:9px;min-height:48px;padding:10px 16px;border:0;border-radius:11px;background:#b0f35a;color:#10130f;font-size:13px;font-weight:800;cursor:pointer;transition:background .18s,transform .18s}
+.savingsSave:hover:not(:disabled){background:#9be945;transform:translateY(-1px)}
+.savingsSave:disabled{opacity:.56;cursor:not-allowed}
+.savingsSave svg{width:17px;height:17px}
+.savingsHint,.savingsMessage{grid-column:1/-1;margin:0;color:#65715f;font-size:12px;line-height:1.5}
+.savingsMessage{padding:10px 12px;border-radius:10px;background:#edf8df;color:#426f20}
+.savingsMessage.error{background:#fff0ef;color:#a4362c}
+.savingsAside{display:flex;flex-direction:column;justify-content:space-between;gap:24px;background:#121610;color:#f5f7f1;border-color:#121610}
+.savingsAside>div:first-child>svg{width:28px;height:28px;padding:5px;border-radius:9px;background:#b0f35a;color:#13170f}
+.savingsAside h3{margin-top:13px;color:#f5f7f1;font-size:20px;line-height:1.2}
+.savingsAside p{margin:10px 0 0;color:#b0b9aa;font-size:12px;line-height:1.6}
+.savingsActions{display:grid;gap:9px}
+.savingsActions a,.savingsActions button{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:46px;padding:10px 12px;border:1px solid #41483d;border-radius:10px;background:#1d231b;color:#eff2e9;text-decoration:none;font:inherit;font-size:12px;font-weight:700;cursor:pointer}
+.savingsActions a:hover,.savingsActions button:hover{border-color:#b0f35a;color:#c3f782}
+.savingsActions svg{width:17px;height:17px;flex:none}
+.savingsRecent{margin-top:18px;padding:20px 22px;border:1px solid #e1e7dd;border-radius:18px;background:white}
+.savingsRecent header{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.savingsRecent header h3{margin:5px 0 0;font-size:18px;letter-spacing:-.025em;color:#161a14}
+.savingsRecent header>span{color:#7b8477;font-size:12px}
+.savingsRecent ul{list-style:none;padding:0;margin:14px 0 0}
+.savingsRecent li{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid #edf0ea}
+.savingsCheck{display:grid;place-items:center;width:34px;height:34px;flex:none;border-radius:10px;background:#edf8df;color:#4a8024}
+.savingsCheck svg{width:17px;height:17px}
+.savingsEntryInfo{display:grid;min-width:0;flex:1;gap:4px}
+.savingsEntryInfo b{overflow:hidden;color:#1b2019;font-size:13px;text-overflow:ellipsis;white-space:nowrap}
+.savingsEntryInfo small{color:#7b8477;font-size:11px}
+.savingsRecent li>strong{color:#20271c;font-size:14px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.savingsRecent li>button{display:grid;place-items:center;width:44px;height:44px;flex:none;border:1px solid #e2e7de;border-radius:10px;background:white;color:#80897c;cursor:pointer}
+.savingsRecent li>button:hover{border-color:#f2c8c3;color:#b74338}
+.savingsRecent li>button:disabled{opacity:.5;cursor:wait}
+.savingsRecent li>button svg{width:16px;height:16px}
+.savingsEmpty{margin:14px 0 0;padding:16px;border-radius:12px;background:#f6f8f3;color:#727c6e;font-size:13px}
+.savingsShowAll{min-height:44px;margin-top:12px;padding:9px 12px;border:1px solid #dfe5da;border-radius:10px;background:#f8faf6;color:#46523f;font-size:12px;font-weight:750;cursor:pointer}
+.savingsTracker>footer{margin-top:16px;color:#788272;font-size:11px;line-height:1.55}
+.savingsDrawerAction{display:grid;gap:8px;margin:20px 0;padding:17px;border:1px solid #dce5d4;border-radius:14px;background:#f7faF3}
+.savingsDrawerAction>small{font-size:9px;font-weight:800;letter-spacing:.14em;color:#7a8573}
+.savingsDrawerAction>button{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:44px;padding:10px 13px;border:0;border-radius:10px;background:#b0f35a;color:#11150f;font:inherit;font-size:12px;font-weight:800;cursor:pointer}
+.savingsDrawerAction>button svg{width:17px;height:17px}
+@media(max-width:760px){.savingsBody{grid-template-columns:1fr}.savingsAside{min-height:210px}.savingsHeader{gap:12px}.savingsTrust{font-size:0;padding:10px}.savingsTrust svg{width:20px;height:20px}}
+@media(max-width:520px){.savingsTracker{margin:20px 0;padding:17px;border-radius:18px}.savingsHeader{align-items:flex-start}.savingsHeader h2{font-size:25px;line-height:1.12}.savingsHeader p{font-size:12px;line-height:1.5}.savingsTotals{gap:9px}.savingsTotals article{padding:15px 12px;border-radius:14px}.savingsTotals b{font-size:clamp(18px,5vw,24px);overflow-wrap:anywhere}.savingsTotals small{font-size:9px;letter-spacing:.08em}.savingsTotals span{font-size:10px}.savingsForm,.savingsAside,.savingsRecent{padding:16px;border-radius:15px}.savingsForm{grid-template-columns:1fr;gap:12px}.savingsForm>div:first-child,.savingsConfirm,.savingsSave,.savingsHint,.savingsMessage{grid-column:1}.savingsForm h3,.savingsRecent header h3{font-size:16px}.savingsRecent li{gap:9px}.savingsEntryInfo b{font-size:12px}.savingsRecent li>strong{font-size:12px}.savingsDrawerAction{margin:14px 0}}
+
+.savingsTotals article{position:relative;overflow:hidden;border-color:#30372d;background:#121610;box-shadow:0 10px 22px #11150f12}
+.savingsTotals article:first-child{border-color:#b0f35a;background:#121610}
+.savingsTotals article::after{position:absolute;right:-28px;bottom:-60px;width:150px;height:150px;border-radius:50%;background:#b0f35a0c;content:"";pointer-events:none}
+.savingsTotals small{color:#aab5a5}
+.savingsTotals b{position:relative;z-index:1;color:#b8f35f}
+.savingsTotals span{position:relative;z-index:1;color:#b1b9ac}
+.savingsBankNote{display:flex;align-items:center;gap:9px;margin:-4px 0 18px;padding:10px 12px;border:1px solid #e4e9e1;border-radius:10px;background:#f8faf6;color:#64705f;font-size:11px;line-height:1.45}
+.savingsBankNote svg{width:16px;height:16px;flex:none;color:#668e3e}
+.savingsBankNote b{color:#374332}
+.savingsEntryInfo{align-items:start}
+.savingsOutcomeChip{width:fit-content;max-width:100%;overflow:hidden;border-radius:999px;padding:4px 8px;background:#eef7e5;color:#4e762e;font-size:9px;font-weight:800;text-overflow:ellipsis;white-space:nowrap}
+.savingsOutcomeChip.canceled{background:#f0edff;color:#5c4dc7}
+.savingsOutcomeChip.refunded{background:#fff1dd;color:#8d5b16}
+.savingsEntryActions{display:flex;align-items:center;gap:5px;flex:none}
+.savingsEntryActions button{display:grid;place-items:center;width:44px;height:44px;border:1px solid #e2e7de;border-radius:10px;background:#fff;color:#737d6f;cursor:pointer}
+.savingsEntryActions button:hover{border-color:#cbd8c0;background:#f7faf3;color:#425735}
+.savingsEntryActions button:last-child:hover{border-color:#f2c8c3;background:#fff7f6;color:#b74338}
+.savingsEntryActions button:disabled{opacity:.5;cursor:not-allowed}
+.savingsEntryActions svg{width:16px;height:16px}
+.savingsEmpty{display:flex;align-items:center;justify-content:space-between;gap:16px;border:1px solid #e4e9e1;background:#f8faf6}
+.savingsEmpty b{display:block;margin-bottom:4px;color:#30392b;font-size:13px}
+.savingsEmpty p{margin:0;line-height:1.55}
+.savingsEmpty a{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:44px;flex:none;padding:10px 13px;border-radius:10px;background:#121610;color:#b8f35f;text-decoration:none;font-size:11px;font-weight:800}
+.savingsEmpty a svg{width:15px;height:15px}
+.savingsActions a,.savingsActions button{min-height:48px}
+.savingsActions a:focus-visible,.savingsActions button:focus-visible,.savingsEntryActions button:focus-visible,.savingsEmpty a:focus-visible,.savingsSave:focus-visible{outline:3px solid #7160f3;outline-offset:3px}
+@media(max-width:520px){.savingsBankNote{align-items:flex-start;font-size:10px}.savingsEmpty{align-items:stretch;flex-direction:column}.savingsEmpty a{width:100%}.savingsEntryActions{gap:3px}.savingsOutcomeChip{font-size:8px}}
+.savingsForm>div>small,.savingsRecent header small,.savingsRecent header>span,.savingsEmpty p{color:#596354}

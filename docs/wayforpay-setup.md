@@ -16,7 +16,7 @@ Set these as Cloudflare Worker secrets/vars (never commit `.dev.vars`):
 - `WAYFORPAY_MERCHANT_ACCOUNT` — the account WayForPay assigns to your store
 - `WAYFORPAY_MERCHANT_SECRET` — the live signing key from the merchant cabinet
 - `WAYFORPAY_MERCHANT_DOMAIN` — the exact domain registered with WayForPay
-- `APP_BASE_URL` — canonical production URL, for example `https://sift-app.reviewradar-vova445.workers.dev`
+- `APP_BASE_URL` — canonical production URL, for example `https://sift-app.sift-vova445.workers.dev`
 - Optional: `WAYFORPAY_SANDBOX_ALLOWLIST` only if you intentionally keep a restricted sandbox allowlist; normal production mode ignores test entitlements.
 
 After the live store is activated, configure/deploy those Worker secrets and apply D1 migrations. Pro currently grants 30 days after one successful purchase and does not auto-renew; One Sift grants one credit for 90 days. The checkout is priced at ₴279 and ₴59 respectively, with the displayed USD values sent as WayForPay alternative amounts.

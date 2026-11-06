@@ -1,3 +1,60 @@
 .dashAuthPage{min-height:100vh;min-height:100dvh;width:100%;max-width:100%;overflow-x:hidden;grid-template-columns:repeat(auto-fit,minmax(min(100%,520px),1fr))}.dashAuthPage>*{min-width:0;max-width:100%}.authShowcase,.authEntry{width:100%}.authEntryCard{max-width:100%}
 @media(max-width:900px){.dashAuthPage{display:block}.authShowcase{min-height:auto;padding:28px 22px 36px}.authPitch{margin:56px 0 0}.authPitch h1{font-size:clamp(39px,12vw,56px);overflow-wrap:anywhere}.authReportPreview{display:none}.authEntry{padding:22px 12px calc(30px + env(safe-area-inset-bottom))}.authEntryCard{padding:28px 22px;border-radius:20px}.authEntryCard h2{font-size:clamp(31px,9vw,39px);overflow-wrap:anywhere}}
 @media(max-width:380px){.authShowcase{padding-inline:18px}.authPitch h1{font-size:37px}.authBenefits{display:grid}.authBenefits span{width:max-content;max-width:100%}.authEntry{padding-inline:8px}.authEntryCard{padding-inline:18px}}
+
+@media(max-width:760px){.dashContent>.dashStats{grid-template-columns:repeat(2,minmax(0,1fr))}.dashContent>.dashStats article{padding:16px}}
+@media(max-width:480px){.dashContent>.dashStats{grid-template-columns:1fr}}
+
+/* Dashboard shell: persistent desktop rail and thumb-friendly mobile navigation. */
+.dashPage{display:block;min-height:100vh}
+.dashSide{display:flex;position:sticky;top:0;z-index:8;height:100vh;min-height:620px;overflow-y:auto;overscroll-behavior:contain;padding:22px 16px}
+.dashSide nav{gap:4px;margin-top:34px}
+.dashSide nav a{min-height:42px;padding:10px;font-size:10px}
+.dashSide nav a svg{flex:none}
+.dashSidePlan{padding:14px}
+.dashPlanProgress{height:7px;margin:13px 0 7px;overflow:hidden;border-radius:99px;background:#373d35}
+.dashPlanProgress>i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#8bd63e,#c8fb7b);transition:width .25s ease}
+.dashSidePlan .dashPlanUsage{display:block;color:#bcc4b8;font-size:8px;line-height:1.45;letter-spacing:0}
+.dashSidePlan>a{min-height:32px}
+.dashContent{min-width:0;max-width:none;margin:0;padding:26px clamp(24px,4vw,60px) 70px}
+
+.billingStatus.free{background:#eef0ec;color:#586154}
+.billingHistoryEmpty{margin:0;padding:14px;border-radius:10px;background:#f6f8f4;color:#697267;font-size:10px}
+.dashAccountGroup{margin:28px 0 24px;scroll-margin-top:22px}
+.dashAccountGroup>header{display:flex;justify-content:space-between;align-items:end;gap:14px;margin-bottom:14px}
+.dashAccountGroup>header small{font-size:8px;font-weight:900;letter-spacing:.14em;color:#657060}
+.dashAccountGroup>header h2{margin:6px 0 3px;font-size:25px;letter-spacing:-.04em}
+.dashAccountGroup>header p{margin:0;color:#657060;font-size:11px}
+.dashAccountGrid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);align-items:start;gap:14px}
+.dashAccountGrid>.accountDataCard,.dashAccountGrid>.passwordChange{height:100%;margin:0}
+.dashAccountGrid>.passwordChange{padding:22px;background:#fff;border:1px solid var(--line);border-radius:18px}
+.dashAccountGrid>.passwordChange>header{align-items:flex-start}
+.dashAccountGrid>.passwordChange h2{font-size:18px}
+.dashAccountGrid>.passwordChange p{max-width:340px}
+.dunningBanner{border-color:#efb9b3;background:#fff1ef;color:#3b201d}
+.dunningBannerIcon{background:#ffe0dc;color:#a42f27}
+.dunningBanner>div small{color:#a42f27}
+.dunningBanner>div p{color:#6c514d}
+@media(max-width:900px){
+ .dashPage{display:block;min-height:100vh;padding-bottom:calc(76px + env(safe-area-inset-bottom))}
+ .dashSide{display:none}
+ .dashContent{padding:22px 18px 32px}
+
+
+
+
+
+
+ .dashTopbar{margin-bottom:27px}
+ .dashAccountGrid{grid-template-columns:1fr}
+}
+@media(max-width:600px){
+ .dashContent{padding:18px 14px 28px}
+ .dashAccountGroup{margin:22px 0}
+ .dashAccountGroup>header h2{font-size:22px}
+ .dashAccountGrid>.passwordChange{padding:17px}
+ .billingHistory>div{align-items:flex-start}
+ .dunningBanner{border-width:1px}
+}
+
+@media(max-width:600px){}

@@ -1,0 +1,57 @@
+.cancellationKitBackdrop{position:fixed;inset:0;z-index:90;display:grid;place-items:center;padding:18px;background:rgba(12,16,12,.76);backdrop-filter:blur(8px);overflow-y:auto;overscroll-behavior:contain}
+.cancellationKitDialog{width:min(100%,920px);max-height:min(92dvh,980px);display:flex;flex-direction:column;overflow:hidden;background:#f7f8f5;border:1px solid rgba(255,255,255,.66);border-radius:24px;box-shadow:0 30px 110px rgba(0,0,0,.38);color:#151812;outline:none}
+.cancellationKitHeader{flex:none;display:flex;align-items:flex-start;justify-content:space-between;gap:20px;padding:25px 30px 21px;border-bottom:1px solid #dce1d9;background:#fbfcf9}
+.cancellationKitHeader>div{display:flex;align-items:flex-start;gap:15px;min-width:0}
+.cancellationKitIcon{width:44px;height:44px;flex:none;display:grid;place-items:center;border-radius:14px;background:#b9f353;color:#11150e}
+.cancellationKitIcon svg{width:19px;height:19px}
+.cancellationKitHeader small,.cancellationKitSectionTitle>span{font-size:8px;font-weight:900;letter-spacing:.15em;color:#687166}
+.cancellationKitHeader h2{font-size:clamp(21px,3vw,29px);letter-spacing:-.045em;line-height:1.1;margin:6px 0 6px;overflow-wrap:anywhere}
+.cancellationKitHeader p{margin:0;color:#657064;font-size:11px;line-height:1.5}
+.cancellationKitClose{width:42px;height:42px;flex:none;display:grid;place-items:center;border:0;border-radius:50%;background:#e9ede7;color:#161a14;cursor:pointer}
+.cancellationKitHeaderActions{display:flex;align-items:center;gap:9px;flex:none}
+.cancellationKitLanguage{display:grid;gap:3px;color:#70796d;font-size:7px;font-weight:800}
+.cancellationKitLanguage select{min-height:36px;max-width:118px;padding:0 9px;border:1px solid #dce1d9;border-radius:8px;background:#fff;color:#242a20;font-size:9px;font-weight:750}
+.cancellationKitClose:hover{background:#dce4d8}
+.cancellationKitClose svg{width:18px;height:18px}
+.cancellationKitContent{padding:20px 30px 28px;display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:14px;overflow-y:auto;overscroll-behavior:contain}
+.cancellationKitContent>section{min-width:0;padding:17px 18px;border:1px solid #dce1d9;border-radius:15px;background:white}
+.cancellationKitSectionTitle{display:flex;align-items:center;gap:9px;margin-bottom:13px}
+.cancellationKitSectionTitle h3{margin:0;font-size:14px;letter-spacing:-.02em}
+.cancellationKitSteps ol{list-style:none;display:grid;gap:11px;margin:0;padding:0}
+.cancellationKitSteps li{display:grid;grid-template-columns:26px minmax(0,1fr);gap:9px;align-items:start}
+.cancellationKitSteps li>span{width:25px;height:25px;display:grid;place-items:center;border-radius:50%;background:#edf7df;color:#416c1d;font-size:10px;font-weight:900}
+.cancellationKitSteps li p{margin:2px 0 0;color:#444c42;font-size:11px;line-height:1.55}
+.cancellationKitLinks{display:grid;gap:8px;margin-top:16px;padding-top:13px;border-top:1px solid #edf0ea}
+.cancellationKitLinks a,.cancellationKitOpen{display:flex;align-items:center;gap:7px;color:#4e43c5;font-size:10px;font-weight:800;text-decoration:none;line-height:1.45}
+.cancellationKitLinks a:hover,.cancellationKitOpen:hover{text-decoration:underline}
+.cancellationKitLinks svg,.cancellationKitOpen svg{width:13px;height:13px;flex:none}
+.cancellationKitEvidence>p{margin:0 0 10px;color:#687166;font-size:10px;line-height:1.5}
+.cancellationKitEvidence blockquote{margin:8px 0 0;padding:11px 12px;border-left:3px solid #b9f353;border-radius:0 8px 8px 0;background:#f6f8f3;color:#30372d;font-size:10px;line-height:1.55;overflow-wrap:anywhere}
+.cancellationKitNotice{padding:12px;border-radius:9px;background:#fff5e5;color:#725018;font-size:10px;line-height:1.55}
+.cancellationKitNotice.muted{margin-top:9px;background:#efefff;color:#5148a8}
+.cancellationKitLetter{grid-column:1/-1}
+.cancellationKitSubject{display:grid;grid-template-columns:60px minmax(0,1fr);gap:9px;padding:10px 12px;border:1px solid #e4e8e1;border-radius:9px;background:#f8faf6;font-size:10px;line-height:1.45;overflow-wrap:anywhere}
+.cancellationKitSubject b{color:#697165}
+.cancellationKitDraft{display:grid;gap:7px;margin-top:13px;color:#596255;font-size:9px;font-weight:800}
+.cancellationKitDraft textarea{width:100%;min-height:190px;resize:vertical;padding:12px;border:1px solid #d8ded5;border-radius:10px;background:#fff;color:#262b24;font:11px/1.6 Arial,sans-serif;outline:none}
+.cancellationKitDraft textarea:focus{border-color:#859e65;box-shadow:0 0 0 3px #b9f35355}
+.cancellationKitDisclaimer{margin-top:10px;padding:11px 12px;border-radius:9px;background:#f2f3ef}
+.cancellationKitDisclaimer b{font-size:9px}
+.cancellationKitDisclaimer p{margin:4px 0 0;color:#697165;font-size:9px;line-height:1.5}
+.cancellationKitError{padding:9px 11px;border-radius:8px;background:#fff0ef;color:#a8342a;font-size:10px}
+.cancellationKitActions{display:flex;flex-wrap:wrap;gap:8px;margin-top:13px}
+.cancellationKitActions button,.cancellationKitOpen{min-height:42px;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:9px 13px;border:1px solid #d8ded5;border-radius:9px;background:white;color:#1a1d17;font-size:10px;font-weight:850;text-decoration:none;cursor:pointer}
+.cancellationKitActions button svg{width:14px;height:14px}
+.cancellationKitActions .cancellationKitCopy{border-color:#11150e;background:#11150e;color:white}
+.cancellationKitActions .cancellationKitCopy:hover{background:#30372d}
+.cancellationKitActions .cancellationKitDownload:hover,.cancellationKitActions .cancellationKitOpen:hover{background:#f2f5ee}
+.cancellationKitLaunch{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-top:14px;padding:15px 16px;border:1px solid #dce1d9;border-radius:13px;background:#f7f9f4}
+.cancellationKitLaunch>div{display:grid;gap:5px;min-width:0}
+.cancellationKitLaunch small{font-size:7px;letter-spacing:.13em;font-weight:900;color:#697365}
+.cancellationKitLaunch b{font-size:12px;line-height:1.35}
+.cancellationKitLaunch p{margin:0;color:#697165;font-size:10px;line-height:1.45}
+.cancellationKitLaunch button{min-height:44px;flex:none;display:flex;align-items:center;justify-content:center;gap:9px;padding:10px 14px;border:0;border-radius:9px;background:#11150e;color:white;font-size:10px;font-weight:850;cursor:pointer}
+.cancellationKitLaunch button:hover{background:#2b3227}
+.cancellationKitLaunch button svg{width:14px;height:14px}
+@media(max-width:680px){.cancellationKitBackdrop{padding:10px;place-items:center}.cancellationKitDialog{width:100%;max-height:calc(100dvh - 20px);border-radius:18px}.cancellationKitHeader{padding:17px 16px 14px;gap:10px}.cancellationKitHeader>div{gap:11px}.cancellationKitIcon{width:38px;height:38px;border-radius:12px}.cancellationKitHeader h2{font-size:21px}.cancellationKitHeader p{font-size:10px}.cancellationKitHeaderActions{gap:6px}.cancellationKitLanguage select{max-width:104px;min-height:38px;padding-inline:7px}.cancellationKitClose{width:38px;height:38px}.cancellationKitContent{grid-template-columns:minmax(0,1fr);gap:10px;padding:12px 12px 16px}.cancellationKitContent>section{padding:14px}.cancellationKitLetter{grid-column:auto}.cancellationKitDraft textarea{min-height:170px}.cancellationKitActions{display:grid;grid-template-columns:1fr 1fr}.cancellationKitActions button,.cancellationKitOpen{min-height:46px;padding-inline:9px}.cancellationKitActions .cancellationKitCopy{grid-column:1/-1}.cancellationKitLaunch{align-items:stretch;flex-direction:column;padding:13px}.cancellationKitLaunch button{width:100%;min-height:46px}}
+@media(max-width:380px){.cancellationKitBackdrop{padding:6px}.cancellationKitDialog{max-height:calc(100dvh - 12px);border-radius:15px}.cancellationKitHeader{padding:14px 12px 12px}.cancellationKitHeader>div{gap:8px}.cancellationKitHeader h2{font-size:18px}.cancellationKitContent{padding:9px}.cancellationKitContent>section{padding:12px}.cancellationKitActions{grid-template-columns:1fr}.cancellationKitActions .cancellationKitCopy{grid-column:auto}}

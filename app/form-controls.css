@@ -1,0 +1,65 @@
+/* Shared checkbox control: consistent Sift styling across every route and form. */
+input[type="checkbox"] {
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  display: inline-grid;
+  place-content: center;
+  width: 18px !important;
+  min-width: 18px;
+  height: 18px !important;
+  min-height: 18px;
+  padding: 0 !important;
+  border: 1.5px solid #aeb8a8 !important;
+  border-radius: 5px !important;
+  background: #fff !important;
+  color: #10130f;
+  accent-color: #a9ef52;
+  box-shadow: 0 1px 2px #10130f12;
+  cursor: pointer;
+  transition: background-color .15s ease, border-color .15s ease, box-shadow .15s ease, transform .15s ease;
+}
+
+input[type="checkbox"]::before {
+  content: "";
+  width: 5px;
+  height: 9px;
+  border: solid #10130f;
+  border-width: 0 2px 2px 0;
+  transform: translateY(-1px) rotate(45deg) scale(0);
+  transform-origin: center;
+  transition: transform .12s ease-out;
+}
+
+input[type="checkbox"]:checked {
+  border-color: #91cf43 !important;
+  background: #a9ef52 !important;
+  box-shadow: 0 0 0 2px #a9ef5226;
+}
+
+input[type="checkbox"]:checked::before {
+  transform: translateY(-1px) rotate(45deg) scale(1);
+}
+
+input[type="checkbox"]:hover:not(:disabled) {
+  border-color: #769d4e !important;
+  box-shadow: 0 0 0 3px #a9ef522b;
+}
+
+input[type="checkbox"]:focus-visible {
+  outline: 3px solid #7969f866;
+  outline-offset: 2px;
+}
+
+input[type="checkbox"]:disabled {
+  background: #edf0eb !important;
+  border-color: #d2d8cf !important;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  input[type="checkbox"],
+  input[type="checkbox"]::before {
+    transition: none;
+  }
+}

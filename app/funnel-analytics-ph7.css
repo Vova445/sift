@@ -1,0 +1,12 @@
+.funnelConsent{z-index:120;left:16px;right:16px;bottom:22px;margin-inline:auto;transform:none;width:min(680px,calc(100vw - 32px));grid-template-columns:42px minmax(0,1fr);gap:12px 14px;padding:18px 20px}
+.funnelConsentCopy p{font-size:12px;line-height:1.6}
+.funnelConsentCopy a{font-size:11px;text-decoration:underline;text-underline-offset:3px}
+.funnelConsentActions{grid-column:2;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;min-width:0;max-width:390px;margin-top:3px}
+.funnelConsentActions button{min-height:44px;border:1px solid #181c16;border-radius:9px;background:#181c16;color:#fff;font-size:11px;font-weight:850;transition:background .16s,color .16s,transform .16s}
+.funnelConsentActions button:hover{background:#b3f269;color:#151914;transform:translateY(-1px)}
+.funnelConsentActions button:focus-visible,.funnelSettingsLink:focus-visible{outline:3px solid #7063e8;outline-offset:3px}
+.funnelSettingsLink{min-height:36px;text-decoration:underline;text-underline-offset:3px}
+.legalFooter .funnelSettingsLink{color:#4e574b;font-size:12px;font-weight:700}
+.legalFooter .funnelSettingsLink:hover{color:#7063f4}
+@media(max-width:900px){.funnelConsent{bottom:calc(124px + env(safe-area-inset-bottom) + 10px);max-height:calc(100dvh - 150px - env(safe-area-inset-bottom));overflow-y:auto;overscroll-behavior:contain}}
+@media(max-width:640px){.funnelConsent{left:12px;right:12px;bottom:calc(124px + env(safe-area-inset-bottom) + 10px);margin-inline:0;transform:none;width:auto;max-height:calc(100dvh - 150px - env(safe-area-inset-bottom));grid-template-columns:34px minmax(0,1fr);gap:10px;padding:14px;border-radius:15px}.funnelConsentIcon{width:34px;height:34px}.funnelConsentCopy{padding-right:0}.funnelConsentCopy b{font-size:13px}.funnelConsentCopy p{font-size:11px;margin:5px 0;line-height:1.5}.funnelConsentActions{grid-column:1/-1;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.funnelConsentActions button{min-height:46px;padding:9px 8px;font-size:11px}}

@@ -1,0 +1,27 @@
+body:has(.siftStatusPage),body:has(.siftReferralRedirect){padding:0!important;background:#f1f4ef!important;color:#141711}
+body:has(.siftStatusPage) .productSidebar,body:has(.siftStatusPage) .productTabNav,body:has(.siftReferralRedirect) .productSidebar,body:has(.siftReferralRedirect) .productTabNav{display:none!important}
+body:has(.siftStatusPage) .funnelConsent,body:has(.siftReferralRedirect) .funnelConsent{display:none!important}
+.siftStatusPage,.siftReferralRedirect{box-sizing:border-box;min-height:100svh;padding:clamp(24px,6vw,72px) 20px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 42%,#fff 0,#f7f9f5 46%,#eef2ec 100%);font-family:Arial,Helvetica,sans-serif;color:#141711}
+.siftStatusBrand{display:inline-flex;align-items:center;gap:10px;margin-bottom:26px;color:#151914;text-decoration:none;font-size:14px;font-weight:950;letter-spacing:.14em}
+.siftStatusBrand>span{width:36px;height:36px;display:grid;place-items:center;border-radius:11px;background:#b5f15e;color:#11140f;font-size:16px;letter-spacing:0}
+.siftStatusCard{width:min(100%,560px);box-sizing:border-box;padding:clamp(28px,6vw,48px);border:1px solid #dce3d8;border-radius:24px;background:#fff;box-shadow:0 24px 80px #19211412}
+.siftStatusEyebrow{display:block;color:#697366;font-size:10px;font-weight:900;letter-spacing:.16em}
+.siftStatusCard h1{margin:17px 0 12px;font-size:clamp(32px,6vw,46px);font-weight:570;letter-spacing:-.055em;line-height:1.05}
+.siftStatusCard>p{max-width:440px;margin:0;color:#626b5f;font-size:15px;line-height:1.65}
+.siftStatusActions{display:flex;flex-wrap:wrap;gap:10px;margin-top:28px}
+.siftStatusPrimary,.siftStatusSecondary{min-height:46px;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;gap:12px;padding:0 18px;border:1px solid #d9e0d5;border-radius:11px;text-decoration:none;font:700 13px Arial,Helvetica,sans-serif;cursor:pointer;transition:transform .16s ease,background .16s ease,border-color .16s ease}
+.siftStatusPrimary{border-color:#11140f;background:#11140f;color:#fff}
+.siftStatusPrimary:hover{transform:translateY(-1px);background:#252b21}
+.siftStatusSecondary{background:#f5f7f3;color:#22281f}
+.siftStatusSecondary:hover{border-color:#a9b2a3;background:#edf1ea}
+.siftStatusCode{display:block;margin-top:28px;color:#899184;font:600 10px/1.4 ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:.04em}
+.siftStatusFooter{margin-top:24px;color:#899184;font-size:11px}
+.siftReferralRedirect{gap:0}
+.siftRedirectMessage{width:min(100%,420px);box-sizing:border-box;padding:36px 32px;border:1px solid #dce3d8;border-radius:22px;background:#fff;text-align:center;box-shadow:0 24px 80px #19211412}
+.siftRedirectSpinner{width:34px;height:34px;display:block;margin:0 auto 19px;border:3px solid #e8eee3;border-top-color:#87c83f;border-radius:50%;animation:siftRedirectSpin .8s linear infinite}
+.siftRedirectMessage h1{margin:0 0 9px;font-size:23px;letter-spacing:-.035em;font-weight:650}
+.siftRedirectMessage p{margin:0;color:#697366;font-size:13px;line-height:1.6}
+.siftRedirectMessage>a{display:inline-flex;min-height:44px;align-items:center;gap:9px;margin-top:18px;color:#334a23;font-size:13px;font-weight:800;text-decoration:underline;text-underline-offset:3px}
+@keyframes siftRedirectSpin{to{transform:rotate(360deg)}}
+@media(max-width:520px){.siftStatusPage,.siftReferralRedirect{padding:22px 16px}.siftStatusBrand{margin-bottom:18px}.siftStatusCard{border-radius:20px;padding:28px 22px}.siftStatusActions{display:grid;grid-template-columns:1fr}.siftStatusActions>*{width:100%}.siftRedirectMessage{padding:30px 22px}}
+@media(prefers-reduced-motion:reduce){.siftRedirectSpinner{animation-duration:2.5s}.siftStatusPrimary,.siftStatusSecondary{transition:none}}

@@ -1,0 +1,23 @@
+.publicSharePanel{display:grid;gap:12px;margin:0 0 16px;padding:17px;background:#fff;border:1px solid var(--line);border-radius:14px;color:var(--ink)}
+.publicShareIntro{display:flex;align-items:flex-start;gap:12px}
+.publicShareIntro>span{width:38px;height:38px;flex:none;display:grid;place-items:center;border-radius:11px;background:#efeefe;color:var(--purple)}
+.publicShareIntro>span svg{width:18px;height:18px}
+.publicShareIntro>div{min-width:0}
+.publicShareIntro small{display:block;color:#747b70;font-size:7px;font-weight:900;letter-spacing:.13em}
+.publicShareIntro b{display:block;margin:5px 0;font-size:13px}
+.publicShareIntro p{margin:0;color:#697168;font-size:9px;line-height:1.55}
+.publicShareStatus{padding:12px;border-radius:9px;background:#f3f5f0;color:#687166;font-size:10px}
+.publicShareUrl{display:grid;gap:6px;color:#687166;font-size:8px;font-weight:800}
+.publicShareUrl input{width:100%;min-width:0;height:42px;border:1px solid var(--line);border-radius:8px;padding:0 10px;background:#f8f9f6;color:#333a31;font:inherit;font-size:9px;outline-color:var(--purple)}
+.publicShareActions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.publicShareActions button,.publicShareActions a,.publicShareCreate{min-height:44px;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:0 12px;border:1px solid #dce1d9;border-radius:9px;background:#fff;color:var(--ink);font:inherit;font-size:9px;font-weight:850;text-decoration:none;cursor:pointer}
+.publicShareActions svg,.publicShareCreate svg{width:15px;height:15px}
+.publicShareActions button:hover,.publicShareActions a:hover{background:#f3f5f0}
+.publicShareActions .publicShareRevoke{margin-left:auto;color:#a53c34}
+.publicShareCreate{width:100%;border-color:var(--ink);background:var(--ink);color:#fff}
+.publicShareCreate:hover:not(:disabled){background:#282d27}
+.publicShareCreate:disabled{opacity:.65;cursor:not-allowed}
+.publicShareFootnote{color:#788075;font-size:8px;line-height:1.5}
+.publicShareMessage{margin:0;padding:10px;border-radius:8px;background:#eefbd8;color:#4d6d2a;font-size:9px;line-height:1.45}
+.publicShareMessage.error{background:#fff0ed;color:#a53c34}
+@media(max-width:560px){.publicSharePanel{padding:13px}.publicShareActions{display:grid;grid-template-columns:1fr 1fr}.publicShareActions .publicShareRevoke{grid-column:1/-1;margin:0}.publicShareActions button,.publicShareActions a{width:100%}}

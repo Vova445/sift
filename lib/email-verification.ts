@@ -63,7 +63,7 @@ export async function consumeVerificationToken(token:unknown){
   ]);
   if((results[0]?.meta?.changes||0)!==1)return{ok:false,reason:'used' as const};
   const verified=await env.DB.prepare(`SELECT verified_at FROM email_verification_status WHERE user_id=?`).bind(row.user_id).first<{verified_at:string}>();
-  return verified?.verified_at?{ok:true as const}:{ok:false,reason:'invalid' as const};
+  return verified?.verified_at?{ok:true as const,userId:row.user_id}:{ok:false,reason:'invalid' as const};
 }
 
 export async function verificationStatus(userId:string){

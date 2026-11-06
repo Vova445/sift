@@ -1,0 +1,100 @@
+.domainReviewPage{width:min(100% - 40px,1040px);margin:0 auto;padding:18px 0 80px;color:#111510}
+.domainReviewTopbar{height:68px;display:grid;grid-template-columns:1fr 1fr 1fr;align-items:center;border-bottom:1px solid #dce2da}
+.domainReviewTopbar>a,.domainReviewTopbar>button{display:inline-flex;align-items:center;gap:8px;color:#384036;font-size:12px;font-weight:800;text-decoration:none}
+.domainReviewTopbar>a svg,.domainReviewTopbar>button svg{width:16px;height:16px}
+.domainReviewTopbar>div{display:flex;justify-content:center;align-items:center;gap:10px}
+.domainReviewTopbar>div>svg{color:#6255d7;width:21px;height:21px}
+.domainReviewTopbar>div span{display:flex;flex-direction:column;gap:3px}
+.domainReviewTopbar small{font-size:9px;letter-spacing:.14em;color:#727c6d}
+.domainReviewTopbar b{font-size:13px}
+.domainReviewTopbar>button{justify-self:end;border:1px solid #d6ddd3;border-radius:9px;padding:10px 13px;background:#fff;cursor:pointer}
+.domainReviewTopbar>button:disabled{opacity:.6;cursor:wait}
+.domainReviewIntro{padding:40px 0 26px}
+.domainReviewIntro>small{color:#727d6f;font-size:10px;letter-spacing:.14em;font-weight:900}
+.domainReviewIntro h1{font-size:clamp(30px,4vw,42px);line-height:1.08;letter-spacing:-.05em;margin:10px 0}
+.domainReviewIntro p{max-width:790px;color:#657062;font-size:14px;line-height:1.65;margin:0 0 18px}
+.domainReviewIntro aside{display:flex;align-items:flex-start;gap:10px;padding:13px 15px;border:1px solid #f0d89e;background:#fff8e6;border-radius:11px;color:#71531a;font-size:13px;line-height:1.5}
+.domainReviewIntro aside svg{width:18px;flex:none;margin-top:1px}
+.domainReviewList{display:grid;gap:16px}
+.domainReviewList>article{background:#fff;border:1px solid #dbe1d8;border-radius:16px;padding:22px;box-shadow:0 5px 20px rgb(27 37 24 / 3%)}
+.domainReviewCardHeader{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;padding-bottom:16px;border-bottom:1px solid #edf0eb}
+.domainReviewCardHeader>div,.domainReviewCardHeader>span{display:flex;flex-direction:column;gap:5px}
+.domainReviewCardHeader small,.domainReviewSubmission>small{font-size:9px;letter-spacing:.13em;color:#788273;font-weight:850}
+.domainReviewCardHeader>div>b{font-size:22px;letter-spacing:-.03em;overflow-wrap:anywhere}
+.domainReviewCardHeader>span{text-align:right}
+.domainReviewCardHeader>span>b{font-size:12px;color:#3e4b3b}
+.domainReviewMeta{display:flex;align-items:center;gap:8px 18px;flex-wrap:wrap;margin:15px 0;font-size:12px}
+.domainReviewMeta>div{display:flex;flex-direction:column;gap:3px;margin-right:auto}
+.domainReviewMeta>div>b{font-size:13px}
+.domainReviewMeta>div>span,.domainReviewMeta>small{color:#737c70}
+.domainReviewMeta>a{color:#5d50d6;text-decoration:none;font-weight:700;overflow-wrap:anywhere}
+.domainReviewSubmission{padding:14px 15px;background:#f5f6f2;border:1px solid #edf0eb;border-radius:10px}
+.domainReviewSubmission p{margin:7px 0 0;font-size:13px;line-height:1.65;white-space:pre-wrap;overflow-wrap:anywhere}
+.domainReviewSource{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:13px 0;padding:13px 14px;border:1px solid #e4e9e1;border-radius:10px;background:#fbfcfa}
+.domainReviewSource>div{display:flex;align-items:flex-start;gap:10px;min-width:0}
+.domainReviewSource>div>svg{width:18px;height:18px;color:#5c9b31;flex:none;margin-top:1px}
+.domainReviewSource>div>span{display:flex;flex-direction:column;gap:4px}
+.domainReviewSource b{font-size:12px}
+.domainReviewSource small{font-size:11px;line-height:1.45;color:#687265}
+.domainReviewSource>a{display:inline-flex;align-items:center;gap:6px;color:#5d50d6;font-size:11px;font-weight:800;text-decoration:none;white-space:nowrap}
+.domainReviewSource>a svg{width:14px;height:14px}
+.domainReviewReply{display:flex;flex-direction:column;gap:7px;margin-top:16px;font-size:12px;font-weight:850}
+.domainReviewReply textarea{width:100%;min-height:108px;border:1px solid #d6ddd3;border-radius:10px;padding:12px;font:inherit;font-size:13px;line-height:1.55;resize:vertical;color:#172015;background:#fff}
+.domainReviewReply textarea:focus-visible{outline:3px solid rgb(98 85 215 / 22%);border-color:#776bea}
+.domainReviewCount{align-self:flex-end;font-size:10px;font-weight:600;color:#687265}
+.domainReviewCount.muted{color:#8a6250}
+.domainReviewChecks{display:grid;gap:9px;margin:17px 0 0;padding:13px;border:1px solid #dfe5dc;border-radius:11px;min-width:0}
+.domainReviewChecks legend{padding:0 5px;font-size:11px;font-weight:900;color:#485344}
+.domainReviewCheck{display:flex;align-items:flex-start;gap:10px;padding:10px;border-radius:8px;background:#f7f9f5;cursor:pointer}
+.domainReviewCheck input{appearance:none;-webkit-appearance:none;width:20px;height:20px;flex:none;margin:0;border:1.5px solid #aab5a5;border-radius:6px;background:#fff;display:grid;place-content:center;cursor:pointer}
+.domainReviewCheck input::before{content:"";width:10px;height:6px;border:2px solid #111510;border-top:0;border-right:0;transform:rotate(-45deg) scale(0);transition:transform .12s ease}
+.domainReviewCheck input:checked{background:#b4f35f;border-color:#8bc63e}
+.domainReviewCheck input:checked::before{transform:rotate(-45deg) scale(1)}
+.domainReviewCheck input:focus-visible{outline:3px solid rgb(98 85 215 / 28%);outline-offset:2px}
+.domainReviewCheck>span{display:flex;flex-direction:column;gap:4px}
+.domainReviewCheck b{font-size:12px;line-height:1.4}
+.domainReviewCheck small{font-size:11px;line-height:1.45;color:#687265;font-weight:500}
+.domainReviewList footer{display:flex;justify-content:flex-end;gap:9px;margin-top:15px}
+.domainReviewList footer button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 16px;border-radius:9px;font-size:12px;font-weight:850;cursor:pointer}
+.domainReviewList footer svg{width:15px;height:15px}
+.domainReviewReject{border:1px solid #d6ddd3;background:#fff;color:#535d50}
+.domainReviewReject:hover{background:#fff3f1;border-color:#e7bbb5;color:#9a382f}
+.domainReviewPublish{border:0;background:#111510;color:#fff}
+.domainReviewPublish:disabled{opacity:.48;cursor:not-allowed}
+.domainReviewPublish:not(:disabled):hover{background:#2c3429}
+.domainReviewError,.domainReviewNotice{display:flex;align-items:center;gap:9px;padding:12px 14px;border-radius:9px;font-size:12px;line-height:1.5}
+.domainReviewError{background:#fff0ef;color:#91332d}
+.domainReviewNotice{background:#edf8e2;color:#42691f}
+.domainReviewNotice svg{width:16px;flex:none}
+.domainReviewState{display:flex;flex-direction:column;align-items:center;gap:10px;padding:58px 22px;background:#fff;border:1px solid #dbe1d8;border-radius:16px;color:#667062;text-align:center}
+.domainReviewState>span{display:grid;place-items:center;width:46px;height:46px;border-radius:14px;background:#eef0ff;color:#6255d7}
+.domainReviewState>span svg,.domainReviewState>svg{width:22px;height:22px}
+.domainReviewState>b{font-size:14px;color:#1a2018}
+.domainReviewState h2{margin:0;color:#151a14;font-size:19px;letter-spacing:-.03em}
+.domainReviewState p{max-width:480px;margin:0;font-size:12px;line-height:1.55}
+.domainReviewState>div{display:flex;gap:8px;margin-top:8px}
+.domainReviewState>div a,.domainReviewState>div button{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:0 14px;border:1px solid #d6ddd3;border-radius:9px;background:#fff;color:#263022;font:inherit;font-size:11px;font-weight:800;text-decoration:none;cursor:pointer}
+.domainReviewState>div a{background:#111510;color:white;border-color:#111510}
+.domainReviewSpin{animation:domainReviewSpin .9s linear infinite}
+@keyframes domainReviewSpin{to{transform:rotate(360deg)}}
+@media(max-width:640px){
+  .domainReviewPage{width:min(100% - 28px,1040px);padding:8px 0 48px}
+  .domainReviewTopbar{height:58px;grid-template-columns:1fr auto}
+  .domainReviewTopbar>div{display:none}
+  .domainReviewTopbar>a,.domainReviewTopbar>button{font-size:12px}
+  .domainReviewIntro{padding:28px 0 19px}
+  .domainReviewIntro h1{font-size:32px}
+  .domainReviewIntro p{font-size:13px}
+  .domainReviewIntro aside{font-size:12px}
+  .domainReviewList>article{padding:15px;border-radius:13px}
+  .domainReviewCardHeader>div>b{font-size:19px}
+  .domainReviewMeta{align-items:flex-start;flex-direction:column;gap:7px}
+  .domainReviewSource{align-items:flex-start;flex-direction:column}
+  .domainReviewSource>a{padding-left:28px}
+  .domainReviewList footer{flex-direction:column-reverse}
+  .domainReviewList footer button{width:100%;min-height:46px}
+  .domainReviewState{padding:42px 18px}
+  .domainReviewState>div{width:100%;flex-direction:column}
+  .domainReviewState>div a,.domainReviewState>div button{width:100%}
+}
+@media(prefers-reduced-motion:reduce){.domainReviewSpin{animation-duration:2s}}
